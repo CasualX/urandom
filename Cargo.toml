@@ -1,0 +1,21 @@
+[package]
+name = "urandom"
+version = "0.1.0"
+authors = ["Casper <CasualX@users.noreply.github.com>", "Developers of the Rand project", "The Rust Project Developers"]
+edition = "2018"
+license = "MIT"
+
+description = "Produce and consume randomness, to convert them to useful types and distributions, and some randomness-related algorithms."
+documentation = "https://docs.rs/urandom/"
+repository = "https://github.com/CasualX/urandom"
+readme = "readme.md"
+keywords = ["rand", "random", "rng"]
+categories = ["algorithms", "no-std"]
+
+[features]
+default = ["getrandom"]
+
+[dependencies]
+cfg-if = "0.1"
+getrandom = { version = "0.1", optional = true }
+dataview = { version = "0.1", default-features = false }
