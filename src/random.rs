@@ -35,9 +35,7 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// As only 23 bits are necessary to construct a random float in this range,
 	/// implementations may override this method to provide a more efficient implementation.
 	///
-	/// If high quality uniform random floats are desired in open interval `(0.0, 1.0)` without bias see the [`Float01`] distribution.
-	///
-	/// [`Float01`]: distributions/struct.Float01.html
+	/// If high quality uniform random floats are desired in open interval `(0.0, 1.0)` without bias see the [`Float01`](distributions::Float01) distribution.
 	///
 	/// # Examples
 	///
@@ -55,9 +53,7 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// As only 52 bits are necessary to construct a random double in this range,
 	/// implementations may override this method to provide a more efficient implementation.
 	///
-	/// If high quality uniform random floats are desired in open interval `(0.0, 1.0)` without bias see the [`Float01`] distribution.
-	///
-	/// [`Float01`]: distributions/struct.Float01.html
+	/// If high quality uniform random floats are desired in open interval `(0.0, 1.0)` without bias see the [`Float01`](distributions::Float01) distribution.
 	///
 	/// # Examples
 	///
@@ -149,9 +145,7 @@ impl<R: Rng + ?Sized> Random<R> {
 		return cur;
 	}
 
-	/// Returns a sample from the [`Standard`] distribution.
-	///
-	/// [`Standard`]: distributions/struct.Standard.html
+	/// Returns a sample from the [`Standard`](distributions::Standard) distribution.
 	///
 	/// # Examples
 	///
@@ -163,11 +157,9 @@ impl<R: Rng + ?Sized> Random<R> {
 		distributions::Standard.sample(self)
 	}
 
-	/// Fills the given slice with samples from the [`Standard`] distribution.
+	/// Fills the given slice with samples from the [`Standard`](distributions::Standard) distribution.
 	///
 	/// Because of its generic nature no optimizations are applied and all values are sampled individually from the distribution.
-	///
-	/// [`Standard`]: distributions/struct.Standard.html
 	///
 	/// # Examples
 	///
@@ -184,9 +176,7 @@ impl<R: Rng + ?Sized> Random<R> {
 		}
 	}
 
-	/// Returns a sample from the [`Uniform`] distribution within the given interval.
-	///
-	/// [`Uniform`]: distributions/struct.Uniform.html
+	/// Returns a sample from the [`Uniform`](distributions::Uniform) distribution within the given interval.
 	///
 	/// # Examples
 	///
@@ -199,7 +189,7 @@ impl<R: Rng + ?Sized> Random<R> {
 	///
 	/// ```
 	/// let mut rng = urandom::new();
-	/// let distr = urandom::distributions::Uniform::from(..100);
+	/// let distr = urandom::distributions::Uniform::from(0..100);
 	///
 	/// loop {
 	/// 	let value = rng.sample(&distr);
@@ -216,9 +206,7 @@ impl<R: Rng + ?Sized> Random<R> {
 
 	/// Returns a sample from the given distribution.
 	///
-	/// See the [`distributions`] documentation for a list of available distributions.
-	///
-	/// [`distributions`]: distributions/index.html
+	/// See the [`distributions`](distributions) documentation for a list of available distributions.
 	#[inline]
 	pub fn sample<T, D>(&mut self, distr: &D) -> T where D: Distribution<T> {
 		distr.sample(self)
@@ -226,9 +214,7 @@ impl<R: Rng + ?Sized> Random<R> {
 
 	/// Returns an iterator of samples from the given distribution.
 	///
-	/// See the [`distributions`] documentation for a list of available distributions.
-	///
-	/// [`distributions`]: distributions/index.html
+	/// See the [`distributions`](distributions) documentation for a list of available distributions.
 	#[inline]
 	pub fn samples<T, D>(&mut self, distr: D) -> distributions::Samples<'_, R, D, T> where D: Distribution<T> {
 		distributions::Samples::new(self, distr)
@@ -236,9 +222,7 @@ impl<R: Rng + ?Sized> Random<R> {
 
 	/// Returns `true` with the given probability.
 	///
-	/// This is known as the [`Bernoulli`] distribution.
-	///
-	/// [`Bernoulli`]: distributions/struct.Bernoulli.html
+	/// This is known as the [`Bernoulli`](distributions::Bernoulli) distribution.
 	///
 	/// # Precision
 	///
@@ -266,9 +250,7 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// This method uses `Iterator::size_hint` for optimisation.
 	/// With an accurate hint and where `Iterator::nth` is a constant-time operation this method can offer `O(1)` performance.
 	///
-	/// For slices, prefer [`choose`] which guarantees `O(1)` performance.
-	///
-	/// [`choose`]: #method.choose
+	/// For slices, prefer [`choose`](Random::choose) which guarantees `O(1)` performance.
 	///
 	/// # Examples
 	///
@@ -294,15 +276,10 @@ impl<R: Rng + ?Sized> Random<R> {
 		let mut iter = collection.into_iter();
 
 		// Take a short cut for collections with known length
-		let (lower, upper) = iter.size_hint();
-		if upper == Some(lower) {
-			return if lower == 0 {
-				None
-			}
-			else {
-				let index = self.range(..lower);
-				iter.nth(index)
-			};
+		let (len, upper) = iter.size_hint();
+		if upper == Some(len) {
+			let index = usize::min(len, self.index(len));
+			return iter.nth(index);
 		}
 
 		// Reservoir sampling, can be improved
@@ -330,63 +307,65 @@ impl<R: Rng + ?Sized> Random<R> {
 	///
 	/// Complexity is `O(n)` where `n` is the size of the collection.
 	pub fn multiple<I: IntoIterator>(&mut self, collection: I, buffer: &mut [I::Item]) -> usize {
-		let mut iter = collection.into_iter();
-
 		let amount = buffer.len();
 		let mut len = 0;
-		while len < amount {
-			if let Some(elem) = iter.next() {
+
+		collection.into_iter().enumerate().for_each(|(i, elem)| {
+			if len < amount {
 				buffer[len] = elem;
 				len += 1;
 			}
 			else {
-				// Iterator exhausted; stop early
-				return len;
-			}
-		}
-
-		// Continue, since the iterator was not exhausted
-		iter.enumerate().for_each(|(i, elem)| {
-			let k = self.range(..i + 1 + amount);
-			if let Some(slot) = buffer.get_mut(k) {
-				*slot = elem;
+				let k = self.index(i + 1 + amount);
+				if let Some(slot) = buffer.get_mut(k) {
+					*slot = elem;
+				}
 			}
 		});
+
 		len
+	}
+
+	/// Returns a random usize in the `[0, len)` interval, mostly.
+	///
+	/// If the `len` is zero an arbitrary value is returned directly from the Rng.
+	/// When used with indexing the bounds check should fail. Do not assume this value is inbounds.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// let mut rng = urandom::new();
+	/// for len in 1..12345 {
+	/// 	let index = rng.index(len);
+	/// 	assert!(index < len, "len:{} index:{} was not inbounds", len, index);
+	/// }
+	/// ```
+	pub fn index(&mut self, len: usize) -> usize {
+		distributions::UniformInt::constant(0, len).sample(self)
 	}
 
 	/// Returns a shared reference to one random element of the slice, or `None` if the slice is empty.
 	#[inline]
 	pub fn choose<'a, T>(&mut self, slice: &'a [T]) -> Option<&'a T> {
-		if slice.is_empty() {
-			return None;
-		}
-		let index = self.range(..slice.len());
+		let index = self.index(slice.len());
 		slice.get(index)
 	}
 	/// Returns a unique reference to one random element of the slice, or `None` if the slice is empty.
 	#[inline]
 	pub fn choose_mut<'a, T>(&mut self, slice: &'a mut [T]) -> Option<&'a mut T> {
-		if slice.is_empty() {
-			return None;
-		}
-		let index = self.range(..slice.len());
+		let index = self.index(slice.len());
 		slice.get_mut(index)
 	}
 
 	/// Returns an iterator over random chosen elements of the slice with repetition.
 	///
-	/// # Panics
-	///
-	/// Panics if the slice is empty.
+	/// Produces `None` values if the slice is empty.
 	#[inline]
-	pub fn choose_iter<'a, T>(&mut self, slice: &'a [T]) -> distributions::Samples<'_, R, distributions::Choose<'a, T>, &'a T> {
-		self.samples(distributions::Choose::new(slice))
+	pub fn choose_iter<'a, T>(&'a mut self, slice: &'a [T]) -> impl 'a + Iterator<Item = &'a T> {
+		core::iter::from_fn(move || self.choose(slice))
 	}
 
-	/// Standard [Fisher–Yates] shuffle.
-	///
-	/// [Fisher–Yates]: https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+	/// Standard [Fisher–Yates](https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle) shuffle.
 	///
 	/// # Examples
 	///
@@ -401,7 +380,7 @@ impl<R: Rng + ?Sized> Random<R> {
 	pub fn shuffle<T>(&mut self, slice: &mut [T]) {
 		let mut len = slice.len();
 		while len > 1 {
-			let k = self.range(..len);
+			let k = self.index(len);
 			slice.swap(k, len - 1);
 			len -= 1;
 		}

@@ -34,13 +34,25 @@ impl SeedRng for SplitMix64 {
 forward_seed_rng_impl!(SplitMix64);
 
 impl Rng for SplitMix64 {
-	#[inline(never)]
+	#[inline]
 	fn next_u32(&mut self) -> u32 {
 		next(&mut self.0) as u32
 	}
-	#[inline(never)]
+	#[inline]
 	fn next_u64(&mut self) -> u64 {
 		next(&mut self.0)
+	}
+	#[inline(never)]
+	fn fill_u32(&mut self, buffer: &mut [u32]) {
+		*self = crate::impls::fill_u32(self.clone(), buffer);
+	}
+	#[inline(never)]
+	fn fill_u64(&mut self, buffer: &mut [u64]) {
+		*self = crate::impls::fill_u64(self.clone(), buffer);
+	}
+	#[inline(never)]
+	fn fill_bytes(&mut self, buffer: &mut [u8]) {
+		*self = crate::impls::fill_bytes(self.clone(), buffer);
 	}
 	#[inline]
 	fn jump(&mut self) {

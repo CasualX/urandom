@@ -88,6 +88,7 @@ impl Rng for ChaCha20 {
 		self.index = index as u32;
 		high << 32 | low
 	}
+	#[inline(never)]
 	fn fill_u32(&mut self, mut buffer: &mut [u32]) {
 		// Fill directly from the generator
 		while buffer.len() >= BLOCK_WORDS {
@@ -114,6 +115,7 @@ impl Rng for ChaCha20 {
 		// Implement via fill_u32
 		self.fill_u32(buffer.as_data_view_mut().slice_tail_mut(0));
 	}
+	#[inline(never)]
 	fn fill_bytes(&mut self, mut buffer: &mut [u8]) {
 		// Fill directly from the generator
 		// Use a temporary block buffer due to potential alignment issues
@@ -138,6 +140,7 @@ impl Rng for ChaCha20 {
 		index += (buffer.len() + 3) / 4;
 		self.index = index as u32;
 	}
+	#[inline]
 	fn jump(&mut self) {
 		let mut tmp = [0; 16];
 		chacha20_block(&mut self.state, &mut tmp);

@@ -4,9 +4,7 @@ use crate::{Distribution, Random, Rng};
 
 /// An iterator that generates random values of `T` with distribution `D`, using `R` as the source of randomness.
 ///
-/// This `struct` is created by the [`Random::samples`] method. See its documentation for more.
-///
-/// [`Random::samples`]: ../struct.Random.html#method.samples
+/// This struct is created by the [`Random::samples`](Random::samples) method. See its documentation for more.
 pub struct Samples<'a, R: ?Sized, D, T> {
 	rng: &'a mut Random<R>,
 	distr: D,

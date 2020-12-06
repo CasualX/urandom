@@ -26,12 +26,8 @@ pub trait UniformSampler<T>: Distribution<T> {
 
 /// Sample values uniformly between two bounds.
 ///
-/// `Uniform` values can be constructed `From<Range>` or `From<RangeInclusive>`;
-/// these constructors may do extra work up front to make sampling of multiple values faster.
+/// `Uniform` values can be constructed from a [`Range`](ops::Range) or [`RangeInclusive`](ops::RangeInclusive).
 /// See below for a demonstration.
-///
-/// When sampling from a constant range, many calculations can happen at compiletime and all methods should be fast;
-/// for floating point ranges and the full range of integer types this should have comparable performance to the `Standard` distribution.
 ///
 /// Steps are taken to avoid bias which might be present in naive implementations;
 /// for example `rng.next::<u8>() % 170` samples from the interval `[0, 170)` but is twice as likely to select numbers less than 85 than other values.
@@ -40,7 +36,7 @@ pub trait UniformSampler<T>: Distribution<T> {
 ///
 /// Implementations must sample within the given interval. It is a bug if an implementation returns a result outside the requested interval.
 ///
-/// For one-off samples see also: [`Random::range`] for convenient samples directly from the `Rng`.
+/// For one-off samples see also: [`Random::range`](Random::range) for convenient samples directly from the `Rng`.
 /// For more than one sample it is recommended to reuse the `Uniform` instance.
 ///
 /// # Examples
@@ -62,10 +58,10 @@ pub trait UniformSampler<T>: Distribution<T> {
 /// Different types may have completely different uniform sampling implementations (such as the integers vs floating point types).
 /// Start by creating a custom sampler struct which will later be linked to the `Uniform` type.
 ///
-/// For your custom sampler implement [`Distribution`] for your custom type and [`UniformSampler`] to add constructors to it.
+/// For your custom sampler implement [`Distribution`](Distribution) for your custom type and [`UniformSampler`](UniformSampler) to add constructors to it.
 ///
-/// Once that's done you can specify that your custom type uses your custom sampler by implementing [`SampleUniform`]
-/// and pointing its associated [`Sampler`] type to your custom sampler.
+/// Once that's done you can specify that your custom type uses your custom sampler by implementing [`SampleUniform`](SampleUniform)
+/// and pointing its associated [`Sampler`](SampleUniform::Sampler) type to your custom sampler.
 ///
 /// ```
 /// use urandom::{Distribution, Random, Rng};
@@ -104,12 +100,6 @@ pub trait UniformSampler<T>: Distribution<T> {
 /// let value = rng.range(MyF32(13.0)..MyF32(42.0));
 /// assert!(value.0 >= 13.0 && value.0 < 42.0);
 /// ```
-///
-/// [`Random::range`]: ../struct.Random.html#method.range
-/// [`Distribution`]: trait.Distribution.html
-/// [`UniformSampler`]: trait.UniformSampler.html
-/// [`SampleUniform`]: trait.SampleUniform.html
-/// [`Sampler`]: trait.SampleUniform.html#associatedtype.Sampler
 #[derive(Copy, Clone, Debug)]
 pub struct Uniform<T: SampleUniform>(T::Sampler);
 
@@ -124,12 +114,6 @@ impl<T: SampleUniform> From<ops::RangeInclusive<T>> for Uniform<T> {
 	fn from(range: ops::RangeInclusive<T>) -> Uniform<T> {
 		let (start, end) = range.into_inner();
 		Uniform(T::Sampler::new_inclusive(start, end))
-	}
-}
-impl<T: SampleUniform + Default> From<ops::RangeTo<T>> for Uniform<T> {
-	#[inline]
-	fn from(range: ops::RangeTo<T>) -> Uniform<T> {
-		Uniform(T::Sampler::new(T::default(), range.end))
 	}
 }
 
