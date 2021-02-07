@@ -13,7 +13,8 @@ keywords = ["rand", "random", "rng"]
 categories = ["algorithms", "no-std"]
 
 [features]
-default = ["getrandom"]
+default = ["getrandom", "std"]
+std = []
 
 [dependencies]
 cfg-if = "0.1"
