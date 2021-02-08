@@ -35,11 +35,8 @@ This library was inspired by the semi-official [`rand`] crate and an attempt to 
 
 // Unsafe code is restricted to certain specific Rng implementations
 #![deny(unsafe_code)]
-#![no_std]
 
-#[cfg(test)]
-#[macro_use]
-extern crate std;
+#![cfg_attr(not(any(test, feature = "std")), no_std)]
 
 mod random;
 mod impls;

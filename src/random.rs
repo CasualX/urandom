@@ -428,6 +428,24 @@ impl<R: Rng + ?Sized> fmt::Debug for Random<R> {
 	}
 }
 
+#[cfg(feature = "std")]
+impl<R: Rng> std::io::Read for Random<R> {
+	fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+		self.fill_bytes(buf);
+		Ok(buf.len())
+	}
+	fn read_to_end(&mut self, _buf: &mut Vec<u8>) -> std::io::Result<usize> {
+		panic!("cannot read_to_end from Rng")
+	}
+	fn read_to_string(&mut self, _buf: &mut String) -> std::io::Result<usize> {
+		panic!("cannot read_to_string from Rng")
+	}
+	fn read_exact(&mut self, buf: &mut [u8]) -> std::io::Result<()> {
+		self.fill_bytes(buf);
+		Ok(())
+	}
+}
+
 //----------------------------------------------------------------
 
 #[test]
