@@ -6,11 +6,11 @@ Pseudorandom number generators
 
 These generators implement fast PRNG which are suitable for normal use in non-cryptography applications.
 
-* [`SplitMix64`](struct.SplitMix64.html) Rng:
+* [`SplitMix64`](SplitMix64) Rng:
 
   Simple 64-bit state generator uses wrapping addition, wrapping multiplication, XOR and shifts.
 
-* [`Xoshiro256`](struct.Xoshiro256.html) Rng:
+* [`Xoshiro256`](Xoshiro256) Rng:
 
   Kindly taken from [Sebastiano Vigna](http://vigna.di.unimi.it/)'s excellent [PRNG shootout](http://prng.di.unimi.it/) article.
 
@@ -19,7 +19,7 @@ Cryptographically secure generators
 
 These generators implement suitable CSPRNG implementations without calling out to the system or hardware directly.
 
-* [`ChaCha20`](struct.ChaCha20.html) Rng:
+* [`ChaCha20`](ChaCha20) Rng:
 
   Daniel J. Bernstein's ChaCha20 adapted as a deterministic random number generator.
 
@@ -63,71 +63,15 @@ pub trait Rng {
 	/// This may produce distinct values compared to filling naively with `next_u32`.
 	///
 	/// Implementations are required to produce the same result regardless of endianness.
-	///
-	/// The default implementation fills the slice using `next_u64` until the end.
-	fn fill_u32(&mut self, mut buffer: &mut [u32]) {
-		while buffer.len() >= 2 {
-			let value = self.next_u64().to_le_bytes();
-			// Unaligned u64 little-endian write
-			buffer[0] = u32::from_le_bytes([value[0], value[1], value[2], value[3]]);
-			buffer[1] = u32::from_le_bytes([value[4], value[5], value[6], value[7]]);
-			buffer = &mut buffer[2..];
-		}
-		if buffer.len() > 0 {
-			buffer[0] = self.next_u32();
-		}
-	}
+	fn fill_u32(&mut self, buffer: &mut [u32]);
 
 	/// Fills the next `u64` elements in the sequence.
-	fn fill_u64(&mut self, buffer: &mut [u64]) {
-		for elem in buffer {
-			*elem = self.next_u64();
-		}
-	}
+	fn fill_u64(&mut self, buffer: &mut [u64]);
 
 	/// Fills the byte slice with uniform random bytes.
 	///
 	/// Implementations are required to produce the same result regardless of endianness.
-	///
-	/// The default implementation fills the slice using `next_u64` until the end.
-	fn fill_bytes(&mut self, mut buffer: &mut [u8]) {
-		// Loop unrolled for eight bytes at the time
-		while buffer.len() >= 8 {
-			let value = self.next_u64().to_le_bytes();
-			// Unaligned u64 little-endian write
-			buffer[0] = value[0];
-			buffer[1] = value[1];
-			buffer[2] = value[2];
-			buffer[3] = value[3];
-			buffer[4] = value[4];
-			buffer[5] = value[5];
-			buffer[6] = value[6];
-			buffer[7] = value[7];
-			buffer = &mut buffer[8..];
-		}
-		if buffer.len() > 0 {
-			let mut value = self.next_u64();
-			if buffer.len() >= 4 {
-				// Unaligned u32 little-endian write
-				buffer[0] = ((value >> 0) & 0xff) as u8;
-				buffer[1] = ((value >> 8) & 0xff) as u8;
-				buffer[2] = ((value >> 16) & 0xff) as u8;
-				buffer[3] = ((value >> 24) & 0xff) as u8;
-				buffer = &mut buffer[4..];
-				value >>= 32;
-			}
-			if buffer.len() >= 2 {
-				// Unaligned u16 little-endian write
-				buffer[0] = ((value >> 0) & 0xff) as u8;
-				buffer[1] = ((value >> 8) & 0xff) as u8;
-				buffer = &mut buffer[2..];
-				value >>= 16;
-			}
-			if buffer.len() >= 1 {
-				buffer[0] = (value & 0xff) as u8;
-			}
-		}
-	}
+	fn fill_bytes(&mut self, buffer: &mut [u8]);
 
 	/// Advances the internal state significantly.
 	///
@@ -143,17 +87,17 @@ pub trait SeedRng: Sized {
 	///
 	/// # Panics
 	///
-	/// If [`getentropy`](fn.getentropy.html) is unable to provide secure entropy this method will panic.
+	/// If [`getentropy`](getentropy) is unable to provide secure entropy this method will panic.
 	fn new() -> Random<Self>;
 
-	/// Create a new PRNG seeded from another `Rng`.
+	/// Creates a new PRNG seeded from another `Rng`.
 	///
 	/// This may be useful when needing to rapidly seed many PRNGs from a master PRNG, and to allow forking of PRNGs.
 	///
 	/// The master PRNG should use a sufficiently different algorithm from the child PRNG (ideally a CSPRNG) to avoid correlations between the child PRNGs.
 	fn from_rng<R: Rng + ?Sized>(rng: &mut Random<R>) -> Random<Self>;
 
-	/// Create a new PRNG using the given seed.
+	/// Creates a new PRNG using the given seed.
 	///
 	/// The seed is not required to look random, the PRNG constructor must ensure it can handle degenerate seed values by mixing it first.
 	/// The PRNG constructor should not panic on degenerate seed values (such as zero) and instead replace it with something else.
@@ -170,21 +114,21 @@ macro_rules! forward_seed_rng_impl {
 		impl $ty {
 			/// Creates a new instance seeded securely from system entropy.
 			///
-			/// See the [`SeedRng`](trait.SeedRng.html#tymethod.new) trait for more information.
+			/// See the [`SeedRng`](SeedRng::new) trait for more information.
 			#[inline]
 			pub fn new() -> Random<$ty> {
 				SeedRng::new()
 			}
-			/// Create a new PRNG seeded from another `Rng`.
+			/// Creates a new PRNG seeded from another `Rng`.
 			///
-			/// See the [`SeedRng`](trait.SeedRng.html#tymethod.from_rng) trait for more information.
+			/// See the [`SeedRng`](SeedRng::from_rng) trait for more information.
 			#[inline]
 			pub fn from_rng<R: Rng + ?Sized>(rng: &mut Random<R>) -> Random<$ty> {
 				SeedRng::from_rng(rng)
 			}
-			/// Create a new PRNG using the given seed.
+			/// Creates a new PRNG using the given seed.
 			///
-			/// See the [`SeedRng`](trait.SeedRng.html#tymethod.from_seed) trait for more information.
+			/// See the [`SeedRng`](SeedRng::from_seed) trait for more information.
 			#[inline]
 			pub fn from_seed(seed: u64) -> Random<$ty> {
 				SeedRng::from_seed(seed)

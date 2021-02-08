@@ -50,6 +50,19 @@ impl<I> Rng for MockRng<I> where I: Iterator<Item = u64> {
 	fn next_u64(&mut self) -> u64 {
 		self.0.next().unwrap()
 	}
+	fn fill_u32(&mut self, buffer: &mut [u32]) {
+		for slot in buffer {
+			*slot = self.next_u32();
+		}
+	}
+	fn fill_u64(&mut self, buffer: &mut [u64]) {
+		for slot in buffer {
+			*slot = self.next_u64();
+		}
+	}
+	fn fill_bytes(&mut self, _buffer: &mut [u8]) {
+		unimplemented!()
+	}
 	fn jump(&mut self) {
 		// This method is intentionally left blank.
 	}

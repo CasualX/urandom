@@ -45,7 +45,7 @@ forward_seed_rng_impl!(Xoshiro256);
 impl Rng for Xoshiro256 {
 	#[inline]
 	fn next_u32(&mut self) -> u32 {
-		next_plusplus(&mut self.state) as u32
+		(next_plus(&mut self.state) >> 32) as u32
 	}
 	#[inline]
 	fn next_u64(&mut self) -> u64 {
@@ -53,11 +53,23 @@ impl Rng for Xoshiro256 {
 	}
 	#[inline]
 	fn next_f32(&mut self) -> f32 {
-		crate::impls::rng_f32((next_plus(&mut self.state) >> 32) as u32)
+		crate::impls::rng_f32(self.next_u32())
 	}
 	#[inline]
 	fn next_f64(&mut self) -> f64 {
 		crate::impls::rng_f64(next_plus(&mut self.state))
+	}
+	#[inline(never)]
+	fn fill_u32(&mut self, buffer: &mut [u32]) {
+		*self = crate::impls::fill_u32(self.clone(), buffer);
+	}
+	#[inline(never)]
+	fn fill_u64(&mut self, buffer: &mut [u64]) {
+		*self = crate::impls::fill_u64(self.clone(), buffer);
+	}
+	#[inline(never)]
+	fn fill_bytes(&mut self, buffer: &mut [u8]) {
+		*self = crate::impls::fill_bytes(self.clone(), buffer);
 	}
 	#[inline]
 	fn jump(&mut self) {
@@ -68,7 +80,7 @@ impl Rng for Xoshiro256 {
 //----------------------------------------------------------------
 // Xoshiro256 implementation details
 
-#[inline(never)]
+#[inline]
 fn next_plusplus(s: &mut [u64; 4]) -> u64 {
 	let result = u64::wrapping_add(u64::wrapping_add(s[0], s[3]).rotate_left(23), s[0]);
 
@@ -85,7 +97,7 @@ fn next_plusplus(s: &mut [u64; 4]) -> u64 {
 
 	return result;
 }
-#[inline(never)]
+#[inline]
 fn next_plus(s: &mut [u64; 4]) -> u64 {
 	let result = u64::wrapping_add(s[0], s[3]);
 

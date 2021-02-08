@@ -6,10 +6,7 @@ This crate provides utilities to generate random numbers, to convert them to use
 # Quick Start
 
 To get you started quickly, the easiest and highest-level way to get a random value is to use `urandom::new().next()`.
-The [`Random`] struct provides a useful API on all Rngs, while the [`distributions`] module provide further functionality on top of Rngs.
-
-[`Random`]: struct.Random.html
-[`distributions`]: distributions/index.html
+The [`Random`](Random) struct provides a useful API on all Rngs, while the [`distributions`](distributions) module provide further functionality on top of Rngs.
 
 ```
 let mut rng = urandom::new();
@@ -28,9 +25,7 @@ let mut numbers: Vec<i32> = (1..100).collect();
 rng.shuffle(&mut numbers);
 ```
 
-This library was inspired by the semi-official [`rand`] crate and an attempt to provide a better experience.
-
-[`rand`]: https://crates.io/crates/rand
+This library was inspired by the semi-official [`rand`](https://crates.io/crates/rand) crate and an attempt to provide a better experience.
 */
 
 // Unsafe code is restricted to certain specific Rng implementations
@@ -76,7 +71,7 @@ pub fn new() -> Random<impl Rng + Clone> {
 /// ```
 /// let mut rng = urandom::seeded(42);
 /// let value: i32 = rng.next();
-/// assert_eq!(value, 1148610719);
+/// assert_eq!(value, 368317477);
 /// ```
 #[inline]
 pub fn seeded(seed: u64) -> Random<impl Rng + Clone> {
