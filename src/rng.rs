@@ -149,6 +149,13 @@ pub use self::xoshiro256::Xoshiro256;
 mod mock;
 pub use self::mock::MockRng;
 
+cfg_if::cfg_if! {
+	if #[cfg(feature = "std")] {
+		mod read;
+		pub use self::read::ReadRng;
+	}
+}
+
 mod chacha20;
 pub use self::chacha20::ChaCha20;
 
