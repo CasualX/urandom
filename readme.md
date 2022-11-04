@@ -4,6 +4,7 @@
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![crates.io](https://img.shields.io/crates/v/urandom.svg)](https://crates.io/crates/urandom)
 [![docs.rs](https://docs.rs/urandom/badge.svg)](https://docs.rs/urandom)
+[![Build status](https://github.com/CasualX/urandom/workflows/CI/badge.svg)](https://github.com/CasualX/urandom/actions)
 
 Produce and consume randomness.
 

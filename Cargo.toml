@@ -1,8 +1,8 @@
 [package]
 name = "urandom"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Casper <CasualX@users.noreply.github.com>", "Developers of the Rand project", "The Rust Project Developers"]
-edition = "2018"
+edition = "2021"
 license = "MIT"
 
 description = "Produce and consume randomness, to convert them to useful types and distributions, and some randomness-related algorithms."
@@ -19,4 +19,4 @@ std = []
 [dependencies]
 cfg-if = "0.1"
 getrandom = { version = "0.1", optional = true }
-dataview = { version = "0.1", default-features = false }
+dataview = { version = "~1.0", default-features = false }

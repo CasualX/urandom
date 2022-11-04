@@ -1,4 +1,3 @@
-use dataview::Pod;
 use crate::{Random, Rng};
 use super::SeedRng;
 
@@ -27,7 +26,7 @@ impl SeedRng for ChaCha20 {
 			CONSTANT[0], CONSTANT[1], CONSTANT[2], CONSTANT[3],
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 		];
-		super::getentropy(state[4..].as_bytes_mut());
+		super::getentropy(dataview::bytes_mut(&mut state[4..]));
 		Random(ChaCha20 { state, random: [0; BLOCK_WORDS], index: !0 })
 	}
 	#[inline]
@@ -92,7 +91,7 @@ impl Rng for ChaCha20 {
 	fn fill_u32(&mut self, mut buffer: &mut [u32]) {
 		// Fill directly from the generator
 		while buffer.len() >= BLOCK_WORDS {
-			let block = buffer.as_data_view_mut().read_mut(0);
+			let block = dataview::DataView::from_mut(buffer).get_mut(0);
 			chacha20_block(&mut self.state, block);
 			buffer = &mut buffer[BLOCK_WORDS..];
 		}
@@ -113,7 +112,8 @@ impl Rng for ChaCha20 {
 	#[inline]
 	fn fill_u64(&mut self, buffer: &mut [u64]) {
 		// Implement via fill_u32
-		self.fill_u32(buffer.as_data_view_mut().slice_tail_mut(0));
+		let len = buffer.len() * 2;
+		self.fill_u32(dataview::DataView::from_mut(buffer).slice_mut::<u32>(0, len));
 	}
 	#[inline(never)]
 	fn fill_bytes(&mut self, mut buffer: &mut [u8]) {
@@ -122,7 +122,7 @@ impl Rng for ChaCha20 {
 		let mut tmp = [0; BLOCK_WORDS];
 		while buffer.len() >= BLOCK_SIZE {
 			chacha20_block(&mut self.state, &mut tmp);
-			buffer[..BLOCK_SIZE].copy_from_slice(tmp.as_bytes());
+			buffer[..BLOCK_SIZE].copy_from_slice(dataview::bytes(&tmp));
 			buffer = &mut buffer[BLOCK_SIZE..];
 		}
 		// Generate a new block if there are not enough words remaining
@@ -133,7 +133,7 @@ impl Rng for ChaCha20 {
 			index = 0;
 		}
 		// Fill the remaining words from the random block
-		let src = self.random[index..].as_bytes();
+		let src = dataview::bytes(&self.random[index..]);
 		for i in 0..buffer.len() {
 			buffer[i] = src[i];
 		}

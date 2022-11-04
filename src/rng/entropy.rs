@@ -1,26 +1,25 @@
-use dataview::Pod;
 use crate::Rng;
 
 impl Rng for fn(&mut [u8]) {
 	#[inline]
 	fn next_u32(&mut self) -> u32 {
 		let mut value = 0;
-		self(value.as_bytes_mut());
+		self(dataview::bytes_mut(&mut value));
 		value
 	}
 	#[inline]
 	fn next_u64(&mut self) -> u64 {
 		let mut value = 0;
-		self(value.as_bytes_mut());
+		self(dataview::bytes_mut(&mut value));
 		value
 	}
 	#[inline]
 	fn fill_u32(&mut self, buffer: &mut [u32]) {
-		self(buffer.as_bytes_mut())
+		self(dataview::bytes_mut(buffer))
 	}
 	#[inline]
 	fn fill_u64(&mut self, buffer: &mut [u64]) {
-		self(buffer.as_bytes_mut())
+		self(dataview::bytes_mut(buffer))
 	}
 	#[inline]
 	fn fill_bytes(&mut self, buffer: &mut [u8]) {
