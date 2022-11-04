@@ -1,4 +1,3 @@
-use dataview::Pod;
 use crate::{Random, Rng};
 use super::SeedRng;
 
@@ -26,7 +25,7 @@ impl SeedRng for Xoshiro256 {
 	#[inline]
 	fn new() -> Random<Xoshiro256> {
 		let mut state = [0u64; 4];
-		super::getentropy(state.as_bytes_mut());
+		super::getentropy(dataview::bytes_mut(&mut state));
 		Random(Xoshiro256 { state })
 	}
 	#[inline]

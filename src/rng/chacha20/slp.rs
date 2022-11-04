@@ -2,8 +2,6 @@
 // https://llvm.org/docs/Vectorizers.html#the-slp-vectorizer
 // Requires `-C opt-level=3 -C target-cpu=native` for best results
 
-use dataview::Pod;
-
 #[inline(always)]
 fn u32x4_add(a: [u32; 4], b: [u32; 4]) -> [u32; 4] {
 	[a[0].wrapping_add(b[0]), a[1].wrapping_add(b[1]), a[2].wrapping_add(b[2]), a[3].wrapping_add(b[3])]
@@ -36,7 +34,7 @@ macro_rules! rotate_matrix {
 #[inline(never)]
 pub fn block(state: &mut [u32; 16], ws: &mut [u32; 16]) {
 	{
-		let state: &mut [[u32; 4]; 4] = state.as_data_view_mut().read_mut(0);
+		let state: &mut [[u32; 4]; 4] = dataview::DataView::from_mut(state).get_mut(0);
 		let [mut a, mut b, mut c, mut d] = state;
 
 		for _ in 0..10 {
@@ -53,7 +51,7 @@ pub fn block(state: &mut [u32; 16], ws: &mut [u32; 16]) {
 		c = u32x4_add(c, state[2]);
 		d = u32x4_add(d, state[3]);
 
-		let ws: &mut [[u32; 4]; 4] = ws.as_data_view_mut().read_mut(0);
+		let ws: &mut [[u32; 4]; 4] = dataview::DataView::from_mut(ws).get_mut(0);
 		*ws = [a, b, c, d];
 	}
 

@@ -1,4 +1,3 @@
-use dataview::Pod;
 use crate::{Random, Rng};
 use super::SeedRng;
 
@@ -18,7 +17,7 @@ impl SeedRng for SplitMix64 {
 	#[inline]
 	fn new() -> Random<SplitMix64> {
 		let mut state = 0u64;
-		super::getentropy(state.as_bytes_mut());
+		super::getentropy(dataview::bytes_mut(&mut state));
 		Random(SplitMix64(state))
 	}
 	#[inline]

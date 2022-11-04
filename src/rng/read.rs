@@ -1,5 +1,4 @@
 use std::io;
-use dataview::Pod;
 use crate::{Random, Rng};
 
 /// An RNG that reads random bytes straight from any type supporting [`std::io::Read`], for example files.
@@ -48,13 +47,13 @@ impl<R: io::Read> Rng for ReadRng<R> {
 	}
 	#[inline]
 	fn fill_u32(&mut self, buffer: &mut [u32]) {
-		if let Err(err) = self.0.read_exact(buffer.as_bytes_mut()) {
+		if let Err(err) = self.0.read_exact(dataview::bytes_mut(buffer)) {
 			read_failed(err);
 		}
 	}
 	#[inline]
 	fn fill_u64(&mut self, buffer: &mut [u64]) {
-		if let Err(err) = self.0.read_exact(buffer.as_bytes_mut()) {
+		if let Err(err) = self.0.read_exact(dataview::bytes_mut(buffer)) {
 			read_failed(err);
 		}
 	}
