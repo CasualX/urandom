@@ -31,16 +31,14 @@ macro_rules! rotate_matrix {
 	};
 }
 
-#[inline(never)]
-pub fn block(state: &mut [u32; 16], ws: &mut [u32; 16]) {
+#[inline]
+pub fn block(state: &mut [u32; 16], ws: &mut [u32; 16], n: usize) {
 	{
 		let state: &mut [[u32; 4]; 4] = dataview::DataView::from_mut(state).get_mut(0);
 		let [mut a, mut b, mut c, mut d] = state;
 
-		for _ in 0..10 {
-			// column rounds
+		for _ in 0..n / 2 {
 			quarter_round!(a, b, c, d);
-			// diagonal rounds
 			rotate_matrix!(a, b, c, d);
 			quarter_round!(a, b, c, d);
 			rotate_matrix!(a, d, c, b);

@@ -9,7 +9,7 @@ fn main() {
 		// In practice the division is a power of two which is very efficient to work with.
 		let value = rng * 4 / 10;
 
-		print!("{}  ", value);
+		print!("{value}  ");
 	}
 	println!();
 
@@ -26,7 +26,7 @@ fn main() {
 		// Again in practice the remainder is a power of two which is very efficient to work with.
 		let reject = rng * 4 % 10;
 		if reject >= 2 {
-			print!("{}  ", value);
+			print!("{value}  ");
 		}
 	}
 	println!();
@@ -56,7 +56,7 @@ fn main() {
 		println!("\nLookup table for u32 rejection sampling:");
 		for range in 1..65 {
 			let reject = u32::wrapping_sub(0, range) % range;
-			print!("{}, ", reject);
+			print!("{reject}, ");
 			if range % 8 == 0 {
 				println!();
 			}
@@ -64,7 +64,7 @@ fn main() {
 		println!("\nLookup table for u64 rejection sampling:");
 		for range in 1..65 {
 			let reject = u64::wrapping_sub(0, range) % range;
-			print!("{}, ", reject);
+			print!("{reject}, ");
 			if range % 8 == 0 {
 				println!();
 			}
