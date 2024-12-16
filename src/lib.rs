@@ -6,23 +6,24 @@ This crate provides utilities to generate random numbers, to convert them to use
 # Quick Start
 
 To get you started quickly, the easiest and highest-level way to get a random value is to use `urandom::new().next()`.
-The [`Random`](Random) struct provides a useful API on all Rngs, while the [`distributions`](distributions) module provide further functionality on top of Rngs.
+
+The [`Random`] struct provides a useful API on all [`Rng`], while the [`distr`] module provide specific distributions on top of Rngs.
 
 ```
-let mut rng = urandom::new();
+let mut rand = urandom::new();
 
 // Generates a random boolean
-if rng.coin_flip() {
+if rand.coin_flip() {
 	// Try printing a random unicode code point (probably a bad idea)!
-	println!("char: {}", rng.next::<char>());
+	println!("char: {}", rand.next::<char>());
 }
 
 // Generates a float between 13.0 and 42.0
-let y: f64 = rng.range(13.0..42.0);
+let y: f64 = rand.range(13.0..42.0);
 
 // Shuffles the list of numbers
 let mut numbers: Vec<i32> = (1..100).collect();
-rng.shuffle(&mut numbers);
+rand.shuffle(&mut numbers);
 ```
 
 This library was inspired by the semi-official [`rand`](https://crates.io/crates/rand) crate and an attempt to provide a better experience.
@@ -34,13 +35,12 @@ This library was inspired by the semi-official [`rand`](https://crates.io/crates
 #![cfg_attr(not(any(test, feature = "std")), no_std)]
 
 mod random;
-mod impls;
 
 pub mod rng;
-pub mod distributions;
+pub mod distr;
 
 pub use self::rng::Rng;
-pub use self::distributions::Distribution;
+pub use self::distr::Distribution;
 pub use self::random::Random;
 
 //----------------------------------------------------------------
@@ -52,8 +52,8 @@ pub use self::random::Random;
 /// # Examples
 ///
 /// ```
-/// let mut rng = urandom::new();
-/// let value: i32 = rng.next();
+/// let mut rand = urandom::new();
+/// let value: i32 = rand.next();
 /// ```
 #[inline]
 pub fn new() -> Random<impl Rng + Clone> {
@@ -69,8 +69,8 @@ pub fn new() -> Random<impl Rng + Clone> {
 /// # Examples
 ///
 /// ```
-/// let mut rng = urandom::seeded(42);
-/// let value: i32 = rng.next();
+/// let mut rand = urandom::seeded(42);
+/// let value: i32 = rand.next();
 /// assert_eq!(value, 368317477);
 /// ```
 #[inline]
@@ -85,10 +85,10 @@ pub fn seeded(seed: u64) -> Random<impl Rng + Clone> {
 /// # Examples
 ///
 /// ```
-/// let mut rng = urandom::csprng();
-/// let value: i32 = rng.next();
+/// let mut rand = urandom::csprng();
+/// let value: i32 = rand.next();
 /// ```
 #[inline]
 pub fn csprng() -> Random<impl Rng + Clone> {
-	crate::rng::ChaCha20::new()
+	crate::rng::ChaCha12::new()
 }

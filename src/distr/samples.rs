@@ -1,30 +1,31 @@
-use core::iter;
-use core::marker::PhantomData;
-use crate::{Distribution, Random, Rng};
+use super::*;
 
 /// An iterator that generates random values of `T` with distribution `D`, using `R` as the source of randomness.
 ///
 /// This struct is created by the [`Random::samples`](Random::samples) method. See its documentation for more.
 pub struct Samples<'a, R: ?Sized, D, T> {
-	rng: &'a mut Random<R>,
+	rand: &'a mut Random<R>,
 	distr: D,
-	_phantom: PhantomData<fn() -> T>,
+	_phantom: marker::PhantomData<fn() -> T>,
 }
+
 impl<'a, R: ?Sized, D, T> Samples<'a, R, D, T> {
 	#[inline]
-	pub(crate) fn new(rng: &'a mut Random<R>, distr: D) -> Self {
-		Samples { rng, distr, _phantom: PhantomData }
+	pub(crate) fn new(rand: &'a mut Random<R>, distr: D) -> Self {
+		Samples { rand, distr, _phantom: marker::PhantomData }
 	}
 }
-impl<'a, R: ?Sized, D, T> Iterator for Samples<'a, R, D, T> where R: Rng, D: Distribution<T> {
+
+impl<'a, R: Rng + ?Sized, D: Distribution<T>, T> Iterator for Samples<'a, R, D, T> {
 	type Item = T;
 	#[inline]
 	fn next(&mut self) -> Option<T> {
-		Some(self.distr.sample(self.rng))
+		Some(self.distr.sample(self.rand))
 	}
 	#[inline]
 	fn size_hint(&self) -> (usize, Option<usize>) {
 		(usize::MAX, None)
 	}
 }
-impl<'a, R: ?Sized, D, T> iter::FusedIterator for Samples<'a, R, D, T> where R: Rng, D: Distribution<T> {}
+
+impl<'a, R: Rng + ?Sized, D: Distribution<T>, T> iter::FusedIterator for Samples<'a, R, D, T> {}

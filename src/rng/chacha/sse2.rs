@@ -47,11 +47,11 @@ macro_rules! rotate_matrix {
 }
 
 #[inline(never)]
-pub fn block(state: &mut [u32; 16], ws: &mut [u32; 16]) {
+pub fn block<const N: usize>(state: &mut [u32; 16], ws: &mut [u32; 16]) {
 	unsafe {
 		let [mut a, mut b, mut c, mut d] = load!(state);
 
-		for _ in 0..10 {
+		for _ in 0..N / 2 {
 			// column rounds
 			quarter_round!(a, b, c, d);
 			// diagonal rounds

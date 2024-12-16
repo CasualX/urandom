@@ -1,61 +1,56 @@
-use crate::{Random, Rng};
-use super::SeedRng;
+use super::*;
 
 /// Java 8's SplittableRandom generator.
 ///
 /// # Examples
 ///
 /// ```
-/// let mut rng = urandom::rng::SplitMix64::new();
-/// let value: i32 = rng.next();
+/// let mut rand = urandom::rng::SplitMix64::new();
+/// let value: i32 = rand.next();
 /// ```
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[repr(transparent)]
-pub struct SplitMix64(pub(crate) u64);
+pub struct SplitMix64 {
+	state: u64,
+}
 
 impl SeedRng for SplitMix64 {
 	#[inline]
 	fn new() -> Random<SplitMix64> {
-		let mut state = 0u64;
-		super::getentropy(dataview::bytes_mut(&mut state));
-		Random(SplitMix64(state))
+		let state = util::getrandom();
+		Random::from(SplitMix64 { state })
 	}
 	#[inline]
-	fn from_rng<R: ?Sized + Rng>(rng: &mut Random<R>) -> Random<SplitMix64> {
-		Random(SplitMix64(rng.next_u64()))
+	fn from_rng<R: ?Sized + Rng>(rand: &mut Random<R>) -> Random<SplitMix64> {
+		Random::from(SplitMix64 { state: rand.next_u64() })
 	}
 	#[inline]
 	fn from_seed(seed: u64) -> Random<SplitMix64> {
-		Random(SplitMix64(seed))
+		Random::from(SplitMix64 { state: seed })
 	}
 }
 
-forward_seed_rng_impl!(SplitMix64);
+impl SplitMix64 {
+	forward_seed_rng_impl!();
+}
 
 impl Rng for SplitMix64 {
 	#[inline]
 	fn next_u32(&mut self) -> u32 {
-		next(&mut self.0) as u32
+		next(&mut self.state) as u32
 	}
 	#[inline]
 	fn next_u64(&mut self) -> u64 {
-		next(&mut self.0)
+		next(&mut self.state)
 	}
 	#[inline(never)]
-	fn fill_u32(&mut self, buffer: &mut [u32]) {
-		*self = crate::impls::fill_u32(self.clone(), buffer);
-	}
-	#[inline(never)]
-	fn fill_u64(&mut self, buffer: &mut [u64]) {
-		*self = crate::impls::fill_u64(self.clone(), buffer);
-	}
-	#[inline(never)]
-	fn fill_bytes(&mut self, buffer: &mut [u8]) {
-		*self = crate::impls::fill_bytes(self.clone(), buffer);
+	fn fill_bytes(&mut self, buf: &mut [MaybeUninit<u8>]) {
+		*self = util::fill_bytes(self.clone(), buf);
 	}
 	#[inline]
 	fn jump(&mut self) {
-		jump(&mut self.0)
+		jump(&mut self.state)
 	}
 }
 
@@ -65,12 +60,12 @@ impl Rng for SplitMix64 {
 const GOLDEN_GAMMA: u64 = 0x9e3779b97f4a7c15;
 
 #[inline]
-fn next(x: &mut u64) -> u64 {
+const fn next(x: &mut u64) -> u64 {
 	*x = x.wrapping_add(GOLDEN_GAMMA);
 	mix64(*x)
 }
 #[inline]
-fn jump(x: &mut u64) {
+const fn jump(x: &mut u64) {
 	*x = x.wrapping_add(GOLDEN_GAMMA << 40);
 }
 

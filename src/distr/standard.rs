@@ -1,4 +1,4 @@
-use crate::{Random, Rng, Distribution};
+use super::*;
 
 /// A generic random value distribution, implemented for many primitive types.
 /// Usually generates values with a numerically uniform distribution, and with a range appropriate to the type.
@@ -17,13 +17,13 @@ use crate::{Random, Rng, Distribution};
 /// The `Standard` distribution also supports generation of the following compound types where all component types are supported:
 ///
 /// * Tuples (up to 12 elements): each element is generated sequentially.
-/// * Arrays (up to 32 elements): each element is generated sequentially;
-///   see also [`Random::fill`](Random::fill) which supports arbitrary array length for integer types and tends to be faster for u32 and smaller types.
+/// * Arrays: each element is generated sequentially;
+///   see also [`Random::fill`](Random::fill) which tends to be faster for u32 and smaller types.
 ///
 /// # Examples
 ///
 /// ```
-/// use urandom::distributions::Standard;
+/// use urandom::distr::Standard;
 ///
 /// let val: f32 = urandom::new().sample(&Standard);
 /// assert!(val >= 1.0 && val < 2.0, "f32 from [1.0, 2.0): {}", val);
@@ -34,13 +34,13 @@ use crate::{Random, Rng, Distribution};
 /// The `Standard` distribution may be implemented for user types as follows:
 ///
 /// ```
-/// use urandom::{Random, Rng, Distribution, distributions::Standard};
+/// use urandom::{Random, Rng, Distribution, distr::Standard};
 ///
 /// struct MyF32(f32);
 ///
 /// impl Distribution<MyF32> for Standard {
-/// 	fn sample<R: Rng + ?Sized>(&self, rng: &mut Random<R>) -> MyF32 {
-/// 		MyF32(rng.next())
+/// 	fn sample<R: Rng + ?Sized>(&self, rand: &mut Random<R>) -> MyF32 {
+/// 		MyF32(rand.next())
 /// 	}
 /// }
 /// ```
@@ -55,57 +55,58 @@ use crate::{Random, Rng, Distribution};
 /// This is equivalent to calling [`Random::next_f32`](Random::next_f32) and [`Random::next_f64`](Random::next_f64) directly.
 ///
 /// Subtracting `1.0` is an easy way to get a random floating point value in the half-open interval `[0.0, 1.0)` but has a small bias
-/// where it will never generate certain floating point values. This is equivalent to `rng.range(0.0..1.0)`.
+/// where it will never generate certain floating point values. This is equivalent to `rand.range(0.0..1.0)`.
 ///
 /// See also: [`Float01`](super::Float01) which samples from `(0.0, 1.0)` and does not suffer from this bias.
 #[derive(Copy, Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Standard;
 
 // Implement Standard distribution for integers as simple casts.
 // For 8 bit or 16 bit integers this simply throws away bits from the Rng.
 macro_rules! impl_standard_dist {
-	($ty:ty, $rng:ident => $e:expr) => {
+	($ty:ty, $rand:ident => $e:expr) => {
 		impl Distribution<$ty> for Standard {
 			#[inline]
-			fn sample<R: Rng + ?Sized>(&self, $rng: &mut Random<R>) -> $ty { $e }
+			fn sample<R: Rng + ?Sized>(&self, $rand: &mut Random<R>) -> $ty { $e }
 		}
 	};
 }
-impl_standard_dist! { bool, rng => (rng.next_u32() as i32) < 0 }
-impl_standard_dist! { i8, rng => rng.next_u32() as i8 }
-impl_standard_dist! { u8, rng => rng.next_u32() as u8 }
-impl_standard_dist! { i16, rng => rng.next_u32() as i16 }
-impl_standard_dist! { u16, rng => rng.next_u32() as u16 }
-impl_standard_dist! { i32, rng => rng.next_u32() as i32 }
-impl_standard_dist! { u32, rng => rng.next_u32() as u32 }
-impl_standard_dist! { i64, rng => rng.next_u64() as i64 }
-impl_standard_dist! { u64, rng => rng.next_u64() as u64 }
-impl_standard_dist! { i128, rng => { let low = rng.next_u64() as i128; let high = rng.next_u64() as i128; low | high << 64 } }
-impl_standard_dist! { u128, rng => { let low = rng.next_u64() as u128; let high = rng.next_u64() as u128; low | high << 64 } }
+impl_standard_dist! { bool, rand => (rand.next_u32() as i32) < 0 }
+impl_standard_dist! { i8, rand => rand.next_u32() as i8 }
+impl_standard_dist! { u8, rand => rand.next_u32() as u8 }
+impl_standard_dist! { i16, rand => rand.next_u32() as i16 }
+impl_standard_dist! { u16, rand => rand.next_u32() as u16 }
+impl_standard_dist! { i32, rand => rand.next_u32() as i32 }
+impl_standard_dist! { u32, rand => rand.next_u32() as u32 }
+impl_standard_dist! { i64, rand => rand.next_u64() as i64 }
+impl_standard_dist! { u64, rand => rand.next_u64() as u64 }
+impl_standard_dist! { i128, rand => { let low = rand.next_u64() as i128; let high = rand.next_u64() as i128; low | high << 64 } }
+impl_standard_dist! { u128, rand => { let low = rand.next_u64() as u128; let high = rand.next_u64() as u128; low | high << 64 } }
 #[cfg(target_pointer_width = "32")]
-impl_standard_dist! { isize, rng => rng.next_u32() as isize }
+impl_standard_dist! { isize, rand => rand.next_u32() as isize }
 #[cfg(target_pointer_width = "32")]
-impl_standard_dist! { usize, rng => rng.next_u32() as usize }
+impl_standard_dist! { usize, rand => rand.next_u32() as usize }
 #[cfg(target_pointer_width = "64")]
-impl_standard_dist! { isize, rng => rng.next_u64() as isize }
+impl_standard_dist! { isize, rand => rand.next_u64() as isize }
 #[cfg(target_pointer_width = "64")]
-impl_standard_dist! { usize, rng => rng.next_u64() as usize }
-impl_standard_dist! { f32, rng => rng.next_f32() }
-impl_standard_dist! { f64, rng => rng.next_f64() }
+impl_standard_dist! { usize, rand => rand.next_u64() as usize }
+impl_standard_dist! { f32, rand => rand.next_f32() }
+impl_standard_dist! { f64, rand => rand.next_f64() }
 
 
 impl Distribution<char> for Standard {
 	#[inline]
-	fn sample<R: Rng + ?Sized>(&self, rng: &mut Random<R>) -> char {
+	fn sample<R: Rng + ?Sized>(&self, rand: &mut Random<R>) -> char {
 		// A valid `char` is either in the interval `[0, 0xD800)` or `[0xE000, 0x11_0000)`.
 		// All `char`s must therefore be in `[0, 0x11_0000)` but not in the "gap" `[0xD800, 0xE000)` which is
 		// reserved for surrogates. This is the size of that gap.
 		const GAP_SIZE: u32 = 0xE000 - 0xD800;
 
 		// Uniform::new(0, 0x11_0000 - GAP_SIZE) can also be used but it seemed slower.
-		let range = crate::distributions::Uniform::from(GAP_SIZE..0x11_0000);
+		let range = Uniform::from(GAP_SIZE..0x11_0000);
 
-		let mut n = range.sample(rng);
+		let mut n = range.sample(rand);
 		if n < 0xE000 {
 			n -= GAP_SIZE;
 		}
@@ -121,17 +122,17 @@ impl Distribution<char> for Standard {
 }
 
 impl<T> Distribution<core::num::Wrapping<T>> for core::num::Wrapping<T> where Standard: Distribution<T> {
-	fn sample<R: Rng + ?Sized>(&self, rng: &mut Random<R>) -> core::num::Wrapping<T> {
-		core::num::Wrapping(Standard.sample(rng))
+	fn sample<R: Rng + ?Sized>(&self, rand: &mut Random<R>) -> core::num::Wrapping<T> {
+		core::num::Wrapping(Standard.sample(rand))
 	}
 }
 
 macro_rules! impl_nzint {
 	($name:ident) => {
 		impl Distribution<core::num::$name> for Standard {
-			fn sample<R: Rng + ?Sized>(&self, rng: &mut Random<R>) -> core::num::$name {
+			fn sample<R: Rng + ?Sized>(&self, rand: &mut Random<R>) -> core::num::$name {
 				loop {
-					if let Some(nz) = core::num::$name::new(rng.next()) {
+					if let Some(nz) = core::num::$name::new(rand.next()) {
 						break nz;
 					}
 				}
@@ -169,66 +170,57 @@ impl_standard_dist_tuple!(A, B, C, D, E, F, G, H, I, J);
 impl_standard_dist_tuple!(A, B, C, D, E, F, G, H, I, J, K);
 impl_standard_dist_tuple!(A, B, C, D, E, F, G, H, I, J, K, L);
 
-macro_rules! impl_standard_dist_arrays {
-	($c:tt $($tt:tt)*) => {
-		impl<T> Distribution<[T; $c]> for Standard where Standard: Distribution<T> {
-			fn sample<R: Rng + ?Sized>(&self, _rng: &mut Random<R>) -> [T; $c] {
-				#[allow(dead_code)]
-				const FOO: [(); $c] = [(); $c];
-				[$({FOO[$tt]; <Standard as Distribution<T>>::sample(&Standard, _rng)}),*]
-			}
-		}
-		impl_standard_dist_arrays!($($tt)*);
-	};
-	() => {};
+impl<T, const N: usize> Distribution<[T; N]> for Standard where Standard: Distribution<T> {
+	fn sample<R: Rng + ?Sized>(&self, rand: &mut Random<R>) -> [T; N] {
+		std::array::from_fn(move |_| <Standard as Distribution<T>>::sample(&Standard, rand))
+	}
 }
-impl_standard_dist_arrays!(32 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0);
 
 //----------------------------------------------------------------
 
 #[test]
 fn test_arrays() {
-	let mut rng = crate::new();
-	let _: [i8; 0] = Standard.sample(&mut rng);
-	let _: [u8; 1] = Standard.sample(&mut rng);
-	let _: [i16; 13] = Standard.sample(&mut rng);
-	let _: [u16; 14] = Standard.sample(&mut rng);
-	let _: [i32; 20] = Standard.sample(&mut rng);
-	let _: [u32; 21] = Standard.sample(&mut rng);
-	let _: [u64; 31] = Standard.sample(&mut rng);
-	let _: [i64; 32] = Standard.sample(&mut rng);
-	let _: [isize; 8] = Standard.sample(&mut rng);
-	let _: [usize; 9] = Standard.sample(&mut rng);
+	let mut rand = crate::new();
+	let _: [i8; 0] = rand.sample(&Standard);
+	let _: [u8; 1] = rand.sample(&Standard);
+	let _: [i16; 13] = rand.sample(&Standard);
+	let _: [u16; 14] = rand.sample(&Standard);
+	let _: [i32; 20] = rand.sample(&Standard);
+	let _: [u32; 21] = rand.sample(&Standard);
+	let _: [u64; 31] = rand.sample(&Standard);
+	let _: [i64; 78] = rand.sample(&Standard);
+	let _: [isize; 8] = rand.sample(&Standard);
+	let _: [usize; 9] = rand.sample(&Standard);
 }
 
 #[test]
 fn test_nzint() {
-	let mut rng = crate::new();
+	let mut rand = crate::new();
 
 	// Any failures manifest as an infinite loop
 	for _ in 0..9000 {
-		let _: core::num::NonZeroU32 = Standard.sample(&mut rng);
+		let _: core::num::NonZeroU32 = rand.sample(&Standard);
 	}
 }
 
 #[test]
 fn test_char() {
-	let mut rng = crate::new();
+	let mut rand = crate::new();
 
 	// Any failures manifest as a panic when debug assertions are enabled
 	for _ in 0..9000 {
-		let _: char = Standard.sample(&mut rng);
+		let _: char = rand.sample(&Standard);
 	}
 }
 
 #[test]
 fn test_bool() {
-	let mut rng = crate::new();
+	let mut rand = crate::new();
 	const N: usize = 10000;
 
 	let mut results = [0i32; 2];
 	for _ in 0..N {
-		results[rng.coin_flip() as usize] += 1;
+		results[rand.coin_flip() as usize] += 1;
 	}
 
 	assert!((results[0] - results[1]).abs() < 1000, "Unbalanced coin flips!! heads = {}, tails = {} out of {} trails ", results[1], results[0], N);
