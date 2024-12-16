@@ -1,18 +1,18 @@
-use crate::{Distribution, Random, Rng};
-use crate::distributions::{UniformInt, UniformSampler};
+use super::*;
 
 /// Standard uniform dice.
 ///
 /// # Examples
 ///
 /// ```
-/// use urandom::distributions::Dice;
-/// let mut rng = urandom::new();
+/// use urandom::distr::Dice;
+/// let mut rand = urandom::new();
 ///
-/// let sum: i32 = rng.samples(Dice::D6).take(2).sum();
+/// let sum: i32 = rand.samples(Dice::D6).take(2).sum();
 /// assert!(sum >= 1 && sum <= 12);
 /// ```
 #[derive(Copy, Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Dice(UniformInt<u8>);
 
 impl Dice {
@@ -50,7 +50,7 @@ impl Dice {
 
 impl Distribution<i32> for Dice {
 	#[inline]
-	fn sample<R: Rng + ?Sized>(&self, rng: &mut Random<R>) -> i32 {
-		self.0.sample(rng) as i32
+	fn sample<R: Rng + ?Sized>(&self, rand: &mut Random<R>) -> i32 {
+		self.0.sample(rand) as i32
 	}
 }

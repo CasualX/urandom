@@ -1,6 +1,4 @@
-use core::fmt;
-use crate::{Distribution, Random, Rng};
-use crate::distributions::{SampleUniform, UniformSampler};
+use super::*;
 
 #[inline]
 fn wmul32(a: u32, b: u32) -> (u32, u32) {
@@ -17,22 +15,24 @@ fn wmul64(a: u64, b: u64) -> (u64, u64) {
 	(msw, lsw)
 }
 
-/// Uniform distribution over integral types.
+/// Uniform distribution over integer types.
 ///
 /// # Implementation notes
 ///
 /// For simplicity, we use the same generic struct `UniformInt<T>` for all integer types `T`.
-/// This gives us only one field type, `T`; to store unsigned values of this size, we take use the fact that these conversions are no-ops.
+/// This gives us only one field type, `T`; to store unsigned values of this size, we take use of the fact that these conversions are no-ops.
 ///
 /// For a closed range, the number of possible numbers we should generate is `range = (high - low + 1)`.
 /// To avoid bias, we must ensure that the size of our sample space, is a multiple of `range`;
-/// other values must be rejected (by replacing with a new random sample).
-/// See [Fast Random Integer Generation in an Interval](https://arxiv.org/abs/1805.10941) for the algorithm used.
+/// other values must be rejected (by replacing with a new random sample)[^1].
+///
+/// For more information on this bias see the `examples/int_bias.rs` example.
 ///
 /// As a special case, we use `range = 0` to represent the full range of the result type (i.e. for the full inclusive range).
 ///
-/// For more information on this bias see the `examples/int_bias.rs` example.
+/// [^1]: Daniel Lemire (2018). [*Fast Random Integer Generation in an Interval*](https://arxiv.org/abs/1805.10941). Université du Québec (TELUQ), Canada
 #[derive(Copy, Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct UniformInt<T> {
 	base: T,
 	// When T is signed, it is really an unsigned integer of the same size
@@ -72,15 +72,15 @@ macro_rules! impl_uniform_int {
 		}
 		impl Distribution<$ty> for UniformInt<$ty> {
 			#[inline]
-			fn sample<R: Rng + ?Sized>(&self, rng: &mut Random<R>) -> $ty {
+			fn sample<R: Rng + ?Sized>(&self, rand: &mut Random<R>) -> $ty {
 				let range = self.range as $unsigned as $large;
 				let mut zone = range;
 				loop {
-					let v = rng.$method();
+					let value = rand.$method();
 					if range == 0 {
-						break v as $ty;
+						break value as $ty;
 					}
-					let (msw, lsw) = $wmul(v, range);
+					let (msw, lsw) = $wmul(value, range);
 					if lsw >= zone {
 						break self.base.wrapping_add(msw as $ty);
 					}
@@ -128,85 +128,4 @@ fn uniform_int_new_error<T: fmt::Debug>(low: T, high: T) -> ! {
 #[cold]
 fn uniform_int_new_inclusive_error<T: fmt::Debug>(low: T, high: T) -> ! {
 	panic!("UniformSampler::new_inclusive called with `low > high` where low: {:?} and high: {:?}", low, high);
-}
-
-//----------------------------------------------------------------
-
-#[test]
-fn test_bias() {
-	let distr = UniformInt::new_inclusive(0u32, 0xC0000000);
-	println!("distr: {:#x?}", distr);
-
-	let mut rng = crate::new();
-	let mut buckets = [0u32; 3];
-
-	for _ in 0..10000 {
-		let value = rng.sample(&distr);
-
-		if value < 0x40000000 {
-			buckets[0] += 1;
-		}
-		else if value < 0x80000000 {
-			buckets[1] += 1;
-		}
-		else if value <= 0xC0000000 {
-			buckets[2] += 1;
-		}
-		else {
-			panic!("value: {:#x}", value);
-		}
-	}
-
-	let mean = (buckets[0] as i64 + buckets[1] as i64 + buckets[2] as i64) / 3;
-	let pass = buckets.iter().all(|&odd| (odd as i64 - mean).abs() < 1000);
-	println!("mean:{} buckets:{:?} pass:{}", mean, buckets, pass);
-	assert!(pass);
-}
-
-#[test]
-fn test_edges_large() {
-	let distr = UniformInt::new_inclusive(u32::MIN, u32::MAX);
-	println!("distr: {:#x?}", distr);
-	let mut rng = crate::new();
-	let mut zeros = 0;
-	for _ in 0..10000 {
-		let value = rng.sample(&distr);
-		if value == 0 {
-			zeros += 1;
-		}
-	}
-	assert!(zeros < 5, "found {} zero samples!", zeros);
-}
-
-#[test]
-fn test_edges_small() {
-	let distr1 = UniformInt::new_inclusive(10, 10);
-	let distr2 = UniformInt::new(23, 24);
-	let mut rng = crate::new();
-	for _ in 0..100 {
-		let value1 = rng.sample(&distr1);
-		let value2 = rng.sample(&distr2);
-		assert_eq!(value1, 10);
-		assert_eq!(value2, 23);
-	}
-}
-
-#[test]
-fn test_yolo() {
-	let mut rng = crate::new();
-	for _ in 0..10000 {
-		let mut low: i16 = rng.next();
-		let mut high: i16 = rng.next();
-		if high < low {
-			let tmp = low;
-			low = high;
-			high = tmp;
-		}
-		let value = rng.range(low..=high);
-		assert!(value >= low && value <= high);
-		if low != high {
-			let value = rng.range(low..high);
-			assert!(value >= low && value < high);
-		}
-	}
 }

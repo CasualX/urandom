@@ -1,7 +1,11 @@
 [package]
 name = "urandom"
-version = "0.1.2"
-authors = ["Casper <CasualX@users.noreply.github.com>", "Developers of the Rand project", "The Rust Project Developers"]
+version = "0.2.0"
+authors = [
+	"Casper <CasualX@users.noreply.github.com>",
+	"Developers of the Rand project",
+	"The Rust Project Developers",
+]
 edition = "2021"
 license = "MIT"
 
@@ -18,5 +22,6 @@ std = []
 
 [dependencies]
 cfg-if = "1.0"
-getrandom = { version = "0.2", optional = true }
+getrandom = { version = "0.2.9", optional = true }
 dataview = { version = "~1.0", default-features = false }
+serde = { version = "1.0", features = ["derive"], optional = true }

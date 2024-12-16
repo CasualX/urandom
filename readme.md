@@ -13,23 +13,23 @@ This crate provides utilities to generate random numbers, to convert them to use
 # Quick Start
 
 To get you started quickly, the easiest and highest-level way to get a random value is to use `urandom::new().next()`.
-The `Random` struct provides a useful API on all Rngs, while the `distributions` module provide further functionality on top of Rngs.
+The `Random` struct provides a useful API on all Rngs, while the `distr` module provide further functionality on top of Rngs.
 
 ```rust
-let mut rng = urandom::new();
+let mut rand = urandom::new();
 
 // Generates a random boolean
-if rng.coin_flip() {
+if rand.coin_flip() {
 	// Try printing a random unicode code point (probably a bad idea)!
-	println!("char: {}", rng.next::<char>());
+	println!("char: {}", rand.next::<char>());
 }
 
 // Generates a float between 13.0 and 42.0
-let y: f64 = rng.range(13.0..42.0);
+let y: f64 = rand.range(13.0..42.0);
 
 // Shuffles the list of numbers
 let mut numbers: Vec<i32> = (1..100).collect();
-rng.shuffle(&mut numbers);
+rand.shuffle(&mut numbers);
 ```
 
 This library was inspired by the semi-official [`rand`](https://crates.io/crates/rand) crate and an attempt to provide a better experience.
@@ -44,7 +44,7 @@ A: Because I think I can do better than the standard rand crate's design.
 
 Q: *Which random number generators are implemented?*
 
-A: `Xoshiro256` as PRNG by [Sebastiano Vigna and David Blackman](http://prng.di.unimi.it/) (supported by `SplitMix64` when seeding from `u64`). `ChaCha20` as CSPRNG by [Daniel J. Bernstein](http://loup-vaillant.fr/tutorials/chacha20-design). `getrandom` as the source of system entropy.
+A: `Xoshiro256` as PRNG by [Sebastiano Vigna and David Blackman](http://prng.di.unimi.it/) (supported by `SplitMix64` when seeding from `u64`). `ChaCha12` as CSPRNG by [Daniel J. Bernstein](https://cr.yp.to/chacha/chacha-20080128.pdf). [`getrandom`](https://crates.io/crates/getrandom) as the source of system entropy.
 
 Q: *Why are random floats generated in the half-open interval `[1.0, 2.0)` instead of `[0.0, 1.0)`?*
 
@@ -61,8 +61,6 @@ A: A few things stood out to me. I'm not a fan of thread local variables they su
    The `rand` crate puts its `thread_rng` front and center as it's the easiest way to generate randomness (through explicit use or `random` method). I seed new PRNG's directly from the system's getrandom.
 
    The `rand` crate requires importing a lot traits to make use of its functionality. Granted this is somewhat alleviated by the `prelude` module but I'm not a fan. Rust IDE experience isn't there yet to make this smooth (eg. auto importing missing traits). I put the functionality as inherent methods on the `Random` struct requiring no imports and smooth IDE experience.
-
-   The `rand` crate tries to abstract too much eg. the `CryptoRng` trait and related functionality. These help _implementing_ the necessary abstractions to adapt them for use as a PRNG.
 
 Q: *How does this crate work without getrandom for seeding?*
 

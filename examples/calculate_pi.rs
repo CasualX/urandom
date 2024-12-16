@@ -1,8 +1,8 @@
 
 fn main() {
-	let uniform = urandom::distributions::Uniform::from(-1.0f64..1.0f64);
+	let uniform = urandom::distr::Uniform::from(-1.0f64..1.0f64);
 
-	let mut rng = urandom::new();
+	let mut rand = urandom::new();
 
 	// The number of samples we'll take
 	const N: usize = 1_000_000;
@@ -10,8 +10,8 @@ fn main() {
 	let mut count = 0;
 	for _ in 0..N {
 		// Sample a point within the square with side 2.0
-		let x = rng.sample(&uniform);
-		let y = rng.sample(&uniform);
+		let x = rand.sample(&uniform);
+		let y = rand.sample(&uniform);
 
 		// Count how many samples fall within the unit circle
 		if (x * x + y * y).sqrt() < 1.0 {
@@ -27,5 +27,5 @@ fn main() {
 	// Scale the area of the square by this ratio to get `PI`.
 	let pi = 4.0 * ratio;
 
-	println!("PI is estimated as {}", pi);
+	println!("PI is estimated as {pi}");
 }
