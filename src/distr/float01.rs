@@ -1,4 +1,4 @@
-use crate::{Distribution, Rng, Random};
+use super::*;
 
 /// A distribution to sample floating point numbers uniformly in the open interval `(0, 1)`, i.e. not including either endpoint.
 ///
@@ -26,28 +26,40 @@ use crate::{Distribution, Rng, Random};
 ///
 /// The result is two calls to the Rng, one for generating 64 bits worth of coin flips and one for generating the mantissa of the resulting float.
 #[derive(Copy, Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Float01;
 
 impl Distribution<f32> for Float01 {
 	#[inline]
-	fn sample<R: Rng + ?Sized>(&self, rng: &mut Random<R>) -> f32 {
-		let exp = 0b0_01111110 - rng.next_u64().leading_zeros();
-		let mantissa = crate::impls::mantissa_f32(rng.next_f32());
-		f32::from_bits(exp << (f32::MANTISSA_DIGITS - 1) | mantissa)
+	fn sample<R: Rng + ?Sized>(&self, rand: &mut Random<R>) -> f32 {
+		let exp = 0b0_01111110 - rand.next_u64().leading_zeros();
+		replace_exponent_f32(rand.next_f32(), exp)
 	}
 }
+
 impl Distribution<f64> for Float01 {
 	#[inline]
-	fn sample<R: Rng + ?Sized>(&self, rng: &mut Random<R>) -> f64 {
-		let exp = (0b0_01111111110 - rng.next_u64().leading_zeros()) as u64;
-		let mantissa = crate::impls::mantissa_f64(rng.next_f64());
-		f64::from_bits(exp << (f64::MANTISSA_DIGITS - 1) | mantissa)
+	fn sample<R: Rng + ?Sized>(&self, rand: &mut Random<R>) -> f64 {
+		let exp = 0b0_01111111110 - rand.next_u64().leading_zeros();
+		replace_exponent_f64(rand.next_f64(), exp)
 	}
+}
+
+#[inline]
+const fn replace_exponent_f32(value: f32, exp: u32) -> f32 {
+	let mantissa = value.to_bits() & ((1 << f32::MANTISSA_DIGITS - 1) - 1);
+	f32::from_bits(exp << (f32::MANTISSA_DIGITS - 1) | mantissa)
+}
+
+#[inline]
+const fn replace_exponent_f64(value: f64, exp: u32) -> f64 {
+	let mantissa = value.to_bits() & ((1 << f64::MANTISSA_DIGITS - 1) - 1);
+	f64::from_bits((exp as u64) << (f64::MANTISSA_DIGITS - 1) | mantissa)
 }
 
 #[test]
 fn test_yolo() {
-	for float in crate::new().samples(Float01).take(1000) {
+	for float in crate::new().samples(Float01).take(10000) {
 		let float: f32 = float;
 		assert!(float > 0.0 && float < 1.0, "float({}) bits({:#x})", float, float.to_bits());
 	}
@@ -55,9 +67,9 @@ fn test_yolo() {
 
 #[test]
 fn test_edges() {
-	let mut rng = crate::rng::MockRng::slice(&[0, 0, !0, !0]);
-	let low: f64 = rng.sample(&Float01);
-	let high: f64 = rng.sample(&Float01);
+	let mut rand = crate::rng::Mock::slice(&[0, 0, !0, !0]);
+	let low: f64 = rand.sample(&Float01);
+	let high: f64 = rand.sample(&Float01);
 	assert!(low > 0.0 && low < 1.0, "double({}) bits({:#x})", low, low.to_bits());
 	assert!(high > 0.0 && high < 1.0, "double({}) bits({:#x})", high, high.to_bits());
 }

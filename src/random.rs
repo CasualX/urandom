@@ -3,7 +3,17 @@ use crate::*;
 
 /// Rich interface for consuming random number generators.
 #[derive(Clone)]
-pub struct Random<R: ?Sized>(pub R);
+#[repr(transparent)]
+pub struct Random<R: ?Sized> {
+	rng: R,
+}
+
+impl<R> From<R> for Random<R> {
+	#[inline]
+	fn from(rng: R) -> Self {
+		Random { rng }
+	}
+}
 
 impl<R: Rng + ?Sized> Random<R> {
 	/// Returns the next `u32` in the sequence.
@@ -15,7 +25,7 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// ```
 	#[inline]
 	pub fn next_u32(&mut self) -> u32 {
-		self.0.next_u32()
+		self.rng.next_u32()
 	}
 
 	/// Returns the next `u64` in the sequence.
@@ -27,7 +37,7 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// ```
 	#[inline]
 	pub fn next_u64(&mut self) -> u64 {
-		self.0.next_u64()
+		self.rng.next_u64()
 	}
 
 	/// Returns a uniform random `f32` in the half-open interval `[1.0, 2.0)`.
@@ -35,7 +45,7 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// As only 23 bits are necessary to construct a random float in this range,
 	/// implementations may override this method to provide a more efficient implementation.
 	///
-	/// If high quality uniform random floats are desired in open interval `(0.0, 1.0)` without bias see the [`Float01`](distributions::Float01) distribution.
+	/// If high quality uniform random floats are desired in open interval `(0.0, 1.0)` without bias see the [`Float01`](distr::Float01) distribution.
 	///
 	/// # Examples
 	///
@@ -45,7 +55,7 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// ```
 	#[inline]
 	pub fn next_f32(&mut self) -> f32 {
-		self.0.next_f32()
+		self.rng.next_f32()
 	}
 
 	/// Returns a uniform random `f64` in the half-open interval `[1.0, 2.0)`.
@@ -53,7 +63,7 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// As only 52 bits are necessary to construct a random double in this range,
 	/// implementations may override this method to provide a more efficient implementation.
 	///
-	/// If high quality uniform random floats are desired in open interval `(0.0, 1.0)` without bias see the [`Float01`](distributions::Float01) distribution.
+	/// If high quality uniform random floats are desired in open interval `(0.0, 1.0)` without bias see the [`Float01`](distr::Float01) distribution.
 	///
 	/// # Examples
 	///
@@ -63,41 +73,46 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// ```
 	#[inline]
 	pub fn next_f64(&mut self) -> f64 {
-		self.0.next_f64()
+		self.rng.next_f64()
 	}
 
 	/// Fills the destination buffer with random values from the Rng.
 	///
-	/// The underlying Rng may implement this as efficiently as possible and may not be the same as simply filling with `next_u32`.
-	///
 	/// # Examples
 	///
 	/// ```
-	/// let mut rng = urandom::new();
-	/// let mut buffer = [0u32; 32];
-	/// rng.fill_u32(&mut buffer);
-	/// assert_ne!(buffer, [0; 32]);
+	/// let mut rand = urandom::new();
+	/// let mut data = [0u32; 32];
+	/// rand.fill_u32(&mut data);
+	/// assert_ne!(data, [0; 32]);
 	/// ```
-	#[inline]
-	pub fn fill_u32(&mut self, buffer: &mut [u32]) {
-		self.0.fill_u32(buffer)
+	pub fn fill_u32(&mut self, mut buf: &mut [u32]) {
+		while buf.len() >= 2 {
+			let value = self.rng.next_u64().to_le_bytes();
+			// Unaligned u64 little-endian write
+			buf[0] = u32::from_le_bytes([value[0], value[1], value[2], value[3]]);
+			buf[1] = u32::from_le_bytes([value[4], value[5], value[6], value[7]]);
+			buf = &mut buf[2..];
+		}
+		if buf.len() > 0 {
+			buf[0] = self.rng.next_u32();
+		}
 	}
 
 	/// Fills the destination buffer with uniform random values from the Rng.
 	///
-	/// The underlying Rng may implement this as efficiently as possible and may not be the same as simply filling with `next_u64`.
-	///
 	/// # Examples
 	///
 	/// ```
-	/// let mut rng = urandom::new();
-	/// let mut buffer = [0u64; 32];
-	/// rng.fill_u64(&mut buffer);
-	/// assert_ne!(buffer, [0; 32]);
+	/// let mut rand = urandom::new();
+	/// let mut data = [0u64; 32];
+	/// rand.fill_u64(&mut data);
+	/// assert_ne!(data, [0; 32]);
 	/// ```
-	#[inline]
-	pub fn fill_u64(&mut self, buffer: &mut [u64]) {
-		self.0.fill_u64(buffer)
+	pub fn fill_u64(&mut self, buf: &mut [u64]) {
+		for elem in buf {
+			*elem = self.rng.next_u64();
+		}
 	}
 
 	/// Fills the destination buffer with uniform random bytes from the Rng.
@@ -107,14 +122,32 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// # Examples
 	///
 	/// ```
-	/// let mut rng = urandom::new();
-	/// let mut buffer = [0u8; 32];
-	/// rng.fill_bytes(&mut buffer);
-	/// assert_ne!(buffer, [0u8; 32]);
+	/// let mut rand = urandom::new();
+	/// let mut data = [0u8; 32];
+	/// rand.fill_bytes(&mut data);
+	/// assert_ne!(data, [0u8; 32]);
 	/// ```
 	#[inline]
-	pub fn fill_bytes(&mut self, buffer: &mut [u8]) {
-		self.0.fill_bytes(buffer)
+	pub fn fill_bytes(&mut self, buf: &mut [u8]) {
+		#![allow(unsafe_code)]
+		self.rng.fill_bytes(unsafe { rng::util::slice_as_uninit_mut(buf) })
+	}
+
+	/// Fills the destination buffer with uniform random bytes from the Rng.
+	///
+	/// The underlying Rng may implement this as efficiently as possible.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// let mut rand = urandom::new();
+	/// let mut data = [0u8; 32];
+	/// rand.fill_bytes(&mut data);
+	/// assert_ne!(data, [0u8; 32]);
+	/// ```
+	#[inline]
+	pub fn fill_bytes_uninit(&mut self, buf: &mut [core::mem::MaybeUninit<u8>]) {
+		self.rng.fill_bytes(buf)
 	}
 
 	/// Advances the internal state significantly.
@@ -122,7 +155,7 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// Useful to produce deterministic independent random number generators for parallel computation.
 	#[inline]
 	pub fn jump(&mut self) {
-		self.0.jump();
+		self.rng.jump();
 	}
 
 	/// Clones the current instance and advances the internal state significantly.
@@ -132,20 +165,20 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// # Examples
 	///
 	/// ```
-	/// let mut rng = urandom::new();
+	/// let mut rand = urandom::new();
 	/// for _ in 0..10 {
-	/// 	parallel_computation(rng.split());
+	/// 	parallel_computation(rand.split());
 	/// }
 	/// # fn parallel_computation(_: urandom::Random<impl urandom::Rng>) {}
 	/// ```
 	#[inline]
 	pub fn split(&mut self) -> Self where Self: Clone {
 		let cur = self.clone();
-		self.0.jump();
+		self.rng.jump();
 		return cur;
 	}
 
-	/// Returns a sample from the [`Standard`](distributions::Standard) distribution.
+	/// Returns a sample from the [`Standard`](distr::Standard) distribution.
 	///
 	/// # Examples
 	///
@@ -153,30 +186,30 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// let int: i8 = urandom::new().next();
 	/// ```
 	#[inline]
-	pub fn next<T>(&mut self) -> T where distributions::Standard: Distribution<T> {
-		distributions::Standard.sample(self)
+	pub fn next<T>(&mut self) -> T where distr::Standard: Distribution<T> {
+		distr::Standard.sample(self)
 	}
 
-	/// Fills the given slice with samples from the [`Standard`](distributions::Standard) distribution.
+	/// Fills the given slice with samples from the [`Standard`](distr::Standard) distribution.
 	///
-	/// Because of its generic nature no optimizations are applied and all values are sampled individually from the distribution.
+	/// Because of its generic nature no optimizations are applied and all values are sampled individually.
 	///
 	/// # Examples
 	///
 	/// ```
-	/// let mut rng = urandom::new();
-	/// let mut buffer = [false; 32];
-	/// rng.fill(&mut buffer);
+	/// let mut rand = urandom::new();
+	/// let mut data = [false; 32];
+	/// rand.fill(&mut data);
 	/// ```
 	#[inline]
-	pub fn fill<T>(&mut self, buffer: &mut [T]) where distributions::Standard: Distribution<T> {
-		let distr = distributions::Standard;
-		for elem in buffer {
+	pub fn fill<T>(&mut self, buf: &mut [T]) where distr::Standard: Distribution<T> {
+		let distr = distr::Standard;
+		for elem in buf {
 			*elem = distr.sample(self);
 		}
 	}
 
-	/// Returns a sample from the [`Uniform`](distributions::Uniform) distribution within the given interval.
+	/// Returns a sample from the [`Uniform`](distr::Uniform) distribution within the given interval.
 	///
 	/// # Examples
 	///
@@ -188,11 +221,11 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// If more than one sample from a specific interval is desired, it is more efficient to reuse the uniform sampler.
 	///
 	/// ```
-	/// let mut rng = urandom::new();
-	/// let distr = urandom::distributions::Uniform::from(0..100);
+	/// let mut rand = urandom::new();
+	/// let distr = urandom::distr::Uniform::from(0..100);
 	///
 	/// loop {
-	/// 	let value = rng.sample(&distr);
+	/// 	let value = rand.sample(&distr);
 	/// 	assert!(value >= 0 && value < 100);
 	/// 	if value == 0 {
 	/// 		break;
@@ -200,13 +233,21 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// }
 	/// ```
 	#[inline]
-	pub fn range<T, I>(&mut self, interval: I) -> T where T: distributions::SampleUniform, distributions::Uniform<T>: From<I> {
-		distributions::Uniform::<T>::from(interval).sample(self)
+	pub fn range<T, I>(&mut self, interval: I) -> T where T: distr::SampleUniform, distr::Uniform<T>: From<I> {
+		distr::Uniform::<T>::from(interval).sample(self)
+	}
+
+	/// Returns a random float in the open `(0.0, 1.0)` interval.
+	///
+	/// This is a high quality uniform random float without bias in the low bits of the mantissa using the [`Float01`](distr::Float01) distribution.
+	#[inline]
+	pub fn float01(&mut self) -> f64 {
+		distr::Float01.sample(self)
 	}
 
 	/// Returns a sample from the given distribution.
 	///
-	/// See the [`distributions`](distributions) documentation for a list of available distributions.
+	/// See the [`distr`] documentation for a list of available distributions.
 	#[inline]
 	pub fn sample<T, D>(&mut self, distr: &D) -> T where D: Distribution<T> {
 		distr.sample(self)
@@ -214,15 +255,15 @@ impl<R: Rng + ?Sized> Random<R> {
 
 	/// Returns an iterator of samples from the given distribution.
 	///
-	/// See the [`distributions`](distributions) documentation for a list of available distributions.
+	/// See the [`distr`] documentation for a list of available distributions.
 	#[inline]
-	pub fn samples<T, D>(&mut self, distr: D) -> distributions::Samples<'_, R, D, T> where D: Distribution<T> {
-		distributions::Samples::new(self, distr)
+	pub fn samples<T, D>(&mut self, distr: D) -> distr::Samples<'_, R, D, T> where D: Distribution<T> {
+		distr::Samples::new(self, distr)
 	}
 
 	/// Returns `true` with the given probability.
 	///
-	/// This is known as the [`Bernoulli`](distributions::Bernoulli) distribution.
+	/// This is known as the [`Bernoulli`](distr::Bernoulli) distribution.
 	///
 	/// # Precision
 	///
@@ -230,14 +271,14 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// For `p <= 0.0`, the resulting distribution will always generate `false`.  
 	#[inline]
 	pub fn chance(&mut self, p: f64) -> bool {
-		distributions::Bernoulli::new(p).sample(self)
+		distr::Bernoulli::new(p).sample(self)
 	}
 
 	/// Flips a coin.
 	///
 	/// Returns `true` when heads and `false` when tails with 50% probability for either result.
 	///
-	/// Simply an alias for `rng.next::<bool>()` but describes the intent of the caller.
+	/// Simply an alias for `rand.next::<bool>()` but describes the intent of the caller.
 	#[inline]
 	pub fn coin_flip(&mut self) -> bool {
 		self.next()
@@ -261,8 +302,8 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// 	n % 3 == 0 || n % 5 == 0
 	/// }
 	///
-	/// let mut rng = urandom::new();
-	/// let fizzbuzz = rng.single((0..100).filter(is_fizzbuzz)).unwrap();
+	/// let mut rand = urandom::new();
+	/// let fizzbuzz = rand.single((0..100).filter(is_fizzbuzz)).unwrap();
 	/// assert!(fizzbuzz % 3 == 0 || fizzbuzz % 5 == 0);
 	/// ```
 	///
@@ -270,7 +311,7 @@ impl<R: Rng + ?Sized> Random<R> {
 	///
 	/// ```
 	/// let mood = urandom::new().single("😀😎😐😕😠😢".chars()).unwrap();
-	/// println!("I am {}!", mood);
+	/// println!("I am {mood}!");
 	/// ```
 	pub fn single<I: IntoIterator>(&mut self, collection: I) -> Option<I::Item> {
 		let mut iter = collection.into_iter();
@@ -296,6 +337,7 @@ impl<R: Rng + ?Sized> Random<R> {
 		});
 		result
 	}
+
 	/// Collect random samples from the collection into the buffer until it is filled.
 	///
 	/// Although the elements are selected randomly, the order of elements in the buffer is neither stable nor fully random.
@@ -306,18 +348,18 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// in which case this equals the number of elements available.
 	///
 	/// Complexity is `O(n)` where `n` is the size of the collection.
-	pub fn multiple<I: IntoIterator>(&mut self, collection: I, buffer: &mut [I::Item]) -> usize {
-		let amount = buffer.len();
+	pub fn multiple<I: IntoIterator>(&mut self, collection: I, buf: &mut [I::Item]) -> usize {
+		let amount = buf.len();
 		let mut len = 0;
 
 		collection.into_iter().enumerate().for_each(|(i, elem)| {
 			if len < amount {
-				buffer[len] = elem;
+				buf[len] = elem;
 				len += 1;
 			}
 			else {
 				let k = self.index(i + 1 + amount);
-				if let Some(slot) = buffer.get_mut(k) {
+				if let Some(slot) = buf.get_mut(k) {
 					*slot = elem;
 				}
 			}
@@ -334,14 +376,14 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// # Examples
 	///
 	/// ```
-	/// let mut rng = urandom::new();
+	/// let mut rand = urandom::new();
 	/// for len in 1..12345 {
-	/// 	let index = rng.index(len);
+	/// 	let index = rand.index(len);
 	/// 	assert!(index < len, "len:{} index:{} was not inbounds", len, index);
 	/// }
 	/// ```
 	pub fn index(&mut self, len: usize) -> usize {
-		distributions::UniformInt::constant(0, len).sample(self)
+		distr::UniformInt::constant(0, len).sample(self)
 	}
 
 	/// Returns a shared reference to one random element of the slice, or `None` if the slice is empty.
@@ -350,6 +392,7 @@ impl<R: Rng + ?Sized> Random<R> {
 		let index = self.index(slice.len());
 		slice.get(index)
 	}
+
 	/// Returns a unique reference to one random element of the slice, or `None` if the slice is empty.
 	#[inline]
 	pub fn choose_mut<'a, T>(&mut self, slice: &'a mut [T]) -> Option<&'a mut T> {
@@ -357,24 +400,16 @@ impl<R: Rng + ?Sized> Random<R> {
 		slice.get_mut(index)
 	}
 
-	/// Returns an iterator over random chosen elements of the slice with repetition.
-	///
-	/// Produces `None` values if the slice is empty.
-	#[inline]
-	pub fn choose_iter<'a, T>(&'a mut self, slice: &'a [T]) -> impl 'a + Iterator<Item = &'a T> {
-		core::iter::from_fn(move || self.choose(slice))
-	}
-
 	/// Standard [Fisher–Yates](https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle) shuffle.
 	///
 	/// # Examples
 	///
 	/// ```
-	/// let mut rng = urandom::new();
+	/// let mut rand = urandom::new();
 	/// let mut array = [1, 2, 3, 4, 5];
-	/// println!("Unshuffled: {:?}", array);
-	/// rng.shuffle(&mut array);
-	/// println!("Shuffled:   {:?}", array);
+	/// println!("Unshuffled: {array:?}");
+	/// rand.shuffle(&mut array);
+	/// println!("Shuffled:   {array:?}");
 	/// ```
 	#[inline]
 	pub fn shuffle<T>(&mut self, slice: &mut [T]) {
@@ -408,7 +443,7 @@ impl<R: Rng + ?Sized> fmt::Debug for Random<R> {
 }
 
 #[cfg(feature = "std")]
-impl<R: Rng> std::io::Read for Random<R> {
+impl<R: Rng + ?Sized> std::io::Read for Random<R> {
 	fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
 		self.fill_bytes(buf);
 		Ok(buf.len())
@@ -429,14 +464,14 @@ impl<R: Rng> std::io::Read for Random<R> {
 
 #[test]
 fn test_choose() {
-	let mut rng = crate::new();
+	let mut rand = crate::new();
 
 	let mut array = [0, 1, 2, 3, 4];
 	let mut result = [0i32; 5];
 
 	for _ in 0..10000 {
-		result[*rng.choose(&array).unwrap()] += 1;
-		result[*rng.choose_mut(&mut array).unwrap()] += 1;
+		result[*rand.choose(&array).unwrap()] += 1;
+		result[*rand.choose_mut(&mut array).unwrap()] += 1;
 	}
 
 	let mean = (result[0] + result[1] + result[2] + result[3] + result[4]) / 5;
