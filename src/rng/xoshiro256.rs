@@ -100,6 +100,16 @@ impl Rng for Xoshiro256 {
 	}
 }
 
+cfg_if::cfg_if! {
+	if #[cfg(feature = "serde")] {
+		#[test]
+		fn serde() {
+			util::check_serde_initial_state(Xoshiro256::new());
+			util::check_serde_middle_state(Xoshiro256::new());
+		}
+	}
+}
+
 //----------------------------------------------------------------
 // Xoshiro256 implementation details
 

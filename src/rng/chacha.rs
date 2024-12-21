@@ -217,6 +217,12 @@ cfg_if::cfg_if! {
 		fn default_index() -> u32 {
 			INDEX
 		}
+
+		#[test]
+		fn serde() {
+			util::check_serde_initial_state(ChaCha12::new());
+			util::check_serde_middle_state(ChaCha12::new());
+		}
 	}
 }
 
