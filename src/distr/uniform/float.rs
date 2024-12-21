@@ -1,5 +1,4 @@
-use crate::{Distribution, Random, Rng};
-use crate::distributions::{SampleUniform, UniformSampler};
+use super::*;
 
 /// Uniform distribution over the floating point types.
 ///
@@ -12,6 +11,7 @@ use crate::distributions::{SampleUniform, UniformSampler};
 ///
 /// When the inputs are not finite or become non-finite during setup the result may produce unexpected results (eg. `NaN`).
 #[derive(Copy, Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct UniformFloat<T> {
 	base: T,
 	scale: T,
@@ -34,8 +34,8 @@ impl UniformSampler<f32> for UniformFloat<f32> {
 }
 impl Distribution<f32> for UniformFloat<f32> {
 	#[inline]
-	fn sample<R: Rng + ?Sized>(&self, rng: &mut Random<R>) -> f32 {
-		rng.next_f32() * self.scale + self.base
+	fn sample<R: Rng + ?Sized>(&self, rand: &mut Random<R>) -> f32 {
+		rand.next_f32().mul_add(self.scale, self.base)
 	}
 }
 
@@ -56,7 +56,7 @@ impl UniformSampler<f64> for UniformFloat<f64> {
 }
 impl Distribution<f64> for UniformFloat<f64> {
 	#[inline]
-	fn sample<R: Rng + ?Sized>(&self, rng: &mut Random<R>) -> f64 {
-		rng.next_f64() * self.scale + self.base
+	fn sample<R: Rng + ?Sized>(&self, rand: &mut Random<R>) -> f64 {
+		rand.next_f64().mul_add(self.scale, self.base)
 	}
 }

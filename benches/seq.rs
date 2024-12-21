@@ -9,17 +9,17 @@ const RAND_BENCH_N: u64 = 1000;
 
 #[bench]
 fn shuffle_100(b: &mut Bencher) {
-	let mut rng = urandom::new();
+	let mut rand = urandom::new();
 	let mut x = [1usize; 100];
 	b.iter(|| {
-		rng.shuffle(&mut x);
+		rand.shuffle(&mut x);
 		x[0]
 	})
 }
 
 #[bench]
 fn choose_1_of_1000(b: &mut Bencher) {
-	let mut rng = urandom::new();
+	let mut rand = urandom::new();
 	let mut x = [1usize; 1000];
 	for i in 0..1000 {
 		x[i] = i;
@@ -27,7 +27,7 @@ fn choose_1_of_1000(b: &mut Bencher) {
 	b.iter(|| {
 		let mut s = 0;
 		for _ in 0..RAND_BENCH_N {
-			s += rng.choose(&x).unwrap();
+			s += rand.choose(&x).unwrap();
 		}
 		s
 	});
@@ -36,7 +36,7 @@ fn choose_1_of_1000(b: &mut Bencher) {
 
 #[bench]
 fn single_from_1000(b: &mut Bencher) {
-	let mut rng = urandom::new();
+	let mut rand = urandom::new();
 	let mut x = [1usize; 1000];
 	for i in 0..1000 {
 		x[i] = i;
@@ -44,7 +44,7 @@ fn single_from_1000(b: &mut Bencher) {
 	b.iter(|| {
 		let mut s = 0;
 		for _ in 0..RAND_BENCH_N {
-			s += rng.single(&x).unwrap();
+			s += rand.single(&x).unwrap();
 		}
 		s
 	});
@@ -55,11 +55,11 @@ macro_rules! multiple {
 	($name:ident, $amount:expr, $length:expr) => {
 		#[bench]
 		fn $name(b: &mut Bencher) {
-			let mut rng = urandom::new();
+			let mut rand = urandom::new();
 			let x = [$amount; $length];
 			let mut result = [0; $amount];
 			b.iter(|| {
-				rng.multiple(x.iter().cloned(), &mut result);
+				rand.multiple(x.iter().cloned(), &mut result);
 				result[$amount - 1]
 			})
 		}
