@@ -20,7 +20,7 @@ fn main() {
 		tries += 1;
 
 		if guess == secret {
-			println!("Congratulations! You guessed correctly after {} tries!", tries);
+			println!("Congratulations! You guessed correctly after {tries} tries!");
 			break;
 		}
 		else if guess < secret {

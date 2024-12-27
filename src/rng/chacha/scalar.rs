@@ -8,11 +8,11 @@ macro_rules! quarter_round {
 	};
 }
 
-#[inline(never)]
-pub fn block(state: &mut [u32; 16], ws: &mut [u32; 16]) {
+#[inline]
+pub fn block(state: &mut [u32; 16], ws: &mut [u32; 16], n: usize) {
 	*ws = *state;
 
-	for _ in 0..10 {
+	for _ in 0..n / 2 {
 		// column rounds
 		quarter_round!(ws[0], ws[4], ws[8], ws[12]);
 		quarter_round!(ws[1], ws[5], ws[9], ws[13]);

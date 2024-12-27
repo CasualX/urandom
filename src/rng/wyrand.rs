@@ -1,14 +1,14 @@
 use super::*;
 
-/// Fast RNG, with 64 bits of state, that can be used to initialize the state of other generators.
+/// Tiny and very fast pseudorandom number generator based on [rapidhash](https://github.com/Nicoshev/rapidhash).
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[repr(transparent)]
-pub struct SplitMix64 {
+pub struct Wyrand {
 	state: u64,
 }
 
-impl SplitMix64 {
+impl Wyrand {
 	/// Creates a new instance seeded securely from system entropy.
 	///
 	/// This method is the recommended way to construct PRNGs since it is convenient and secure.
@@ -20,13 +20,13 @@ impl SplitMix64 {
 	/// # Examples
 	///
 	/// ```
-	/// let mut rand = urandom::rng::SplitMix64::new();
+	/// let mut rand = urandom::rng::Wyrand::new();
 	/// let value: i32 = rand.next();
 	/// ```
 	#[inline]
-	pub fn new() -> Random<SplitMix64> {
+	pub fn new() -> Random<Wyrand> {
 		let state = util::getrandom();
-		Random::wrap(SplitMix64 { state })
+		Random::wrap(Wyrand { state })
 	}
 
 	/// Creates a new instance seeded from another generator.
@@ -35,8 +35,8 @@ impl SplitMix64 {
 	///
 	/// The master PRNG should use a sufficiently different algorithm from the child PRNG (ideally a CSPRNG) to avoid correlations between the child PRNGs.
 	#[inline]
-	pub fn from_rng<R: Rng + ?Sized>(rand: &mut Random<R>) -> Random<SplitMix64> {
-		Random::wrap(SplitMix64 { state: rand.next_u64() })
+	pub fn from_rng<R: Rng + ?Sized>(rand: &mut Random<R>) -> Random<Wyrand> {
+		Random::wrap(Wyrand { state: rand.next_u64() })
 	}
 
 	/// Creates a new instance using the given seed.
@@ -47,24 +47,24 @@ impl SplitMix64 {
 	/// # Examples
 	///
 	/// ```
-	/// let mut rand = urandom::rng::SplitMix64::from_seed(42);
+	/// let mut rand = urandom::rng::Wyrand::from_seed(42);
 	/// let value = rand.next_u32();
-	/// assert_eq!(value, 3184996902);
+	/// assert_eq!(value, 3396458620);
 	/// ```
 	#[inline]
-	pub fn from_seed(seed: u64) -> Random<SplitMix64> {
-		Random::wrap(SplitMix64 { state: seed })
+	pub fn from_seed(seed: u64) -> Random<Wyrand> {
+		Random::wrap(Wyrand { state: seed })
 	}
 }
 
-impl Rng for SplitMix64 {
+impl Rng for Wyrand {
 	#[inline]
 	fn next_u32(&mut self) -> u32 {
-		(next(&mut self.state) >> 32) as u32
+		(wyrand(&mut self.state) >> 32) as u32
 	}
 	#[inline]
 	fn next_u64(&mut self) -> u64 {
-		next(&mut self.state)
+		wyrand(&mut self.state)
 	}
 	#[inline(never)]
 	fn fill_bytes(&mut self, buf: &mut [MaybeUninit<u8>]) {
@@ -79,24 +79,30 @@ impl Rng for SplitMix64 {
 }
 
 //----------------------------------------------------------------
-// SplitMix64 implementation details
+// Wyrand implementation details
 
-const GOLDEN_GAMMA: u64 = 0x9e3779b97f4a7c15;
-
-#[inline]
-fn next(x: &mut u64) -> u64 {
-	*x = x.wrapping_add(GOLDEN_GAMMA);
-	mix64(*x)
-}
-#[inline]
-fn jump(x: &mut u64) {
-	*x = x.wrapping_add(GOLDEN_GAMMA << 40);
+#[inline(always)]
+fn rapid_mum(a: u64, b: u64) -> (u64, u64) {
+	let r = a as u128 * b as u128;
+	(r as u64, (r >> 64) as u64)
 }
 
-// https://zimbry.blogspot.com/2011/09/better-bit-mixing-improving-on.html
+#[inline(always)]
+fn rapid_mix(a: u64, b: u64) -> u64 {
+	let (a, b) = rapid_mum(a, b);
+	a ^ b
+}
+
+const P0: u64 = 0x2d358dccaa6c78a5;
+const P1: u64 = 0x8bb84b93962eacc9;
+
 #[inline]
-fn mix64(mut z: u64) -> u64 {
-	z = (z ^ (z >> 30)).wrapping_mul(0xbf58476d1ce4e5b9);
-	z = (z ^ (z >> 27)).wrapping_mul(0x94d049bb133111eb);
-	return z ^ (z >> 31);
+fn wyrand(seed: &mut u64) -> u64 {
+	*seed = seed.wrapping_add(P0);
+	rapid_mix(*seed ^ P1, *seed)
+}
+
+#[inline]
+fn jump(seed: &mut u64) {
+	*seed = seed.wrapping_add(P0 << 40);
 }
