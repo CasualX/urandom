@@ -1,5 +1,9 @@
 use super::*;
 
+mod inner;
+use self::inner::ChaChaCore;
+
+
 /// [`ChaCha`] with 8 rounds.
 pub type ChaCha8 = ChaCha<8>;
 impl SecureRng for ChaCha<8> {}
@@ -12,18 +16,24 @@ impl SecureRng for ChaCha<12> {}
 pub type ChaCha20 = ChaCha<20>;
 impl SecureRng for ChaCha<20> {}
 
+
+const CN: usize = 4; // Concurrent ChaCha instances
+const INDEX: u32 = 16 * 4;
+const RANDOM: [[u32; 16]; CN] = [[0; 16]; CN]; // Default random blocks
+
+
 /// Daniel J. Bernstein's ChaCha adapted as a deterministic random number generator.
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ChaCha<const N: usize> {
 	// The current state of the ChaCha cipher
-	state: [u32; NWORDS],
+	state: ChaChaCore,
 	// Consume the random words before producing more
 	#[cfg_attr(feature = "serde", serde(default = "default_index", skip_serializing_if = "is_index_oob"))]
 	index: u32,
 	// The Rng produces 16 words per block
 	#[cfg_attr(feature = "serde", serde(default, skip_serializing_if = "is_default"))]
-	random: [u32; NWORDS],
+	random: [[u32; 16]; CN],
 }
 
 impl<const N: usize> ChaCha<N> where Self: SecureRng {
@@ -43,13 +53,8 @@ impl<const N: usize> ChaCha<N> where Self: SecureRng {
 	/// ```
 	#[inline]
 	pub fn new() -> Random<ChaCha<N>> {
-		let mut state = [MaybeUninit::<u32>::uninit(); NWORDS];
-		state[0].write(CONSTANT[0]);
-		state[1].write(CONSTANT[1]);
-		state[2].write(CONSTANT[2]);
-		state[3].write(CONSTANT[3]);
-		entropy::getentropy_uninit(&mut state[4..]);
-		Random::wrap(ChaCha { state: unsafe { mem::transmute(state) }, index: NWORDS as u32, random: [0; NWORDS] })
+		let state = util::getrandom();
+		Random::wrap(ChaCha { state, index: INDEX, random: RANDOM })
 	}
 
 	/// Creates a new instance seeded from another generator.
@@ -57,13 +62,8 @@ impl<const N: usize> ChaCha<N> where Self: SecureRng {
 	/// This may be useful when needing to rapidly seed many instances from a master CSPRNG, and to allow forking of PRNGs.
 	#[inline]
 	pub fn from_rng<R: ?Sized + SecureRng>(rand: &mut Random<R>) -> Random<ChaCha<N>> {
-		let mut state = [MaybeUninit::<u32>::uninit(); NWORDS];
-		state[0].write(CONSTANT[0]);
-		state[1].write(CONSTANT[1]);
-		state[2].write(CONSTANT[2]);
-		state[3].write(CONSTANT[3]);
-		rand.fill_bytes_uninit(&mut state[4..]);
-		Random::wrap(ChaCha { state: unsafe { mem::transmute(state) }, index: NWORDS as u32, random: [0; NWORDS] })
+		let state = rand.random_bytes();
+		Random::wrap(ChaCha { state, index: INDEX, random: RANDOM })
 	}
 
 	/// Creates a new instance using the given seed.
@@ -84,14 +84,22 @@ impl<const N: usize> ChaCha<N> where Self: SecureRng {
 	pub fn from_seed(seed: u64) -> Random<ChaCha<N>> {
 		let low = (seed & 0xffffffff) as u32;
 		let high = (seed >> 32) as u32;
-		let state = [
-			CONSTANT[0], CONSTANT[1], CONSTANT[2], CONSTANT[3],
-			low, high, low, high,
-			low, high, low, high,
-			1, 0, 0, 0,
-		];
-		Random::wrap(ChaCha { state, index: NWORDS as u32, random: [0; NWORDS] })
+		let state = ChaChaCore::new([low, high, low, high, low, high, low, high], 1, 0);
+		Random::wrap(ChaCha { state, index: INDEX, random: RANDOM })
 	}
+}
+
+#[inline]
+fn read_u32(random: &[[u32; 16]; CN], index: usize) -> u32 {
+	let index = index & 0x3f;
+	let block = index / 16;
+	let word = index % 16;
+	random[block][word]
+}
+
+#[inline]
+fn flatten_random(random: &[[u32; 16]; CN]) -> &[u32; 16 * CN] {
+	unsafe { mem::transmute(random) }
 }
 
 impl<const N: usize> Rng for ChaCha<N> where Self: SecureRng {
@@ -99,12 +107,12 @@ impl<const N: usize> Rng for ChaCha<N> where Self: SecureRng {
 	fn next_u32(&mut self) -> u32 {
 		let mut index = self.index as usize;
 		// Generate a new block if there are no more random words
-		if index >= NWORDS {
+		if index > INDEX as usize - 1 {
 			chacha_block(&mut self.state, &mut self.random, N);
 			index = 0;
 		}
 		// Fetch a word from the random block
-		let value = self.random[index];
+		let value = read_u32(&self.random, index);
 		self.index = (index + 1) as u32;
 		value
 	}
@@ -112,13 +120,13 @@ impl<const N: usize> Rng for ChaCha<N> where Self: SecureRng {
 	fn next_u64(&mut self) -> u64 {
 		let mut index = self.index as usize;
 		// Generate a new block if there are less than two random words
-		if index >= NWORDS - 1 {
+		if index > INDEX as usize - 2 {
 			chacha_block(&mut self.state, &mut self.random, N);
 			index = 0;
 		}
 		// Fetch two words from the random block
-		let low = self.random[index + 0] as u64;
-		let high = self.random[index + 1] as u64;
+		let low = read_u32(&self.random, index + 0) as u64;
+		let high = read_u32(&self.random, index + 1) as u64;
 		self.index = (index + 2) as u32;
 		high << 32 | low
 	}
@@ -126,17 +134,18 @@ impl<const N: usize> Rng for ChaCha<N> where Self: SecureRng {
 	fn fill_bytes(&mut self, mut buf: &mut [MaybeUninit<u8>]) {
 		// Fill directly from the generator
 		// Use a temporary block buffer due to potential alignment issues
-		let mut tmp = [0; NWORDS];
-		while buf.len() >= BSIZE {
+		let mut tmp = [[0; 16]; CN];
+		while buf.len() >= mem::size_of_val(&tmp) {
 			chacha_block(&mut self.state, &mut tmp, N);
-			unsafe { (buf.as_mut_ptr() as *mut [u32; NWORDS]).write_unaligned(tmp); }
-			buf = &mut buf[BSIZE..];
+			unsafe { (buf.as_mut_ptr() as *mut [[u32; 16]; CN]).write_unaligned(tmp); }
+			buf = &mut buf[mem::size_of_val(&tmp)..];
 		}
 		// Fill the remaining bytes from the random block
 		if buf.len() > 0 {
 			loop {
-				let index = usize::min(self.index as usize, NWORDS);
-				let src = dataview::bytes(&self.random[index..]);
+				let random = flatten_random(&self.random);
+				let start = u32::min(self.index, INDEX) as usize;
+				let src = dataview::bytes(&random[start..]);
 				let len = usize::min(src.len(), buf.len());
 				unsafe { copy_bytes(src.as_ptr(), buf.as_mut_ptr(), len) };
 				buf = &mut buf[len..];
@@ -153,10 +162,12 @@ impl<const N: usize> Rng for ChaCha<N> where Self: SecureRng {
 	}
 	#[inline]
 	fn jump(&mut self) {
-		increment_stream(&mut self.state);
-		self.index = NWORDS as u32;
+		self.state.set_stream(self.state.get_stream().wrapping_add(1));
+		self.index = INDEX;
 	}
 }
+
+//----------------------------------------------------------------
 
 #[inline(always)]
 unsafe fn copy_bytes(mut src: *const u8, mut dst: *mut MaybeUninit<u8>, mut len: usize) {
@@ -195,18 +206,16 @@ unsafe fn copy_bytes(mut src: *const u8, mut dst: *mut MaybeUninit<u8>, mut len:
 	}
 }
 
-//----------------------------------------------------------------
-
 cfg_if::cfg_if! {
 	if #[cfg(feature = "serde")] {
 		fn is_default<T: Default + PartialEq>(value: &T) -> bool {
 			*value == T::default()
 		}
 		fn is_index_oob(value: &u32) -> bool {
-			*value >= NWORDS as u32
+			*value >= INDEX
 		}
 		fn default_index() -> u32 {
-			NWORDS as u32
+			INDEX
 		}
 	}
 }
@@ -216,30 +225,12 @@ cfg_if::cfg_if! {
 // https://cr.yp.to/chacha/chacha-20080128.pdf
 // http://loup-vaillant.fr/tutorials/chacha20-design
 
-const CONSTANT: [u32; 4] = [0x61707865, 0x3320646e, 0x79622d32, 0x6b206574];
-const NWORDS: usize = 16;
-const BSIZE: usize = 16 * 4;
-
-#[inline]
-fn increment_counter(state: &mut [u32; 16]) {
-	let counter = (state[15] as u128) << 96 | (state[14] as u128) << 64 | (state[13] as u128) << 32 | (state[12] as u128) << 0;
-	let counter = counter.wrapping_add(1);
-	state[12] = (counter >> 0) as u32;
-	state[13] = (counter >> 32) as u32;
-	state[14] = (counter >> 64) as u32;
-	state[15] = (counter >> 96) as u32;
-}
-
-#[inline]
-fn increment_stream(state: &mut [u32; NWORDS]) {
-	let stream = (state[15] as u64) << 32 | (state[14] as u64) << 0;
-	let stream = stream.wrapping_add(1);
-	state[14] = (stream & 0xffffffff) as u32;
-	state[15] = (stream >> 32) as u32;
-}
-
 cfg_if::cfg_if! {
-	if #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "sse2"))] {
+	if #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "avx2"))] {
+		mod avx2;
+		use self::avx2::block as chacha_block;
+	}
+	else if #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "sse2"))] {
 		mod sse2;
 		use self::sse2::block as chacha_block;
 	}
@@ -249,52 +240,5 @@ cfg_if::cfg_if! {
 	}
 }
 
-#[test]
-fn chacha20_selftest() {
-	let mut state = [
-		CONSTANT[0], CONSTANT[1], CONSTANT[2], CONSTANT[3],
-		0x03020100, 0x07060504, 0x0b0a0908, 0x0f0e0d0c,
-		0x13121110, 0x17161514, 0x1b1a1918, 0x1f1e1d1c,
-		0x00000001, 0x09000000, 0x4a000000, 0x00000000,
-	];
-	let expected = [
-		0xe4e7f110, 0x15593bd1, 0x1fdd0f50, 0xc47120a3,
-		0xc7f4d1c7, 0x0368c033, 0x9aaa2204, 0x4e6cd4c3,
-		0x466482d2, 0x09aa9f07, 0x05d7c214, 0xa2028bd9,
-		0xd19c12b5, 0xb94e16de, 0xe883d0cb, 0x4e3c50a2,
-	];
-	let mut result = [0; NWORDS];
-	chacha_block(&mut state, &mut result, 20);
-	assert_eq!(expected, result);
-}
-
-#[test]
-fn test_randomness() {
-	let mut rand = ChaCha20::new();
-	let mut words1 = [0u32; NWORDS];
-	for i in 0..NWORDS {
-		words1[i] = rand.next_u32();
-	}
-	let mut words2 = [0u32; NWORDS];
-	for i in 0..NWORDS {
-		words2[i] = rand.next_u32();
-	}
-	assert_ne!(words1, words2);
-}
-
-#[test]
-fn test_fill_bytes() {
-	let mut master = ChaCha20::new();
-	master.next_u64();
-	master.next_u64();
-	master.next_u64();
-	master.next_u32();
-	let mut old = [0u8; 64];
-	let mut buf = [0u8; 64];
-	for i in 1..buf.len() {
-		let mut rand = master.clone();
-		rand.fill_bytes(&mut buf[..i]);
-		assert_eq!(buf[..i - 1], old[..i - 1]);
-		old = buf;
-	}
-}
+#[cfg(test)]
+mod tests;

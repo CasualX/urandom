@@ -1,4 +1,4 @@
-use core::fmt;
+use core::{fmt, mem};
 use super::*;
 
 /// Rich interface for consuming random number generators.
@@ -111,7 +111,7 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// assert_ne!(data, [[0u32; 32]]);
 	/// ```
 	#[inline]
-	pub fn fill_bytes_uninit<'a, T: dataview::Pod>(&mut self, buf: &'a mut [core::mem::MaybeUninit<T>]) -> &'a mut [T] {
+	pub fn fill_bytes_uninit<'a, T: dataview::Pod>(&mut self, buf: &'a mut [mem::MaybeUninit<T>]) -> &'a mut [T] {
 		rng::util::fill_bytes_uninit(&mut self.rng, buf)
 	}
 
@@ -243,7 +243,7 @@ impl<R: Rng + ?Sized> Random<R> {
 		distr::Samples::new(self, distr)
 	}
 
-	/// Returns `true` with the given probability.
+	/// Returns `true` if a random number `(0.0, 1.0)` is less than the given probability.
 	///
 	/// This is known as the [`Bernoulli`](distr::Bernoulli) distribution.
 	///
