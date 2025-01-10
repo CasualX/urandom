@@ -78,3 +78,24 @@ pub fn random_bytes<R: Rng + ?Sized, T: dataview::Pod>(rng: &mut R) -> T {
 	fill_bytes_uninit(rng, slice::from_mut(&mut value));
 	unsafe { value.assume_init() }
 }
+
+#[cfg(all(test, feature = "serde"))]
+#[track_caller]
+pub fn check_serde_initial_state<R: Rng + serde::Serialize + for<'de> serde::Deserialize<'de>>(mut rand: Random<R>) {
+	let saved = serde_json::to_string(&rand).unwrap();
+	let v1 = rand.next_u64();
+	let mut restored: R = serde_json::from_str(&saved).unwrap();
+	let v2 = restored.next_u64();
+	assert_eq!(v1, v2);
+}
+
+#[cfg(all(test, feature = "serde"))]
+#[track_caller]
+pub fn check_serde_middle_state<R: Rng + serde::Serialize + for<'de> serde::Deserialize<'de>>(mut rand: Random<R>) {
+	let _ = rand.next_u64();
+	let saved = serde_json::to_string(&rand).unwrap();
+	let v1 = rand.next_u64();
+	let mut restored: R = serde_json::from_str(&saved).unwrap();
+	let v2 = restored.next_u64();
+	assert_eq!(v1, v2);
+}
