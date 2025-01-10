@@ -1,3 +1,4 @@
+use core::{array, char, num};
 use super::*;
 
 /// Generic random value distribution, implemented for many primitive types.
@@ -114,28 +115,28 @@ impl Distribution<char> for StandardUniform {
 
 		// Let's be safe and provide a checked implementation for debugging
 		#[cfg(debug_assertions)]
-		return core::char::from_u32(n).unwrap();
+		return char::from_u32(n).unwrap();
 		// Safety depends on proper implementation of `UniformInt`
 		#[cfg(not(debug_assertions))]
 		#[allow(unsafe_code)]
-		return unsafe { core::char::from_u32_unchecked(n) };
+		return unsafe { char::from_u32_unchecked(n) };
 	}
 }
 
-impl<T> Distribution<core::num::Wrapping<T>> for core::num::Wrapping<T> where StandardUniform: Distribution<T> {
+impl<T> Distribution<num::Wrapping<T>> for num::Wrapping<T> where StandardUniform: Distribution<T> {
 	#[inline]
-	fn sample<R: Rng + ?Sized>(&self, rand: &mut Random<R>) -> core::num::Wrapping<T> {
-		core::num::Wrapping(StandardUniform.sample(rand))
+	fn sample<R: Rng + ?Sized>(&self, rand: &mut Random<R>) -> num::Wrapping<T> {
+		num::Wrapping(StandardUniform.sample(rand))
 	}
 }
 
 macro_rules! impl_nzint {
 	($name:ident) => {
-		impl Distribution<core::num::$name> for StandardUniform {
+		impl Distribution<num::$name> for StandardUniform {
 			#[inline]
-			fn sample<R: Rng + ?Sized>(&self, rand: &mut Random<R>) -> core::num::$name {
+			fn sample<R: Rng + ?Sized>(&self, rand: &mut Random<R>) -> num::$name {
 				loop {
-					if let Some(nz) = core::num::$name::new(rand.next()) {
+					if let Some(nz) = num::$name::new(rand.next()) {
 						break nz;
 					}
 				}
@@ -177,7 +178,7 @@ impl_standard_dist_tuple!(A, B, C, D, E, F, G, H, I, J, K, L);
 impl<T, const N: usize> Distribution<[T; N]> for StandardUniform where StandardUniform: Distribution<T> {
 	#[inline]
 	fn sample<R: Rng + ?Sized>(&self, rand: &mut Random<R>) -> [T; N] {
-		core::array::from_fn(move |_| <StandardUniform as Distribution<T>>::sample(&StandardUniform, rand))
+		array::from_fn(move |_| <StandardUniform as Distribution<T>>::sample(&StandardUniform, rand))
 	}
 }
 
@@ -204,7 +205,7 @@ fn test_nzint() {
 
 	// Any failures manifest as an infinite loop
 	for _ in 0..9000 {
-		let _: core::num::NonZeroU32 = rand.sample(&StandardUniform);
+		let _: num::NonZeroU32 = rand.sample(&StandardUniform);
 	}
 }
 

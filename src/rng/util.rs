@@ -66,7 +66,7 @@ pub fn fill_bytes<'a, R: Rng + ?Sized, T: dataview::Pod>(rng: &mut R, buf: &'a m
 }
 
 #[inline]
-pub fn fill_bytes_uninit<'a, R: Rng + ?Sized, T: dataview::Pod>(rng: &mut R, buf: &'a mut [core::mem::MaybeUninit<T>]) -> &'a mut [T] {
+pub fn fill_bytes_uninit<'a, R: Rng + ?Sized, T: dataview::Pod>(rng: &mut R, buf: &'a mut [mem::MaybeUninit<T>]) -> &'a mut [T] {
 	let buf_bytes = unsafe { slice::from_raw_parts_mut(buf.as_mut_ptr() as *mut MaybeUninit<u8>, mem::size_of_val(buf)) };
 	rng.fill_bytes(buf_bytes);
 	unsafe { mem::transmute(buf) }

@@ -42,11 +42,7 @@ impl UniformSampler<f32> for UniformFloat<f32> {
 impl Distribution<f32> for UniformFloat<f32> {
 	#[inline]
 	fn sample<R: Rng + ?Sized>(&self, rand: &mut Random<R>) -> f32 {
-		#[cfg(feature = "std")]
-		let value = rand.next_f32().mul_add(self.scale, self.base);
-		#[cfg(not(feature = "std"))]
-		let value = rand.next_f32() * self.scale + self.base;
-		value
+		rand.next_f32() * self.scale + self.base
 	}
 }
 
@@ -75,10 +71,6 @@ impl UniformSampler<f64> for UniformFloat<f64> {
 impl Distribution<f64> for UniformFloat<f64> {
 	#[inline]
 	fn sample<R: Rng + ?Sized>(&self, rand: &mut Random<R>) -> f64 {
-		#[cfg(feature = "std")]
-		let value = rand.next_f64().mul_add(self.scale, self.base);
-		#[cfg(not(feature = "std"))]
-		let value = rand.next_f64() * self.scale + self.base;
-		value
+		rand.next_f64() * self.scale + self.base
 	}
 }
