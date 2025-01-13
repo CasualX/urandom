@@ -1,6 +1,6 @@
 [package]
 name = "urandom"
-version = "0.2.1"
+version = "0.2.2"
 authors = [
 	"Casper <CasualX@users.noreply.github.com>",
 	"Developers of the Rand project",

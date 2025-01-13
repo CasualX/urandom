@@ -147,7 +147,7 @@ impl<const N: usize> Rng for ChaCha<N> where Self: SecureRng {
 				let start = u32::min(self.index, INDEX) as usize;
 				let src = dataview::bytes(&random[start..]);
 				let len = usize::min(src.len(), buf.len());
-				unsafe { copy_bytes(src.as_ptr(), buf.as_mut_ptr(), len) };
+				unsafe { ptr::copy_nonoverlapping(src.as_ptr(), buf.as_mut_ptr() as *mut u8, len); }
 				buf = &mut buf[len..];
 				if buf.len() > 0 {
 					chacha_block(&mut self.state, &mut self.random, N);
@@ -169,43 +169,6 @@ impl<const N: usize> Rng for ChaCha<N> where Self: SecureRng {
 
 //----------------------------------------------------------------
 
-#[inline(always)]
-unsafe fn copy_bytes(mut src: *const u8, mut dst: *mut MaybeUninit<u8>, mut len: usize) {
-	if len >= 32 {
-		ptr::copy_nonoverlapping(src, dst as *mut u8, 32);
-		src = src.add(32);
-		dst = dst.add(32);
-		len -= 32;
-	}
-	if len >= 16 {
-		ptr::copy_nonoverlapping(src, dst as *mut u8, 16);
-		src = src.add(16);
-		dst = dst.add(16);
-		len -= 16;
-	}
-	if len >= 8 {
-		ptr::copy_nonoverlapping(src, dst as *mut u8, 8);
-		src = src.add(8);
-		dst = dst.add(8);
-		len -= 8;
-	}
-	if len >= 4 {
-		ptr::copy_nonoverlapping(src, dst as *mut u8, 4);
-		src = src.add(4);
-		dst = dst.add(4);
-		len -= 4;
-	}
-	if len >= 2 {
-		ptr::copy_nonoverlapping(src, dst as *mut u8, 2);
-		src = src.add(2);
-		dst = dst.add(2);
-		len -= 2;
-	}
-	if len >= 1 {
-		ptr::copy_nonoverlapping(src, dst as *mut u8, 1);
-	}
-}
-
 cfg_if::cfg_if! {
 	if #[cfg(feature = "serde")] {
 		fn is_default<T: Default + PartialEq>(value: &T) -> bool {
@@ -216,12 +179,6 @@ cfg_if::cfg_if! {
 		}
 		fn default_index() -> u32 {
 			INDEX
-		}
-
-		#[test]
-		fn serde() {
-			util::check_serde_initial_state(ChaCha12::new());
-			util::check_serde_middle_state(ChaCha12::new());
 		}
 	}
 }

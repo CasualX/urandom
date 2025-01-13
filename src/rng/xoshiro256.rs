@@ -100,14 +100,16 @@ impl Rng for Xoshiro256 {
 	}
 }
 
-cfg_if::cfg_if! {
-	if #[cfg(feature = "serde")] {
-		#[test]
-		fn serde() {
-			util::check_serde_initial_state(Xoshiro256::new());
-			util::check_serde_middle_state(Xoshiro256::new());
-		}
-	}
+#[test]
+fn fill_bytes() {
+	crate::rng::tests::check_fill_bytes(&mut Xoshiro256::new());
+}
+
+#[cfg(feature = "serde")]
+#[test]
+fn serde() {
+	tests::check_serde_initial_state(Xoshiro256::new());
+	tests::check_serde_middle_state(Xoshiro256::new());
 }
 
 //----------------------------------------------------------------

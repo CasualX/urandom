@@ -81,17 +81,12 @@ fn test_randomness() {
 
 #[test]
 fn test_fill_bytes() {
-	let mut master = ChaCha20::new();
-	master.next_u64();
-	master.next_u64();
-	master.next_u64();
-	master.next_u32();
-	let mut old = [0u8; 64];
-	let mut buf = [0u8; 64];
-	for i in 1..buf.len() {
-		let mut rand = master.clone();
-		rand.fill_bytes(&mut buf[..i]);
-		assert_eq!(buf[..i - 1], old[..i - 1]);
-		old = buf;
-	}
+	crate::rng::tests::check_fill_bytes(&mut ChaCha20::new());
+}
+
+#[cfg(feature = "serde")]
+#[test]
+fn serde() {
+	crate::rng::tests::check_serde_initial_state(ChaCha12::new());
+	crate::rng::tests::check_serde_middle_state(ChaCha12::new());
 }
