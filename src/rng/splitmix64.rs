@@ -78,14 +78,11 @@ impl Rng for SplitMix64 {
 	}
 }
 
-cfg_if::cfg_if! {
-	if #[cfg(feature = "serde")] {
-		#[test]
-		fn serde() {
-			util::check_serde_initial_state(SplitMix64::new());
-			util::check_serde_middle_state(SplitMix64::new());
-		}
-	}
+#[cfg(feature = "serde")]
+#[test]
+fn serde() {
+	tests::check_serde_initial_state(SplitMix64::new());
+	tests::check_serde_middle_state(SplitMix64::new());
 }
 
 //----------------------------------------------------------------

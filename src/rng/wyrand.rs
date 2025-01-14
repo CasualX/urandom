@@ -78,14 +78,11 @@ impl Rng for Wyrand {
 	}
 }
 
-cfg_if::cfg_if! {
-	if #[cfg(feature = "serde")] {
-		#[test]
-		fn serde() {
-			util::check_serde_initial_state(Wyrand::new());
-			util::check_serde_middle_state(Wyrand::new());
-		}
-	}
+#[cfg(feature = "serde")]
+#[test]
+fn serde() {
+	tests::check_serde_initial_state(Wyrand::new());
+	tests::check_serde_middle_state(Wyrand::new());
 }
 
 //----------------------------------------------------------------

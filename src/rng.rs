@@ -137,13 +137,5 @@ pub use self::entropy::{getentropy, getentropy_uninit};
 
 //----------------------------------------------------------------
 
-#[test]
-fn test_trait_object() {
-	// Ensure Rng is usable as a trait object
-	fn test(rand: &mut Random<dyn Rng>) {
-		let _: i32 = rand.next();
-	}
-	test(&mut crate::new());
-	test(&mut crate::seeded(42));
-	test(&mut crate::csprng());
-}
+#[cfg(test)]
+mod tests;
