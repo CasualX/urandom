@@ -1,8 +1,5 @@
 use super::*;
 
-mod inner;
-use self::inner::ChaChaCore;
-
 
 /// [`ChaCha`] with 8 rounds.
 pub type ChaCha8 = ChaCha<8>;
@@ -17,23 +14,12 @@ pub type ChaCha20 = ChaCha<20>;
 impl SecureRng for ChaCha<20> {}
 
 
-const CN: usize = 4; // Concurrent ChaCha instances
-const INDEX: u32 = 16 * 4;
-const RANDOM: [[u32; 16]; CN] = [[0; 16]; CN]; // Default random blocks
-
-
 /// Daniel J. Bernstein's ChaCha adapted as a deterministic random number generator.
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ChaCha<const N: usize> {
-	// The current state of the ChaCha cipher
-	state: ChaChaCore,
-	// Consume the random words before producing more
-	#[cfg_attr(feature = "serde", serde(default = "default_index", skip_serializing_if = "is_index_oob"))]
-	index: u32,
-	// The Rng produces 16 words per block
-	#[cfg_attr(feature = "serde", serde(default, skip_serializing_if = "is_default"))]
-	random: [[u32; 16]; CN],
+	#[cfg_attr(feature = "serde", serde(flatten))]
+	inner: BlockRngImpl<ChaChaState<N>>,
 }
 
 impl<const N: usize> ChaCha<N> where Self: SecureRng {
@@ -54,7 +40,8 @@ impl<const N: usize> ChaCha<N> where Self: SecureRng {
 	#[inline]
 	pub fn new() -> Random<ChaCha<N>> {
 		let state = util::getrandom();
-		Random::wrap(ChaCha { state, index: INDEX, random: RANDOM })
+		let inner = BlockRngImpl::new(state);
+		Random::wrap(ChaCha { inner })
 	}
 
 	/// Creates a new instance seeded from another generator.
@@ -63,7 +50,8 @@ impl<const N: usize> ChaCha<N> where Self: SecureRng {
 	#[inline]
 	pub fn from_rng<R: ?Sized + SecureRng>(rand: &mut Random<R>) -> Random<ChaCha<N>> {
 		let state = rand.random_bytes();
-		Random::wrap(ChaCha { state, index: INDEX, random: RANDOM })
+		let inner = BlockRngImpl::new(state);
+		Random::wrap(ChaCha { inner })
 	}
 
 	/// Creates a new instance using the given seed.
@@ -84,109 +72,38 @@ impl<const N: usize> ChaCha<N> where Self: SecureRng {
 	pub fn from_seed(seed: u64) -> Random<ChaCha<N>> {
 		let low = (seed & 0xffffffff) as u32;
 		let high = (seed >> 32) as u32;
-		let state = ChaChaCore::new([low, high, low, high, low, high, low, high], 1, 0);
-		Random::wrap(ChaCha { state, index: INDEX, random: RANDOM })
+		let state = ChaChaState::new([low, high, low, high, low, high, low, high], 1, 0);
+		let inner = BlockRngImpl::new(state);
+		Random::wrap(ChaCha { inner })
 	}
-}
-
-#[inline]
-fn read_u32(random: &[[u32; 16]; CN], index: usize) -> u32 {
-	let index = index & 0x3f;
-	let block = index / 16;
-	let word = index % 16;
-	random[block][word]
-}
-
-#[inline]
-fn flatten_random(random: &[[u32; 16]; CN]) -> &[u32; 16 * CN] {
-	unsafe { mem::transmute(random) }
 }
 
 impl<const N: usize> Rng for ChaCha<N> where Self: SecureRng {
-	#[inline(never)]
+	#[inline]
 	fn next_u32(&mut self) -> u32 {
-		let mut index = self.index as usize;
-		// Generate a new block if there are no more random words
-		if index > INDEX as usize - 1 {
-			chacha_block(&mut self.state, &mut self.random, N);
-			index = 0;
-		}
-		// Fetch a word from the random block
-		let value = read_u32(&self.random, index);
-		self.index = (index + 1) as u32;
-		value
+		self.inner.next_u32()
 	}
-	#[inline(never)]
+	#[inline]
 	fn next_u64(&mut self) -> u64 {
-		let mut index = self.index as usize;
-		// Generate a new block if there are less than two random words
-		if index > INDEX as usize - 2 {
-			chacha_block(&mut self.state, &mut self.random, N);
-			index = 0;
-		}
-		// Fetch two words from the random block
-		let low = read_u32(&self.random, index + 0) as u64;
-		let high = read_u32(&self.random, index + 1) as u64;
-		self.index = (index + 2) as u32;
-		high << 32 | low
+		self.inner.next_u64()
 	}
-	#[inline(never)]
-	fn fill_bytes(&mut self, mut buf: &mut [MaybeUninit<u8>]) {
-		// Fill directly from the generator
-		// Use a temporary block buffer due to potential alignment issues
-		let mut tmp = [[0; 16]; CN];
-		while buf.len() >= mem::size_of_val(&tmp) {
-			chacha_block(&mut self.state, &mut tmp, N);
-			unsafe { (buf.as_mut_ptr() as *mut [[u32; 16]; CN]).write_unaligned(tmp); }
-			buf = &mut buf[mem::size_of_val(&tmp)..];
-		}
-		// Fill the remaining bytes from the random block
-		if buf.len() > 0 {
-			loop {
-				let random = flatten_random(&self.random);
-				let start = u32::min(self.index, INDEX) as usize;
-				let src = dataview::bytes(&random[start..]);
-				let len = usize::min(src.len(), buf.len());
-				unsafe { ptr::copy_nonoverlapping(src.as_ptr(), buf.as_mut_ptr() as *mut u8, len); }
-				buf = &mut buf[len..];
-				if buf.len() > 0 {
-					chacha_block(&mut self.state, &mut self.random, N);
-					self.index = 0;
-				}
-				else {
-					self.index += (len + 3) as u32 / 4;
-					break;
-				}
-			}
-		}
+	#[inline]
+	fn fill_bytes(&mut self, buf: &mut [MaybeUninit<u8>]) {
+		self.inner.fill_bytes(buf);
 	}
 	#[inline]
 	fn jump(&mut self) {
-		self.state.set_stream(self.state.get_stream().wrapping_add(1));
-		self.index = INDEX;
+		self.inner.jump();
 	}
 }
 
-//----------------------------------------------------------------
-
-cfg_if::cfg_if! {
-	if #[cfg(feature = "serde")] {
-		fn is_default<T: Default + PartialEq>(value: &T) -> bool {
-			*value == T::default()
-		}
-		fn is_index_oob(value: &u32) -> bool {
-			*value >= INDEX
-		}
-		fn default_index() -> u32 {
-			INDEX
-		}
-	}
-}
 
 //----------------------------------------------------------------
 // ChaCha implementation details
 // https://cr.yp.to/chacha/chacha-20080128.pdf
 // http://loup-vaillant.fr/tutorials/chacha20-design
+
+use core::fmt;
 
 cfg_if::cfg_if! {
 	if #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "avx2"))] {
@@ -200,6 +117,110 @@ cfg_if::cfg_if! {
 	else {
 		mod slp;
 		use self::slp::block as chacha_block;
+	}
+}
+
+const CN: usize = 4; // Concurrent ChaCha instances
+const CONSTANT: [u32; 4] = [0x61707865, 0x3320646e, 0x79622d32, 0x6b206574];
+
+#[derive(Clone)]
+#[repr(C)]
+pub struct ChaChaState<const N: usize> {
+	seed: [u32; 8],
+	counter: [u32; 2],
+	stream: [u32; 2],
+}
+
+unsafe impl<const N: usize> dataview::Pod for ChaChaState<N> {}
+
+impl<const N: usize> ChaChaState<N> {
+	#[inline]
+	pub fn new(seed: [u32; 8], counter: u64, stream: u64) -> ChaChaState<N> {
+		ChaChaState {
+			seed,
+			counter: [counter as u32, (counter >> 32) as u32],
+			stream: [stream as u32, (stream >> 32) as u32],
+		}
+	}
+	#[inline]
+	pub fn get_state(&self) -> [[u32; 4]; 4] {
+		[
+			CONSTANT,
+			[self.seed[0], self.seed[1], self.seed[2], self.seed[3]],
+			[self.seed[4], self.seed[5], self.seed[6], self.seed[7]],
+			[self.counter[0], self.counter[1], self.stream[0], self.stream[1]],
+		]
+	}
+	#[inline]
+	pub fn get_counter(&self) -> u64 {
+		(self.counter[1] as u64) << 32 | self.counter[0] as u64
+	}
+	#[inline]
+	pub fn set_counter(&mut self, counter: u64) {
+		self.counter[0] = counter as u32;
+		self.counter[1] = (counter >> 32) as u32;
+	}
+	#[inline]
+	pub fn add_counter(&self, counter: u64) -> ChaChaState<N> {
+		let mut this = self.clone();
+		this.set_counter(self.get_counter().wrapping_add(counter));
+		this
+	}
+	#[inline]
+	pub fn get_stream(&self) -> u64 {
+		(self.stream[1] as u64) << 32 | self.stream[0] as u64
+	}
+	#[inline]
+	pub fn set_stream(&mut self, stream: u64) {
+		self.stream[0] = stream as u32;
+		self.stream[1] = (stream >> 32) as u32;
+	}
+}
+
+impl<const N: usize> BlockRng for ChaChaState<N> {
+	type Output = [[u32; 16]; CN];
+
+	#[inline]
+	fn generate(&mut self, random: &mut Self::Output) {
+		chacha_block(self, random);
+	}
+
+	#[inline]
+	fn jump(&mut self) {
+		self.set_stream(self.get_stream().wrapping_add(1));
+	}
+}
+
+impl<const N: usize> fmt::Debug for ChaChaState<N> {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		f.debug_struct("ChaChaCore")
+			.field("seed", &format_args!("{:x?}", self.seed))
+			.field("counter", &self.get_counter())
+			.field("stream", &self.get_stream())
+			.finish()
+	}
+}
+
+#[cfg(feature = "serde")]
+impl<const N: usize> serde::Serialize for ChaChaState<N> {
+	fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+		[
+			self.seed[0], self.seed[1], self.seed[2], self.seed[3],
+			self.seed[4], self.seed[5], self.seed[6], self.seed[7],
+			self.counter[0], self.counter[1], self.stream[0], self.stream[1],
+		].serialize(serializer)
+	}
+}
+
+#[cfg(feature = "serde")]
+impl<'de, const N: usize> serde::Deserialize<'de> for ChaChaState<N> {
+	fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+		let values = <[u32; 12]>::deserialize(deserializer)?;
+		Ok(ChaChaState {
+			seed: [values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7]],
+			counter: [values[8], values[9]],
+			stream: [values[10], values[11]],
+		})
 	}
 }
 
