@@ -135,6 +135,9 @@ pub use self::system::System;
 mod entropy;
 pub use self::entropy::{getentropy, getentropy_uninit};
 
+mod block;
+use self::block::{BlockRng, BlockRngImpl};
+
 //----------------------------------------------------------------
 
 #[cfg(test)]

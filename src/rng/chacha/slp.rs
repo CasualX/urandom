@@ -51,7 +51,7 @@ macro_rules! rotate_matrix {
 }
 
 #[inline]
-pub fn block(state: &mut super::ChaChaCore, ws: &mut [[u32; 16]; 4], n: usize) {
+pub fn block<const N: usize>(state: &mut super::ChaChaState<N>, ws: &mut [[u32; 16]; 4]) {
 	{
 		let words1 = state.get_state();
 		let [mut a1, mut b1, mut c1, mut d1] = words1;
@@ -62,7 +62,7 @@ pub fn block(state: &mut super::ChaChaCore, ws: &mut [[u32; 16]; 4], n: usize) {
 		let words4 = state.add_counter(3).get_state();
 		let [mut a4, mut b4, mut c4, mut d4] = words4;
 
-		for _ in 0..n / 2 {
+		for _ in 0..N / 2 {
 			quarter_round!(a1, b1, c1, d1);
 			rotate_matrix!(a1, b1, c1, d1);
 			quarter_round!(a1, b1, c1, d1);

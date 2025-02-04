@@ -3,14 +3,14 @@ use super::*;
 #[test]
 fn chacha20_test_vectors() {
 	#[track_caller]
-	fn check(state: ChaChaCore, expected: [u32; 16]) {
-		let mut result = RANDOM;
-		chacha_block(&mut state.clone(), &mut result, 20);
+	fn check(state: ChaChaState<20>, expected: [u32; 16]) {
+		let mut result = Default::default();
+		chacha_block(&mut state.clone(), &mut result);
 		println!("state: {:?},\nresult: [\n\t{:x?},\n\t{:x?},\n\t{:x?},\n\t{:x?},\n]", state, result[0], result[1], result[2], result[3]);
 		assert_eq!(expected, result[0]);
 	}
 	check(
-		ChaChaCore::new([0x03020100, 0x07060504, 0x0b0a0908, 0x0f0e0d0c, 0x13121110, 0x17161514, 0x1b1a1918, 0x1f1e1d1c], 0x0900000000000001, 0x000000004a000000),
+		ChaChaState::new([0x03020100, 0x07060504, 0x0b0a0908, 0x0f0e0d0c, 0x13121110, 0x17161514, 0x1b1a1918, 0x1f1e1d1c], 0x0900000000000001, 0x000000004a000000),
 		[
 			0xe4e7f110, 0x15593bd1, 0x1fdd0f50, 0xc47120a3,
 			0xc7f4d1c7, 0x0368c033, 0x9aaa2204, 0x4e6cd4c3,
@@ -19,7 +19,7 @@ fn chacha20_test_vectors() {
 		]
 	);
 	check(
-		ChaChaCore::new([0, 0, 0, 0, 0, 0, 0, 0], 0, 0),
+		ChaChaState::new([0, 0, 0, 0, 0, 0, 0, 0], 0, 0),
 		[
 			0xade0b876, 0x903df1a0, 0xe56a5d40, 0x28bd8653,
 			0xb819d2bd, 0x1aed8da0, 0xccef36a8, 0xc70d778b,
@@ -28,7 +28,7 @@ fn chacha20_test_vectors() {
 		]
 	);
 	check(
-		ChaChaCore::new([0, 0, 0, 0, 0, 0, 0, 0], 1, 0),
+		ChaChaState::new([0, 0, 0, 0, 0, 0, 0, 0], 1, 0),
 		[
 			0xbee7079f, 0x7a385155, 0x7c97ba98, 0x0d082d73,
 			0xa0290fcb, 0x6965e348, 0x3e53c612, 0xed7aee32,
@@ -37,7 +37,7 @@ fn chacha20_test_vectors() {
 		]
 	);
 	check(
-		ChaChaCore::new([0, 0, 0, 0, 0, 0, 0, 0x01000000], 1, 0),
+		ChaChaState::new([0, 0, 0, 0, 0, 0, 0, 0x01000000], 1, 0),
 		[
 			0x2452eb3a, 0x9249f8ec, 0x8d829d9b, 0xddd4ceb1,
 			0xe8252083, 0x60818b01, 0xf38422b8, 0x5aaa49c9,
@@ -46,7 +46,7 @@ fn chacha20_test_vectors() {
 		]
 	);
 	check(
-		ChaChaCore::new([0x0000ff00, 0, 0, 0, 0, 0, 0, 0], 2, 0),
+		ChaChaState::new([0x0000ff00, 0, 0, 0, 0, 0, 0, 0], 2, 0),
 		[
 			0xfb4dd572, 0x4bc42ef1, 0xdf922636, 0x327f1394,
 			0xa78dea8f, 0x5e269039, 0xa1bebbc1, 0xcaf09aae,
@@ -55,7 +55,7 @@ fn chacha20_test_vectors() {
 		]
 	);
 	check(
-		ChaChaCore::new([0, 0, 0, 0, 0, 0, 0, 0], 0, 0x0200000000000000),
+		ChaChaState::new([0, 0, 0, 0, 0, 0, 0, 0], 0, 0x0200000000000000),
 		[
 			0x374dc6c2, 0x3736d58c, 0xb904e24a, 0xcd3f93ef,
 			0x88228b1a, 0x96a4dfb3, 0x5b76ab72, 0xc727ee54,
@@ -69,11 +69,11 @@ fn chacha20_test_vectors() {
 fn test_randomness() {
 	let mut rand = ChaCha20::new();
 	let mut words1 = [0; 16 * CN];
-	for i in 0..INDEX as usize {
+	for i in 0..16 * CN {
 		words1[i] = rand.next_u32();
 	}
 	let mut words2 = [0; 16 * CN];
-	for i in 0..INDEX as usize {
+	for i in 0..16 * CN {
 		words2[i] = rand.next_u32();
 	}
 	assert_ne!(words1, words2);
