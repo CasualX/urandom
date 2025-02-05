@@ -8,12 +8,12 @@ Both crates use the Xoshiro256 family of algorithms.
 
 ```
 running 6 tests
-test f64_rand           ... bench:         857.52 ns/iter (+/- 52.28) = 1194 MB/s
-test f64_urandom        ... bench:         748.83 ns/iter (+/- 0.99) = 1368 MB/s
-test fill_bytes_rand    ... bench:      92,316.10 ns/iter (+/- 66.24) = 11 MB/s
-test fill_bytes_urandom ... bench:      79,287.00 ns/iter (+/- 112.22) = 12 MB/s
-test u64_rand           ... bench:         763.68 ns/iter (+/- 15.58) = 1342 MB/s
-test u64_urandom        ... bench:         687.31 ns/iter (+/- 4.58) = 1490 MB/s
+test f64_rand           ... bench:         858.54 ns/iter (+/- 28.51) = 1193 MB/s
+test f64_urandom        ... bench:         762.32 ns/iter (+/- 17.60) = 1343 MB/s
+test fill_bytes_rand    ... bench:      92,386.74 ns/iter (+/- 217.56) = 11 MB/s
+test fill_bytes_urandom ... bench:      79,506.86 ns/iter (+/- 830.81) = 12 MB/s
+test u64_rand           ... bench:         766.34 ns/iter (+/- 13.36) = 1336 MB/s
+test u64_urandom        ... bench:         688.67 ns/iter (+/- 28.01) = 1488 MB/s
 ```
 
 There is no difference expected for fill_bytes and u64.
@@ -27,12 +27,12 @@ Both crates use the ChaCha12 algorithm.
 
 ```
 running 6 tests
-test f64_rand           ... bench:       2,002.38 ns/iter (+/- 65.92) = 511 MB/s
-test f64_urandom        ... bench:       2,379.33 ns/iter (+/- 21.93) = 430 MB/s
-test fill_bytes_rand    ... bench:     198,730.90 ns/iter (+/- 646.17) = 5 MB/s
-test fill_bytes_urandom ... bench:     188,155.88 ns/iter (+/- 33,147.61) = 5 MB/s
-test u64_rand           ... bench:       1,279.13 ns/iter (+/- 24.17) = 800 MB/s
-test u64_urandom        ... bench:       1,313.37 ns/iter (+/- 11.98) = 779 MB/s
+test f64_rand           ... bench:       2,312.97 ns/iter (+/- 293.39) = 442 MB/s
+test f64_urandom        ... bench:       2,977.51 ns/iter (+/- 63.71) = 343 MB/s
+test fill_bytes_rand    ... bench:     181,497.00 ns/iter (+/- 10,974.79) = 5 MB/s
+test fill_bytes_urandom ... bench:     187,261.64 ns/iter (+/- 19,665.52) = 5 MB/s
+test u64_rand           ... bench:       1,264.85 ns/iter (+/- 9.01) = 810 MB/s
+test u64_urandom        ... bench:       1,522.70 ns/iter (+/- 11.78) = 672 MB/s
 ```
 
 Comparison of rand's `UniformInt` vs urandom's `UniformInt`
@@ -40,10 +40,10 @@ Comparison of rand's `UniformInt` vs urandom's `UniformInt`
 
 ```
 running 4 tests
-test uniform_range_rand     ... bench:       4,339.98 ns/iter (+/- 32.66)
-test uniform_range_urandom  ... bench:         908.10 ns/iter (+/- 2.13)
-test uniform_sample_rand    ... bench:       1,194.32 ns/iter (+/- 5.91)
-test uniform_sample_urandom ... bench:         940.89 ns/iter (+/- 7.71)
+test uniform_range_rand     ... bench:       1,040.08 ns/iter (+/- 30.73)
+test uniform_range_urandom  ... bench:         907.35 ns/iter (+/- 5.27)
+test uniform_sample_rand    ... bench:       1,035.46 ns/iter (+/- 11.28)
+test uniform_sample_urandom ... bench:         948.45 ns/iter (+/- 10.77)
 ```
 
-Urandom uses a faster algorithm to sample from a range. This avoids an expensive integer division when constructing the range sampler.
+Urandom used to be much faster due to using a faster algorithm but rand has since switched to the same algorithm.

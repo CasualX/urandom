@@ -10,7 +10,7 @@ const BYTES_LEN: usize = 1024;
 
 #[bench]
 fn fill_bytes_rand(b: &mut Bencher) {
-	let mut rng = SmallRng::from_entropy();
+	let mut rng = SmallRng::from_os_rng();
 	let mut buf = [0u8; BYTES_LEN];
 
 	b.bytes = BYTES_LEN as u64;
@@ -38,7 +38,7 @@ fn fill_bytes_urandom(b: &mut Bencher) {
 
 #[bench]
 fn u64_rand(b: &mut Bencher) {
-	let mut rng = SmallRng::from_entropy();
+	let mut rng = SmallRng::from_os_rng();
 
 	b.bytes = BYTES_LEN as u64;
 	b.iter(|| {
@@ -64,12 +64,12 @@ fn u64_urandom(b: &mut Bencher) {
 
 #[bench]
 fn f64_rand(b: &mut Bencher) {
-	let mut rng = SmallRng::from_entropy();
+	let mut rng = SmallRng::from_os_rng();
 
 	b.bytes = BYTES_LEN as u64;
 	b.iter(|| {
 		for _ in 0..RAND_BENCH_N {
-			let value: f64 = rng.gen();
+			let value: f64 = rng.random();
 			black_box(&value);
 		}
 	});
