@@ -79,7 +79,7 @@ macro_rules! range_int {
 				let mut high = $high;
 				let mut accum: $ty = 0;
 				for _ in 0..RAND_BENCH_N {
-					accum = accum.wrapping_add(rand.range($low..high));
+					accum = accum.wrapping_add(rand.uniform($low..high));
 					// force recalculation of range each time
 					high = high.wrapping_add(1) & $ty::MAX;
 				}
@@ -102,7 +102,7 @@ macro_rules! range_float {
 				let mut low = $low;
 				let mut accum: $ty = 0.0;
 				for _ in 0..RAND_BENCH_N {
-					accum += rand.range(low..high);
+					accum += rand.uniform(low..high);
 					// force recalculation of range each time
 					low += 0.9;
 					high += 1.1;

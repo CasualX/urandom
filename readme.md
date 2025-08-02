@@ -38,7 +38,7 @@ if rand.coin_flip() {
 }
 
 // Generates a float between 13.0 and 42.0
-let y: f64 = rand.range(13.0..42.0);
+let y: f64 = rand.uniform(13.0..42.0);
 
 // Shuffles the list of numbers
 let mut numbers: Vec<i32> = (1..100).collect();

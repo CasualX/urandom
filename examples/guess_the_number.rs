@@ -1,7 +1,7 @@
 
 fn main() {
 	println!("Guess the number between 0 and 100:");
-	let secret = urandom::new().range(0..=100);
+	let secret = urandom::new().uniform(0..=100);
 
 	let mut input = String::new();
 	let mut tries = 0;

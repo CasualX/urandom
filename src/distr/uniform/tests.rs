@@ -67,10 +67,10 @@ fn test_yolo() {
 			low = high;
 			high = tmp;
 		}
-		let value = rand.range(low..=high);
+		let value = rand.uniform(low..=high);
 		assert!(value >= low && value <= high);
 		if low != high {
-			let value = rand.range(low..high);
+			let value = rand.uniform(low..high);
 			assert!(value >= low && value < high);
 		}
 	}

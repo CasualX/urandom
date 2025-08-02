@@ -195,7 +195,7 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// # Examples
 	///
 	/// ```
-	/// let eyes = urandom::new().range(1..=6);
+	/// let eyes = urandom::new().uniform(1..=6);
 	/// assert!(eyes >= 1 && eyes <= 6);
 	/// ```
 	///
@@ -215,6 +215,13 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// ```
 	#[track_caller]
 	#[inline]
+	pub fn uniform<T, I>(&mut self, interval: I) -> T where T: distr::SampleUniform, distr::Uniform<T>: From<I> {
+		distr::Uniform::<T>::from(interval).sample(self)
+	}
+
+	#[track_caller]
+	#[inline]
+	#[doc(hidden)]
 	pub fn range<T, I>(&mut self, interval: I) -> T where T: distr::SampleUniform, distr::Uniform<T>: From<I> {
 		distr::Uniform::<T>::from(interval).sample(self)
 	}
@@ -411,7 +418,7 @@ impl<R: Rng + ?Sized> Random<R> {
 		if slice.len() > 1 {
 			n = usize::min(n, slice.len() - 1);
 			for i in 0..n {
-				let k = self.range(i..slice.len());
+				let k = self.uniform(i..slice.len());
 				slice.swap(i, k);
 			}
 		}

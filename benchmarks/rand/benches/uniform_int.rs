@@ -51,7 +51,7 @@ fn uniform_range_urandom(b: &mut Bencher) {
 	b.iter(|| {
 		let mut accum = 0u32;
 		for _ in 0..RAND_BENCH_N {
-			accum = accum.wrapping_add(rand.range(500..20000));
+			accum = accum.wrapping_add(rand.uniform(500..20000));
 		}
 		accum
 	});

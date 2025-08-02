@@ -112,7 +112,7 @@ pub trait UniformSampler<T>: Distribution<T> {
 ///
 /// // Now it can be used to generate random samples.
 /// let mut rand = urandom::new();
-/// let value = rand.range(MyF32(13.0)..MyF32(42.0));
+/// let value = rand.uniform(MyF32(13.0)..MyF32(42.0));
 /// assert!(value.0 >= 13.0 && value.0 < 42.0);
 /// ```
 #[derive(Copy, Clone, Debug)]

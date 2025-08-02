@@ -57,7 +57,7 @@ use super::*;
 /// This is equivalent to calling [`Random::next_f32`](Random::next_f32) and [`Random::next_f64`](Random::next_f64) directly.
 ///
 /// Subtracting `1.0` is an easy way to get a random floating point value in the half-open interval `[0.0, 1.0)` but has a small bias
-/// in the lower bits of the floating point mantissa. This is equivalent to `rand.range(0.0..1.0)`.
+/// in the lower bits of the floating point mantissa. This is equivalent to `rand.uniform(0.0..1.0)`.
 ///
 /// See also: [`Float01`](super::Float01) which samples from `(0.0, 1.0)` and does not suffer from this bias.
 #[derive(Copy, Clone, Debug)]
