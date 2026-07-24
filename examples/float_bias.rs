@@ -28,8 +28,8 @@ fn main() {
 
 	let mut buckets = [0u32; 8];
 	for _ in 0..N {
-		// Generate a random f32 in the interval `[0.0, 1.0)`
-		let float = rand.next_f32() - 1.0;
+		// StandardUniform generates a random f32 in the interval `[0.0, 1.0)`.
+		let float: f32 = rand.random();
 
 		// Extract the low bits
 		let bits = float.to_bits() & 0x7;

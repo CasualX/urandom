@@ -107,13 +107,13 @@ Frequently Asked Questions
   No. The traits support the generators provided by this crate and are not intended for downstream implementations.
   Consumers of randomness should use the `Random` struct and its methods.
 
-* *Why are random floats generated in the half-open interval `[1.0, 2.0)` instead of `[0.0, 1.0)`?*
+* *How are random floating-point values generated?*
 
-  Because it's very easy to generate a random float in that half open range (generate a random mantissa with a fixed exponent) and it avoids hard (design and implementation) questions.
+  `rand.random::<f32>()` and `rand.random::<f64>()` use the `StandardUniform` distribution and return values in the half-open interval `[0.0, 1.0)`.
 
-  Converting to float and dividing by the integer range leaves a bias in the low bits of the float's mantissa. The same issue arises when subtracting `1.0` from a random float in the `[1.0, 2.0)` range (see [`examples/float_bias.rs`](examples/float_bias.rs)).
+  The underlying `next_f32` and `next_f64` methods return values in `[1.0, 2.0)`, which is efficient to generate using a random mantissa and fixed exponent. `StandardUniform` subtracts `1.0` to shift that value into `[0.0, 1.0)`. This introduces a small bias in the low bits of the float's mantissa (see [`examples/float_bias.rs`](examples/float_bias.rs)).
 
-  The `Float01` distribution generates a true, unbiased random float in open interval `(0.0, 1.0)`.
+  The `Float01` distribution generates an unbiased random float in the open interval `(0.0, 1.0)`.
 
 * *Is it performant on 32-bit archs?*
 
