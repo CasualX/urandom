@@ -41,25 +41,21 @@ macro_rules! rotate_matrix {
 #[inline]
 pub fn block<const N: usize>(state: &mut super::ChaChaState<N>, ws: &mut [[u32; 16]; 4]) {
 	unsafe {
-		let words1 = state.get_state();
-		let words2 = state.add_counter(1).get_state();
-		let words3 = state.add_counter(2).get_state();
-		let words4 = state.add_counter(3).get_state();
+		let words = state.get_state();
+		let [xa, xb, xc, xd] = load!(&words);
+		let counter1 = _mm_add_epi64(xd, _mm_set_epi64x(0, 1));
+		let counter2 = _mm_add_epi64(xd, _mm_set_epi64x(0, 2));
+		let counter3 = _mm_add_epi64(xd, _mm_set_epi64x(0, 3));
 
-		let [xa1, xb1, xc1, xd1] = load!(&words1);
-		let [xa2, xb2, xc2, xd2] = load!(&words2);
-		let [xa3, xb3, xc3, xd3] = load!(&words3);
-		let [xa4, xb4, xc4, xd4] = load!(&words4);
+		let mut a1 = _mm256_broadcastsi128_si256(xa);
+		let mut b1 = _mm256_broadcastsi128_si256(xb);
+		let mut c1 = _mm256_broadcastsi128_si256(xc);
+		let mut d1 = _mm256_setr_m128i(xd, counter1);
 
-		let mut a1 = _mm256_setr_m128i(xa1, xa2);
-		let mut b1 = _mm256_setr_m128i(xb1, xb2);
-		let mut c1 = _mm256_setr_m128i(xc1, xc2);
-		let mut d1 = _mm256_setr_m128i(xd1, xd2);
-
-		let mut a2 = _mm256_setr_m128i(xa3, xa4);
-		let mut b2 = _mm256_setr_m128i(xb3, xb4);
-		let mut c2 = _mm256_setr_m128i(xc3, xc4);
-		let mut d2 = _mm256_setr_m128i(xd3, xd4);
+		let mut a2 = _mm256_broadcastsi128_si256(xa);
+		let mut b2 = _mm256_broadcastsi128_si256(xb);
+		let mut c2 = _mm256_broadcastsi128_si256(xc);
+		let mut d2 = _mm256_setr_m128i(counter2, counter3);
 
 		let (sa1, sb1, sc1, sd1) = (a1, b1, c1, d1);
 		let (sa2, sb2, sc2, sd2) = (a2, b2, c2, d2);

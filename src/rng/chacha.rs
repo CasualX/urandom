@@ -161,6 +161,7 @@ impl<const N: usize> ChaChaState<N> {
 		self.counter[1] = (counter >> 32) as u32;
 	}
 	#[inline]
+	#[allow(dead_code)] // Used by the non-AVX2 backends.
 	pub fn add_counter(&self, counter: u64) -> ChaChaState<N> {
 		let mut this = self.clone();
 		this.set_counter(self.get_counter().wrapping_add(counter));
@@ -180,7 +181,7 @@ impl<const N: usize> ChaChaState<N> {
 impl<const N: usize> BlockRng for ChaChaState<N> {
 	type Output = [[u32; 16]; CN];
 
-	#[inline]
+	#[inline(never)]
 	fn generate(&mut self, random: &mut Self::Output) {
 		chacha_block(self, random);
 	}

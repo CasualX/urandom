@@ -2,6 +2,7 @@
 
 extern crate test;
 
+use core::mem::size_of;
 use rand::prelude::*;
 use test::{black_box, Bencher};
 
@@ -10,10 +11,10 @@ const BYTES_LEN: usize = 1024;
 
 #[bench]
 fn fill_bytes_rand(b: &mut Bencher) {
-	let mut rng = SmallRng::from_os_rng();
+	let mut rng: SmallRng = rand::make_rng();
 	let mut buf = [0u8; BYTES_LEN];
 
-	b.bytes = BYTES_LEN as u64;
+	b.bytes = BYTES_LEN as u64 * RAND_BENCH_N;
 	b.iter(|| {
 		for _ in 0..RAND_BENCH_N {
 			rng.fill_bytes(&mut buf);
@@ -27,7 +28,7 @@ fn fill_bytes_urandom(b: &mut Bencher) {
 	let mut rand = urandom::new();
 	let mut buf = [0u8; BYTES_LEN];
 
-	b.bytes = BYTES_LEN as u64;
+	b.bytes = BYTES_LEN as u64 * RAND_BENCH_N;
 	b.iter(|| {
 		for _ in 0..RAND_BENCH_N {
 			rand.fill_bytes(&mut buf);
@@ -37,14 +38,40 @@ fn fill_bytes_urandom(b: &mut Bencher) {
 }
 
 #[bench]
-fn u64_rand(b: &mut Bencher) {
-	let mut rng = SmallRng::from_os_rng();
+fn u32_rand(b: &mut Bencher) {
+	let mut rng: SmallRng = rand::make_rng();
 
-	b.bytes = BYTES_LEN as u64;
+	b.bytes = size_of::<u32>() as u64 * RAND_BENCH_N;
 	b.iter(|| {
 		for _ in 0..RAND_BENCH_N {
 			let value = rng.next_u32();
-			black_box(&value);
+			black_box(value);
+		}
+	});
+}
+
+#[bench]
+fn u32_urandom(b: &mut Bencher) {
+	let mut rand = urandom::new();
+
+	b.bytes = size_of::<u32>() as u64 * RAND_BENCH_N;
+	b.iter(|| {
+		for _ in 0..RAND_BENCH_N {
+			let value = rand.next_u32();
+			black_box(value);
+		}
+	});
+}
+
+#[bench]
+fn u64_rand(b: &mut Bencher) {
+	let mut rng: SmallRng = rand::make_rng();
+
+	b.bytes = size_of::<u64>() as u64 * RAND_BENCH_N;
+	b.iter(|| {
+		for _ in 0..RAND_BENCH_N {
+			let value = rng.next_u64();
+			black_box(value);
 		}
 	});
 }
@@ -53,24 +80,24 @@ fn u64_rand(b: &mut Bencher) {
 fn u64_urandom(b: &mut Bencher) {
 	let mut rand = urandom::new();
 
-	b.bytes = BYTES_LEN as u64;
+	b.bytes = size_of::<u64>() as u64 * RAND_BENCH_N;
 	b.iter(|| {
 		for _ in 0..RAND_BENCH_N {
-			let value = rand.next_u32();
-			black_box(&value);
+			let value = rand.next_u64();
+			black_box(value);
 		}
 	});
 }
 
 #[bench]
 fn f64_rand(b: &mut Bencher) {
-	let mut rng = SmallRng::from_os_rng();
+	let mut rng: SmallRng = rand::make_rng();
 
-	b.bytes = BYTES_LEN as u64;
+	b.bytes = size_of::<f64>() as u64 * RAND_BENCH_N;
 	b.iter(|| {
 		for _ in 0..RAND_BENCH_N {
 			let value: f64 = rng.random();
-			black_box(&value);
+			black_box(value);
 		}
 	});
 }
@@ -79,11 +106,11 @@ fn f64_rand(b: &mut Bencher) {
 fn f64_urandom(b: &mut Bencher) {
 	let mut rand = urandom::new();
 
-	b.bytes = BYTES_LEN as u64;
+	b.bytes = size_of::<f64>() as u64 * RAND_BENCH_N;
 	b.iter(|| {
 		for _ in 0..RAND_BENCH_N {
 			let value: f64 = rand.next();
-			black_box(&value);
+			black_box(value);
 		}
 	});
 }

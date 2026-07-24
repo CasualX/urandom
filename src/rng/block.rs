@@ -34,7 +34,7 @@ impl<T: BlockRng> BlockRngImpl<T> {
 }
 
 impl<T: BlockRng> Rng for BlockRngImpl<T> {
-	#[inline(never)]
+	#[inline]
 	fn next_u32(&mut self) -> u32 {
 		// Generate a new block if there are no more random words
 		let mut index = self.index as usize;
@@ -49,7 +49,7 @@ impl<T: BlockRng> Rng for BlockRngImpl<T> {
 		value
 	}
 
-	#[inline(never)]
+	#[inline]
 	fn next_u64(&mut self) -> u64 {
 		// Generate a new block if there are less than two random words
 		let mut index = self.index as usize;
