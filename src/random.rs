@@ -139,9 +139,9 @@ impl<R: Rng + ?Sized> Random<R> {
 		self.rng.jump();
 	}
 
-	/// Clones the current instance and advances the internal state significantly.
+	/// Returns a clone of the current generator, then advances `self` by one jump.
 	///
-	/// Useful to produce deterministic independent random number generators for parallel computation.
+	/// Repeated calls produce deterministic, widely separated streams suitable for independent parallel computations.
 	///
 	/// # Examples
 	///
@@ -243,14 +243,15 @@ impl<R: Rng + ?Sized> Random<R> {
 		distr::Samples::new(self, distr)
 	}
 
-	/// Returns `true` if a random number `(0.0, 1.0)` is less than the given probability.
+	/// Returns `true` with probability `p`.
 	///
 	/// This is known as the [`Bernoulli`](distr::Bernoulli) distribution.
 	///
 	/// # Precision
 	///
-	/// For `p >= 1.0`, the resulting distribution will always generate `true`.  
-	/// For `p <= 0.0`, the resulting distribution will always generate `false`.  
+	/// - For `p >= 1.0`, the resulting distribution will always generate `true`.
+	/// - For `p <= 0.0`, the resulting distribution will always generate `false`.
+	/// - For `p.is_nan()`, the resulting distribution will always generate `false`.
 	#[inline]
 	pub fn chance(&mut self, p: f64) -> bool {
 		distr::Bernoulli::new(p).sample(self)
@@ -348,7 +349,7 @@ impl<R: Rng + ?Sized> Random<R> {
 		len
 	}
 
-	/// Returns a random usize in the `[0, len)` interval, mostly.
+	/// Returns a random usize in the `[0, len)` interval.
 	///
 	/// If the `len` is zero an arbitrary value is returned directly from the Rng.
 	/// When used with indexing the bounds check should fail. Do not assume this value is inbounds.
@@ -406,15 +407,21 @@ impl<R: Rng + ?Sized> Random<R> {
 	///
 	/// The selected elements are shuffled, and elements after the selected prefix may also be reordered by the selection process.
 	/// If `n` is greater than or equal to the slice length, this shuffles the whole slice.
+	///
+	/// Returns the first _n_ shuffled elements.
 	#[inline]
-	pub fn partial_shuffle<T>(&mut self, slice: &mut [T], mut n: usize) {
+	pub fn partial_shuffle<'a, T>(&mut self, slice: &'a mut [T], n: usize) -> &'a mut [T] {
 		// TODO: As with `shuffle`, the index draws can be reordered and batched
 		if slice.len() > 1 {
-			n = usize::min(n, slice.len() - 1);
+			let n = usize::min(n, slice.len() - 1);
 			for i in 0..n {
 				let k = self.uniform(i..slice.len());
 				slice.swap(i, k);
 			}
+			&mut slice[..n]
+		}
+		else {
+			slice
 		}
 	}
 }

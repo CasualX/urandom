@@ -46,6 +46,8 @@ impl Mock<iter::Repeat<u64>> {
 	}
 }
 
+impl<I> Sealed for Mock<I> {}
+
 impl<I> Rng for Mock<I> where I: Iterator<Item = u64> {
 	#[inline]
 	fn next_u32(&mut self) -> u32 {

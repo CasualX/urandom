@@ -78,6 +78,8 @@ impl<const N: usize> ChaCha<N> where Self: SecureRng {
 	}
 }
 
+impl<const N: usize> Sealed for ChaCha<N> {}
+
 impl<const N: usize> Rng for ChaCha<N> where Self: SecureRng {
 	#[inline]
 	fn next_u32(&mut self) -> u32 {

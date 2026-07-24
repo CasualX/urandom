@@ -46,6 +46,8 @@ impl<R> AsMut<R> for Read<R> {
 	}
 }
 
+impl<R> Sealed for Read<R> {}
+
 impl<R: io::Read> Rng for Read<R> {
 	#[inline]
 	fn next_u32(&mut self) -> u32 {

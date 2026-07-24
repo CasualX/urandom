@@ -60,8 +60,13 @@ use crate::Random;
 
 pub(crate) mod util;
 
+mod sealed;
+use sealed::Sealed;
+
 /// Random number generator interface.
-pub trait Rng {
+///
+/// This trait is sealed and cannot be implemented outside this crate.
+pub trait Rng: Sealed {
 	/// Returns the next `u32` in the sequence.
 	fn next_u32(&mut self) -> u32;
 

@@ -29,6 +29,8 @@ impl<const N: usize> System<N> {
 	}
 }
 
+impl<const N: usize> Sealed for System<N> {}
+
 impl<const N: usize> Rng for System<N> {
 	fn next_u32(&mut self) -> u32 {
 		let mut index = self.index as usize;

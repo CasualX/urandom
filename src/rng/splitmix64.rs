@@ -57,6 +57,8 @@ impl SplitMix64 {
 	}
 }
 
+impl Sealed for SplitMix64 {}
+
 impl Rng for SplitMix64 {
 	#[inline]
 	fn next_u32(&mut self) -> u32 {

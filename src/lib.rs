@@ -9,7 +9,7 @@ This library is inspired by the semi-official [`rand`](https://crates.io/crates/
 
 To get you started quickly, the easiest and highest-level way to get a random value is to use `urandom::new().random()`.
 
-The [`Random`] struct provides a useful API on all [`Rng`], while the [`distr`] module provide specific distributions on top of Rngs.
+The [`Random`] struct provides a convenient API over the random number generators, while the [`distr`] module provides distributions and sampling utilities.
 
 ```
 let mut rand = urandom::new();
@@ -45,9 +45,12 @@ pub use self::random::Random;
 
 //----------------------------------------------------------------
 
-/// Creates a new instance of the default PRNG.
+/// Creates a new non-cryptographic PRNG.
 ///
 /// The generator is seeded from the system entropy source.
+/// Use [`csprng`] when outputs must be unpredictable.
+///
+/// See [`Xoshiro256`](crate::rng::Xoshiro256) for the concrete implementation.
 ///
 /// # Examples
 ///
@@ -61,12 +64,14 @@ pub fn new() -> Random<impl Rng + Clone> {
 	crate::rng::Xoshiro256::new()
 }
 
-/// Creates a new instance of the default PRNG with the given seed.
+/// Creates a new non-cryptographic PRNG with the given seed.
 ///
 /// The seed does not need to look random, the PRNG constructor ensures it can handle degenerate seed values.
 ///
 /// The same seed and sequence of operations produces the same results across compatible crate versions and supported targets.
 /// This guarantee extends to the distributions provided by this crate, except where their documentation notes target-dependent behavior.
+///
+/// See [`Xoshiro256`](crate::rng::Xoshiro256) for the concrete implementation.
 ///
 /// # Examples
 ///
@@ -81,7 +86,7 @@ pub fn seeded(seed: u64) -> Random<impl Rng + Clone> {
 	crate::rng::Xoshiro256::from_seed(seed)
 }
 
-/// Creates a new non-cryptographic PRNG seeded by a hashable value.
+/// Creates a new non-cryptographic PRNG keyed by a hashable value.
 ///
 /// The value is hashed with Rust's [`DefaultHasher`](std::collections::hash_map::DefaultHasher)
 /// and the resulting hash is used to seed the generator.
@@ -91,6 +96,8 @@ pub fn seeded(seed: u64) -> Random<impl Rng + Clone> {
 /// stable between Rust versions, and the algorithm used by `DefaultHasher` may also change.
 ///
 /// This function is not suitable for cryptographic use.
+///
+/// See [`Xoshiro256`](crate::rng::Xoshiro256) for the concrete implementation.
 ///
 /// # Examples
 ///
@@ -111,6 +118,8 @@ pub fn seeded_hash<T: ?Sized + core::hash::Hash>(value: &T) -> Random<impl Rng +
 /// Creates a new cryptographically secure PRNG.
 ///
 /// The generator is seeded from the system entropy source.
+///
+/// See [`ChaCha12`](crate::rng::ChaCha12) for the concrete implementation.
 ///
 /// # Examples
 ///

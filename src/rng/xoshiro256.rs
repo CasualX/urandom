@@ -71,6 +71,8 @@ impl Xoshiro256 {
 	}
 }
 
+impl Sealed for Xoshiro256 {}
+
 impl Rng for Xoshiro256 {
 	#[inline]
 	fn next_u32(&mut self) -> u32 {

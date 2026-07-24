@@ -57,6 +57,8 @@ impl Wyrand {
 	}
 }
 
+impl Sealed for Wyrand {}
+
 impl Rng for Wyrand {
 	#[inline]
 	fn next_u32(&mut self) -> u32 {
