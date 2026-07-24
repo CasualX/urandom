@@ -3,7 +3,7 @@ Generating random samples from probability distributions.
 
 This module is the home of the [`Distribution`] trait and several of its implementations.
 It is the workhorse behind some of the convenient functionality of the [`Random`] struct,
-e.g. [`Random::next`], [`Random::uniform`] and of course [`Random::sample`].
+e.g. [`Random::random`], [`Random::uniform`] and of course [`Random::sample`].
 
 Abstractly, a [probability distribution] describes the probability of occurance of each value in its sample space.
 
@@ -17,10 +17,10 @@ Any type implementing [`Distribution`] is stateless (i.e. immutable), but it may
 # The `StandardUniform` distribution
 
 The [`StandardUniform`] distribution is important to mention.
-This is the distribution used by [`Random::next`] and represents the "default" way to produce a random value for many different types,
+This is the distribution used by [`Random::random`] and represents the "default" way to produce a random value for many different types,
 including most primitive types, tuples, arrays, and a few derived types. See the documentation of [`StandardUniform`] for more details.
 
-Implementing `Distribution<T>` for [`StandardUniform`] for user types `T` makes it possible to generate type `T` with [`Random::next`].
+Implementing `Distribution<T>` for [`StandardUniform`] for user types `T` makes it possible to generate type `T` with [`Random::random`].
 
 # The `Uniform` distribution
 

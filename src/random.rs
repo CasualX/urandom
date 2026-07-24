@@ -164,10 +164,10 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// # Examples
 	///
 	/// ```
-	/// let int: i8 = urandom::new().next();
+	/// let int: i8 = urandom::new().random();
 	/// ```
 	#[inline]
-	pub fn next<T>(&mut self) -> T where distr::StandardUniform: Distribution<T> {
+	pub fn random<T>(&mut self) -> T where distr::StandardUniform: Distribution<T> {
 		distr::StandardUniform.sample(self)
 	}
 
@@ -260,10 +260,10 @@ impl<R: Rng + ?Sized> Random<R> {
 	///
 	/// Returns `true` when heads and `false` when tails with 50% probability for either result.
 	///
-	/// Simply an alias for `rand.next::<bool>()` but describes the intent of the caller.
+	/// Simply an alias for `rand.random::<bool>()` but describes the intent of the caller.
 	#[inline]
 	pub fn coin_flip(&mut self) -> bool {
-		self.next()
+		self.random()
 	}
 
 	/// Returns a random sample from the collection.

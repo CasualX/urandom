@@ -5,7 +5,7 @@ use super::*;
 fn test_trait_object() {
 	// Ensure Rng is usable as a trait object
 	fn test(rand: &mut Random<dyn Rng>) {
-		let _: i32 = rand.next();
+		let _: i32 = rand.random();
 	}
 	test(&mut crate::new());
 	test(&mut crate::seeded(42));

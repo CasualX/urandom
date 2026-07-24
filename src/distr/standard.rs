@@ -42,7 +42,7 @@ use super::*;
 ///
 /// impl Distribution<MyF32> for StandardUniform {
 /// 	fn sample<R: Rng + ?Sized>(&self, rand: &mut Random<R>) -> MyF32 {
-/// 		MyF32(rand.next())
+/// 		MyF32(rand.random())
 /// 	}
 /// }
 /// ```
@@ -136,7 +136,7 @@ macro_rules! impl_nzint {
 			#[inline]
 			fn sample<R: Rng + ?Sized>(&self, rand: &mut Random<R>) -> num::$name {
 				loop {
-					if let Some(nz) = num::$name::new(rand.next()) {
+					if let Some(nz) = num::$name::new(rand.random()) {
 						break nz;
 					}
 				}
@@ -230,7 +230,7 @@ fn test_arrays() {
 #[test]
 fn test_wrapping() {
 	let mut rand = crate::rng::Mock::slice(&[42]);
-	assert_eq!(rand.next::<num::Wrapping<u32>>(), num::Wrapping(42));
+	assert_eq!(rand.random::<num::Wrapping<u32>>(), num::Wrapping(42));
 }
 
 #[test]
@@ -248,10 +248,10 @@ fn test_nzint() {
 #[test]
 fn test_small_nzint_reuses_random_word() {
 	let mut rand = crate::rng::Mock::slice(&[0x0100]);
-	assert_eq!(rand.next::<num::NonZeroU8>().get(), 1);
+	assert_eq!(rand.random::<num::NonZeroU8>().get(), 1);
 
 	let mut rand = crate::rng::Mock::slice(&[0x00010000]);
-	assert_eq!(rand.next::<num::NonZeroI16>().get(), 1);
+	assert_eq!(rand.random::<num::NonZeroI16>().get(), 1);
 }
 
 #[test]

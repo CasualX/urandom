@@ -16,7 +16,7 @@ use super::*;
 /// let data = [1, 2, 3, 4, 5, 6, 7, 8];
 /// let mut rand = urandom::rng::Read::new(&data[..]);
 ///
-/// println!("{:x}", rand.next::<u32>());
+/// println!("{:x}", rand.random::<u32>());
 /// ```
 #[derive(Clone, Debug)]
 #[repr(transparent)]

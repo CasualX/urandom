@@ -127,7 +127,7 @@ impl Distribution<Duration> for UniformDuration {
 	#[inline]
 	fn sample<R: Rng + ?Sized>(&self, rand: &mut Random<R>) -> Duration {
 		loop {
-			let value: u128 = rand.next();
+			let value: u128 = rand.random();
 			if value >= self.threshold {
 				let offset = value % self.range;
 				let value = self.base.checked_add(offset).expect("UniformDuration overflow");

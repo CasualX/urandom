@@ -109,7 +109,7 @@ fn f64_urandom(b: &mut Bencher) {
 	b.bytes = size_of::<f64>() as u64 * RAND_BENCH_N;
 	b.iter(|| {
 		for _ in 0..RAND_BENCH_N {
-			let value: f64 = rand.next();
+			let value: f64 = rand.random();
 			black_box(value);
 		}
 	});

@@ -61,8 +61,8 @@ fn test_edges_small() {
 fn test_yolo() {
 	let mut rand = crate::new();
 	for _ in 0..10000 {
-		let mut low: i16 = rand.next();
-		let mut high: i16 = rand.next();
+		let mut low: i16 = rand.random();
+		let mut high: i16 = rand.random();
 		if high < low {
 			let tmp = low;
 			low = high;

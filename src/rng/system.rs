@@ -18,7 +18,7 @@ impl<const N: usize> System<N> {
 	///
 	/// ```
 	/// let mut rand = urandom::rng::System::<31>::new();
-	/// let value: i32 = rand.next();
+	/// let value: i32 = rand.random();
 	/// ```
 	#[inline]
 	pub fn new() -> Random<Self> {

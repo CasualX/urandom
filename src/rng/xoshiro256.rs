@@ -25,7 +25,7 @@ impl Xoshiro256 {
 	///
 	/// ```
 	/// let mut rand = urandom::rng::Xoshiro256::new();
-	/// let value: i32 = rand.next();
+	/// let value: i32 = rand.random();
 	/// ```
 	#[inline]
 	pub fn new() -> Random<Xoshiro256> {
@@ -44,7 +44,7 @@ impl Xoshiro256 {
 	/// ```
 	/// let mut master = urandom::rng::SplitMix64::new();
 	/// let mut rand = urandom::rng::Xoshiro256::from_rng(&mut master);
-	/// let value: i32 = rand.next();
+	/// let value: i32 = rand.random();
 	/// ```
 	#[inline]
 	pub fn from_rng<R: Rng + ?Sized>(rand: &mut Random<R>) -> Random<Xoshiro256> {

@@ -42,7 +42,7 @@ macro_rules! next_uint {
 			b.iter(|| {
 				let mut accum: $ty = 0;
 				for _ in 0..RAND_BENCH_N {
-					accum = accum.wrapping_add(rand.next::<$ty>());
+					accum = accum.wrapping_add(rand.random::<$ty>());
 				}
 				accum
 			});
@@ -75,7 +75,7 @@ macro_rules! next_float {
 			b.iter(|| {
 				let mut accum: $ty = 0.0;
 				for _ in 0..RAND_BENCH_N {
-					accum += rand.next::<$ty>();
+					accum += rand.random::<$ty>();
 				}
 				accum
 			});

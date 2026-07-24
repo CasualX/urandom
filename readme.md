@@ -25,16 +25,16 @@ urandom = "0.2"
 Quick Start
 -----------
 
-To get you started quickly, the easiest and highest-level way to get a random value is to use `urandom::new().next()`.
-The `Random` struct provides a useful API on all Rngs, while the `distr` module provide further functionality on top of Rngs.
+To get you started quickly, the easiest and highest-level way to get a random value is to use `urandom::new().random()`.
+The `Random` struct provides a useful API on all Rngs, while the `distr` module provides further functionality on top of Rngs.
 
 ```rust
 let mut rand = urandom::new();
 
 // Generates a random boolean
 if rand.coin_flip() {
-	// Try printing a random unicode code point (probably a bad idea)!
-	println!("char: {}", rand.next::<char>());
+	// Try printing a random Unicode code point (probably a bad idea)!
+	println!("char: {}", rand.random::<char>());
 }
 
 // Generates a float between 13.0 and 42.0

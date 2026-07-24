@@ -21,7 +21,7 @@ impl SplitMix64 {
 	///
 	/// ```
 	/// let mut rand = urandom::rng::SplitMix64::new();
-	/// let value: i32 = rand.next();
+	/// let value: i32 = rand.random();
 	/// ```
 	#[inline]
 	pub fn new() -> Random<SplitMix64> {

@@ -7,7 +7,7 @@ This library is inspired by the semi-official [`rand`](https://crates.io/crates/
 
 # Quick Start
 
-To get you started quickly, the easiest and highest-level way to get a random value is to use `urandom::new().next()`.
+To get you started quickly, the easiest and highest-level way to get a random value is to use `urandom::new().random()`.
 
 The [`Random`] struct provides a useful API on all [`Rng`], while the [`distr`] module provide specific distributions on top of Rngs.
 
@@ -16,8 +16,8 @@ let mut rand = urandom::new();
 
 // Generates a random boolean
 if rand.coin_flip() {
-	// Try printing a random unicode code point (probably a bad idea)!
-	println!("char: {}", rand.next::<char>());
+	// Try printing a random Unicode code point (probably a bad idea)!
+	println!("char: {}", rand.random::<char>());
 }
 
 // Generates a float between 13.0 and 42.0
@@ -53,7 +53,7 @@ pub use self::random::Random;
 ///
 /// ```
 /// let mut rand = urandom::new();
-/// let value: i32 = rand.next();
+/// let value: i32 = rand.random();
 /// ```
 #[must_use]
 #[inline]
@@ -72,7 +72,7 @@ pub fn new() -> Random<impl Rng + Clone> {
 ///
 /// ```
 /// let mut rand = urandom::seeded(42);
-/// let value: i32 = rand.next();
+/// let value: i32 = rand.random();
 /// assert_eq!(value, 368317477);
 /// ```
 #[must_use]
@@ -96,7 +96,7 @@ pub fn seeded(seed: u64) -> Random<impl Rng + Clone> {
 ///
 /// ```
 /// let mut rand = urandom::seeded_hash("example");
-/// let value: i32 = rand.next();
+/// let value: i32 = rand.random();
 /// ```
 #[cfg(feature = "std")]
 #[must_use]
@@ -116,7 +116,7 @@ pub fn seeded_hash<T: ?Sized + core::hash::Hash>(value: &T) -> Random<impl Rng +
 ///
 /// ```
 /// let mut rand = urandom::csprng();
-/// let value: i32 = rand.next();
+/// let value: i32 = rand.random();
 /// ```
 #[must_use]
 #[inline]

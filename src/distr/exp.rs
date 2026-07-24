@@ -2,7 +2,7 @@ use super::*;
 
 /// The [Standard exponential distribution](https://en.wikipedia.org/wiki/Exponential_distribution) `Exp(1)`.
 ///
-/// This is equivalent to `Exp::new(1.0)` or sampling with `-rand.next().ln()`, but faster.
+/// This is equivalent to `Exp::new(1.0)` or sampling with `-rand.random().ln()`, but faster.
 ///
 /// See [`Exp`] for the general exponential distribution.
 ///
@@ -39,7 +39,7 @@ impl Distribution<f32> for Exp1 {
 	}
 }
 
-// This could be done via `-rand.next::<f64>().ln()` but that is slower.
+// This could be done via `-rand.random::<f64>().ln()` but that is slower.
 impl Distribution<f64> for Exp1 {
 	#[inline]
 	fn sample<R: Rng + ?Sized>(&self, rand: &mut Random<R>) -> f64 {

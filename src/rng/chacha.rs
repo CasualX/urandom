@@ -35,7 +35,7 @@ impl<const N: usize> ChaCha<N> where Self: SecureRng {
 	///
 	/// ```
 	/// let mut rand = urandom::rng::ChaCha12::new();
-	/// let value: i32 = rand.next();
+	/// let value: i32 = rand.random();
 	/// ```
 	#[inline]
 	pub fn new() -> Random<ChaCha<N>> {
@@ -65,7 +65,7 @@ impl<const N: usize> ChaCha<N> where Self: SecureRng {
 	///
 	/// ```
 	/// let mut rand = urandom::rng::ChaCha12::from_seed(42);
-	/// let value: i32 = rand.next();
+	/// let value: i32 = rand.random();
 	/// assert_eq!(value, 631540493);
 	/// ```
 	#[inline]

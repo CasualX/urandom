@@ -21,7 +21,7 @@ impl Wyrand {
 	///
 	/// ```
 	/// let mut rand = urandom::rng::Wyrand::new();
-	/// let value: i32 = rand.next();
+	/// let value: i32 = rand.random();
 	/// ```
 	#[inline]
 	pub fn new() -> Random<Wyrand> {
