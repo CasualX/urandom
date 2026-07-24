@@ -347,7 +347,7 @@ impl<R: Rng + ?Sized> Random<R> {
 				len += 1;
 			}
 			else {
-				let k = self.index(i + 1 + amount);
+				let k = self.index(i + 1);
 				if let Some(slot) = buf.get_mut(k) {
 					*slot = elem;
 				}
@@ -402,6 +402,7 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// ```
 	#[inline]
 	pub fn shuffle<T>(&mut self, slice: &mut [T]) {
+		// TODO: Fisher-Yates index draws can be reordered into increasing ranges and batched into one random word
 		let mut len = slice.len();
 		while len > 1 {
 			let k = self.index(len);
@@ -415,6 +416,7 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// This is an efficient method to select _n_ elements at random from the slice without repetition, provided the slice may be mutated.
 	#[inline]
 	pub fn partial_shuffle<T>(&mut self, slice: &mut [T], mut n: usize) {
+		// TODO: As with `shuffle`, the index draws can be reordered and batched
 		if slice.len() > 1 {
 			n = usize::min(n, slice.len() - 1);
 			for i in 0..n {
@@ -466,4 +468,20 @@ fn test_choose() {
 	let mean = (result[0] + result[1] + result[2] + result[3] + result[4]) / 5;
 	let success = result.iter().all(|&x| (x - mean).abs() < 500);
 	assert!(success, "mean: {mean}, result: {result:?}");
+}
+
+#[test]
+fn test_multiple_reservoir_range() {
+	let mut rand = crate::new();
+	let mut counts = [0i32; 2];
+
+	for _ in 0..10000 {
+		let mut result = [0];
+		assert_eq!(rand.multiple(0..2, &mut result), 1);
+		counts[result[0]] += 1;
+	}
+
+	let mean = (counts[0] + counts[1]) / 2;
+	let success = counts.iter().all(|&count| (count - mean).abs() < 500);
+	assert!(success, "mean: {mean}, counts: {counts:?}");
 }

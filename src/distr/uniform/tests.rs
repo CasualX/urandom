@@ -1,4 +1,5 @@
 use super::*;
+use core::time::Duration;
 
 #[test]
 fn test_bias() {
@@ -73,5 +74,48 @@ fn test_yolo() {
 			let value = rand.uniform(low..high);
 			assert!(value >= low && value < high);
 		}
+	}
+}
+
+#[test]
+fn test_char() {
+	let mut rand = crate::seeded(42);
+	for _ in 0..10000 {
+		let value = rand.uniform('\u{D7F0}'..='\u{E010}');
+		assert!(('\u{D7F0}'..='\u{D7FF}').contains(&value) || ('\u{E000}'..='\u{E010}').contains(&value));
+	}
+
+	for _ in 0..10000 {
+		let _: char = rand.uniform('\0'..=char::MAX);
+	}
+}
+
+#[test]
+fn test_duration() {
+	let low = Duration::new(10, 50000);
+	let high = Duration::new(100, 1234);
+	let mut rand = crate::seeded(42);
+	for _ in 0..10000 {
+		let value = rand.uniform(low..high);
+		assert!(value >= low && value < high);
+	}
+
+	let exact = Duration::new(u64::MAX, 999_999_999);
+	for _ in 0..10 {
+		assert_eq!(rand.uniform(exact..=exact), exact);
+	}
+}
+
+#[cfg(feature = "serde")]
+#[test]
+fn test_char_serde() {
+	let chars = Uniform::new('\u{D7F0}', '\u{E010}');
+	let saved = serde_json::to_string(&chars).unwrap();
+	let restored: Uniform<char> = serde_json::from_str(&saved).unwrap();
+
+	let mut rand1 = crate::seeded(42);
+	let mut rand2 = crate::seeded(42);
+	for _ in 0..100 {
+		assert_eq!(rand1.sample(&chars), rand2.sample(&restored));
 	}
 }

@@ -142,7 +142,7 @@ macro_rules! impl_exp {
 		impl ExpImpl<$f> for Exp<$f> {
 			#[inline]
 			fn try_new(lambda: $f) -> Result<Self, ExpError> {
-				if !(lambda >= 0.0) {
+				if lambda.is_sign_negative() || lambda.is_nan() {
 					return Err(ExpError::LambdaTooSmall);
 				}
 				Ok(Exp {

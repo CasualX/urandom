@@ -29,7 +29,7 @@ cfg_if::cfg_if! {
 		#[inline]
 		pub fn getentropy_uninit<T: dataview::Pod>(buf: &mut [MaybeUninit<T>]) -> &mut [T] {
 			let dest = unsafe { slice::from_raw_parts_mut(buf.as_mut_ptr() as *mut MaybeUninit<u8>, mem::size_of_val(buf)) };
-			match getrandom::getrandom_uninit(dest) {
+			match getrandom::fill_uninit(dest) {
 				Ok(_) => unsafe { mem::transmute(buf) },
 				Err(_) => getentropy_not_ready(),
 			}

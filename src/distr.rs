@@ -3,7 +3,7 @@ Generating random samples from probability distributions.
 
 This module is the home of the [`Distribution`] trait and several of its implementations.
 It is the workhorse behind some of the convenient functionality of the [`Random`] struct,
-e.g. [`Random::next`], [`Random::range`] and of course [`Random::sample`].
+e.g. [`Random::next`], [`Random::uniform`] and of course [`Random::sample`].
 
 Abstractly, a [probability distribution] describes the probability of occurance of each value in its sample space.
 
@@ -28,11 +28,11 @@ The [`Uniform`] distribution is similar to the [`StandardUniform`] distribution
 but it allows the sample space to be specified as an arbitrary range within its target type `T`.
 Both [`StandardUniform`] and [`Uniform`] are in some sense uniform distributions.
 
-Values may be sampled from this distribution using [`Random::range`] or by creating a distribution object from a `low..high` or `low..=high`.
-When the range limits are not known at compile time it is typically faster to reuse an existing distribution object than to call [`Random::range`].
+Values may be sampled from this distribution using [`Random::uniform`] or by creating a distribution object from a `low..high` or `low..=high`.
+When the range limits are not known at compile time it is typically faster to reuse an existing distribution object than to call [`Random::uniform`].
 
 User types `T` may also implement `Distribution<T>` for [`Uniform`], although this is less straightforward than for [`StandardUniform`]
-(see the documentation in the uniform module. Doing so enables generation of values of type `T` with [`Random::range`].
+(see the documentation in the uniform module. Doing so enables generation of values of type `T` with [`Random::uniform`].
 
 [probability distribution]: https://en.wikipedia.org/wiki/Probability_distribution
 */

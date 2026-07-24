@@ -2,9 +2,11 @@ use super::*;
 
 mod float;
 mod int;
+mod other;
 
 pub use self::float::UniformFloat;
 pub use self::int::UniformInt;
+pub use self::other::{UniformChar, UniformDuration};
 
 /// Helper trait specifies the concrete sampler for the sampling type.
 pub trait SampleUniform: Sized {
@@ -51,7 +53,7 @@ pub trait UniformSampler<T>: Distribution<T> {
 ///
 /// Implementations must sample within the given interval. It is a bug if an implementation returns a result outside the requested interval.
 ///
-/// For one-off samples see also: [`Random::range`] for convenient samples directly from the `Rng`.
+/// For one-off samples see also: [`Random::uniform`] for convenient samples directly from the `Rng`.
 /// For more than one sample it is recommended to reuse the `Uniform` instance.
 ///
 /// # Examples

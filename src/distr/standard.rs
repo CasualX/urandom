@@ -144,12 +144,40 @@ macro_rules! impl_nzint {
 		}
 	};
 }
-impl_nzint!(NonZeroU8);
-impl_nzint!(NonZeroU16);
+
+macro_rules! impl_nzint_small {
+	($name:ident, $ty:ty) => {
+		impl Distribution<num::$name> for StandardUniform {
+			#[inline]
+			fn sample<R: Rng + ?Sized>(&self, rand: &mut Random<R>) -> num::$name {
+				loop {
+					let mut value = rand.next_u64();
+					let mut remaining = u64::BITS / <$ty>::BITS;
+					while remaining > 0 {
+						if let Some(nz) = num::$name::new(value as $ty) {
+							return nz;
+						}
+						value >>= <$ty>::BITS;
+						remaining -= 1;
+					}
+				}
+			}
+		}
+	};
+}
+
+impl_nzint_small!(NonZeroU8, u8);
+impl_nzint_small!(NonZeroI8, i8);
+impl_nzint_small!(NonZeroU16, u16);
+impl_nzint_small!(NonZeroI16, i16);
 impl_nzint!(NonZeroU32);
+impl_nzint!(NonZeroI32);
 impl_nzint!(NonZeroU64);
+impl_nzint!(NonZeroI64);
 impl_nzint!(NonZeroU128);
+impl_nzint!(NonZeroI128);
 impl_nzint!(NonZeroUsize);
+impl_nzint!(NonZeroIsize);
 
 macro_rules! impl_standard_dist_tuple {
 	($($T:ident),*) => {
@@ -206,7 +234,18 @@ fn test_nzint() {
 	// Any failures manifest as an infinite loop
 	for _ in 0..9000 {
 		let _: num::NonZeroU32 = rand.sample(&StandardUniform);
+		let _: num::NonZeroI32 = rand.sample(&StandardUniform);
+		let _: num::NonZeroIsize = rand.sample(&StandardUniform);
 	}
+}
+
+#[test]
+fn test_small_nzint_reuses_random_word() {
+	let mut rand = crate::rng::Mock::slice(&[0x0100]);
+	assert_eq!(rand.next::<num::NonZeroU8>().get(), 1);
+
+	let mut rand = crate::rng::Mock::slice(&[0x00010000]);
+	assert_eq!(rand.next::<num::NonZeroI16>().get(), 1);
 }
 
 #[test]
