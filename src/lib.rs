@@ -80,6 +80,33 @@ pub fn seeded(seed: u64) -> Random<impl Rng + Clone> {
 	crate::rng::Xoshiro256::from_seed(seed)
 }
 
+/// Creates a new non-cryptographic PRNG seeded by a hashable value.
+///
+/// The value is hashed with Rust's [`DefaultHasher`](std::collections::hash_map::DefaultHasher)
+/// and the resulting hash is used to seed the generator.
+///
+/// The generated sequence is deterministic for a given Rust version and target. However, the
+/// data fed by [`Hash`](core::hash::Hash) is not guaranteed to be portable across targets or
+/// stable between Rust versions, and the algorithm used by `DefaultHasher` may also change.
+///
+/// This function is not suitable for cryptographic use.
+///
+/// # Examples
+///
+/// ```
+/// let mut rand = urandom::seeded_hash("example");
+/// let value: i32 = rand.next();
+/// ```
+#[cfg(feature = "std")]
+#[must_use]
+#[inline]
+pub fn seeded_hash<T: ?Sized + core::hash::Hash>(value: &T) -> Random<impl Rng + Clone> {
+	use core::hash::Hasher;
+	let mut hasher = std::collections::hash_map::DefaultHasher::new();
+	value.hash(&mut hasher);
+	seeded(hasher.finish())
+}
+
 /// Creates a new cryptographically secure PRNG.
 ///
 /// The generator is seeded securely from the system entropy source.
