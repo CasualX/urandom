@@ -1,4 +1,4 @@
-name: CI
+name: Gate
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  ci:
+  gate:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -21,28 +21,18 @@ jobs:
 
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v7
 
       - name: Install toolchain
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@master
         with:
-          profile: minimal
           toolchain: ${{ matrix.rust }}
-          default: true
 
       - name: Quick check
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
+        run: cargo check
 
       - name: Quick check (no default features)
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
-          args: --no-default-features
+        run: cargo check --no-default-features
 
       - name: Run tests
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --all-features
+        run: cargo test --all-features
