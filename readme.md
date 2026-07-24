@@ -19,7 +19,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-urandom = "0.2"
+urandom = "1.0"
 ```
 
 Quick Start
@@ -54,7 +54,7 @@ Features
 
 * `serde`: Enable serialization and deserialization support for the random number generators and distributions.
 
-System entropy is always provided by `getrandom`. Custom entropy sources must be implemented with a [`getrandom` backend](https://docs.rs/getrandom/0.3/#custom-backend).
+System entropy is currently provided by `getrandom`. Support for custom entropy sources relies on [`getrandom`'s custom-backend mechanism](https://docs.rs/getrandom/0.3/#custom-backend). This integration is not part of urandom's stable API and may change between otherwise compatible releases.
 
 Frequently Asked Questions
 --------------------------
@@ -73,13 +73,11 @@ Frequently Asked Questions
 
   - The `rand` crate puts its `thread_rng` front and center as it's the easiest way to generate randomness (through explicit use or `random` method).
 
-    In my personal opinion thread local variables are not a good idea and should be avoided for the same reasons as global state.
+    Thread-local RNGs are convenient, but they introduce ambient mutable state: the generator’s lifetime, seeding, and consumption order are implicit. Urandom instead makes random state explicit and seeds newly constructed generators directly from system entropy.
 
-    This crate uses explicit state management and seeds new PRNGs directly from the system's `getrandom`.
+  - `urandom` can be more performant than `rand` in specific use cases.
 
-  - The `rand` crate has an inefficient implementation of generating unbiased uniform integers in a range.
-
-    This crate uses a more efficient algorithm which avoids an expensive integer division. See the [benchmarks](benchmarks/rand/readme.md) against `rand` for details.
+    See the [benchmarks](benchmarks/rand/readme.md) for details.
 
   - The `rand` crate's code is spread over several different crates which makes it harder to understand and contribute to.
 
@@ -115,9 +113,9 @@ Frequently Asked Questions
 
   The `Float01` distribution generates an unbiased random float in the open interval `(0.0, 1.0)`.
 
-* *Is it performant on 32-bit archs?*
+* *Is it performant on 32-bit systems?*
 
-  This crate is optimized for 64-bit archs with fast full 64-bit integer multiplication in mind. The same PRNGs are used on 32-bit archs to ensure compatibility and consistent behavior. This means the performance is not as good as on 64-bit archs.
+  This crate is optimized for 64-bit architectures with fast full 64-bit integer multiplication in mind. The same PRNGs are used on 32-bit systems to ensure compatibility and consistent behavior. This means the performance is not as good as on 64-bit.
 
 License
 -------

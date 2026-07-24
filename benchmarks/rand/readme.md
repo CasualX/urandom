@@ -1,7 +1,7 @@
 Performance comparison to the `rand` crate
 ==========================================
 
-These benchmarks compare urandom 0.2.3 with rand 0.10.2. The results below
+These benchmarks compare urandom 1.0.0 with rand 0.10.2. The results below
 were collected on an AMD Ryzen 7 7800X3D using rustc 1.98.0-nightly
 (2026-06-01, LLVM 22.1.6). The benchmark process was pinned to one core.
 
