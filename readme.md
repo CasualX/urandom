@@ -52,9 +52,9 @@ Features
 
   Without this feature, the crate can be used in `no_std` environments with limited functionality.
 
-* `getrandom` (default): Use the `getrandom` crate to get random bytes from the operating system. This is the default source of randomness.
-
 * `serde`: Enable serialization and deserialization support for the random number generators and distributions.
+
+System entropy is always provided by `getrandom`. Custom entropy sources must be implemented with a [`getrandom` backend](https://docs.rs/getrandom/0.3/#custom-backend).
 
 Frequently Asked Questions
 --------------------------

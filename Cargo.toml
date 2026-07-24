@@ -17,12 +17,12 @@ keywords = ["rand", "random", "rng"]
 categories = ["algorithms", "no-std"]
 
 [features]
-default = ["getrandom", "std"]
+default = ["std"]
 std = []
 
 [dependencies]
 cfg-if = "1.0"
-getrandom = { version = "0.3", optional = true }
+getrandom = "0.3"
 dataview = { version = "~1.0", default-features = false }
 serde = { version = "1.0", features = ["derive"], optional = true }
 
