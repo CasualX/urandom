@@ -285,17 +285,17 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// }
 	///
 	/// let mut rand = urandom::new();
-	/// let fizzbuzz = rand.single((0..100).filter(is_fizzbuzz)).unwrap();
+	/// let fizzbuzz = rand.choose_iter((0..100).filter(is_fizzbuzz)).unwrap();
 	/// assert!(fizzbuzz % 3 == 0 || fizzbuzz % 5 == 0);
 	/// ```
 	///
 	/// Pick a random emoji:
 	///
 	/// ```
-	/// let mood = urandom::new().single("😀😎😐😕😠😢".chars()).unwrap();
+	/// let mood = urandom::new().choose_iter("😀😎😐😕😠😢".chars()).unwrap();
 	/// println!("I am {mood}!");
 	/// ```
-	pub fn single<I: IntoIterator>(&mut self, collection: I) -> Option<I::Item> {
+	pub fn choose_iter<I: IntoIterator>(&mut self, collection: I) -> Option<I::Item> {
 		let mut iter = collection.into_iter();
 
 		// Take a short cut for collections with known length
@@ -305,36 +305,34 @@ impl<R: Rng + ?Sized> Random<R> {
 			return iter.nth(index);
 		}
 
-		// Reservoir sampling, can be improved
+		// Reservoir sampling optimized
 		let mut result = None;
-		let mut denom = 1.0;
-		iter.for_each(|item| {
-			if self.chance(1.0 / denom) {
+		for (i, item) in iter.enumerate() {
+			if self.index(i + 1) == 0 {
 				result = Some(item);
 			}
-			else {
-				drop(item);
-			}
-			denom += 1.0;
-		});
+		}
 		result
 	}
 
-	/// Collect random samples from the collection into the buffer until it is filled.
+	/// Collect random samples from an iterator into the buffer.
+	///
+	/// The iterator is always exhausted, even when the buffer is already filled.
+	/// This allows every item yielded by the iterator to participate in the random selection.
 	///
 	/// Although the elements are selected randomly, the order of elements in the buffer is neither stable nor fully random.
 	/// If random ordering is desired, shuffle the result.
 	///
 	/// Returns the number of elements added to the buffer.
-	/// This equals the length of the buffer unless the iterator contains insufficient elements,
-	/// in which case this equals the number of elements available.
+	/// This equals the length of the buffer unless the iterator yields insufficient
+	/// elements, in which case it equals the number of yielded elements.
 	///
 	/// Complexity is `O(n)` where `n` is the size of the collection.
-	pub fn multiple<I: IntoIterator>(&mut self, collection: I, buf: &mut [I::Item]) -> usize {
+	pub fn choose_multiple<I: IntoIterator>(&mut self, collection: I, buf: &mut [I::Item]) -> usize {
 		let amount = buf.len();
 		let mut len = 0;
 
-		collection.into_iter().enumerate().for_each(|(i, elem)| {
+		for (i, elem) in collection.into_iter().enumerate() {
 			if len < amount {
 				buf[len] = elem;
 				len += 1;
@@ -345,7 +343,7 @@ impl<R: Rng + ?Sized> Random<R> {
 					*slot = elem;
 				}
 			}
-		});
+		}
 
 		len
 	}
@@ -465,13 +463,30 @@ fn test_choose() {
 }
 
 #[test]
-fn test_multiple_reservoir_range() {
+fn test_choose_iter_reservoir() {
+	let unknown_size = || (0..4).filter(|_| true);
+	let mut rand = crate::new();
+	let mut counts = [0i32; 4];
+
+	for _ in 0..10000 {
+		counts[rand.choose_iter(unknown_size()).unwrap()] += 1;
+	}
+
+	let mean = counts.iter().sum::<i32>() / counts.len() as i32;
+	let success = counts.iter().all(|&count| (count - mean).abs() < 500);
+	assert!(success, "mean: {mean}, counts: {counts:?}");
+
+	assert_eq!(rand.choose_iter(core::iter::empty::<i32>()), None);
+}
+
+#[test]
+fn test_choose_multiple_reservoir_range() {
 	let mut rand = crate::new();
 	let mut counts = [0i32; 2];
 
 	for _ in 0..10000 {
 		let mut result = [0];
-		assert_eq!(rand.multiple(0..2, &mut result), 1);
+		assert_eq!(rand.choose_multiple(0..2, &mut result), 1);
 		counts[result[0]] += 1;
 	}
 
