@@ -123,7 +123,7 @@ impl Distribution<char> for StandardUniform {
 	}
 }
 
-impl<T> Distribution<num::Wrapping<T>> for num::Wrapping<T> where StandardUniform: Distribution<T> {
+impl<T> Distribution<num::Wrapping<T>> for StandardUniform where StandardUniform: Distribution<T> {
 	#[inline]
 	fn sample<R: Rng + ?Sized>(&self, rand: &mut Random<R>) -> num::Wrapping<T> {
 		num::Wrapping(StandardUniform.sample(rand))
@@ -225,6 +225,12 @@ fn test_arrays() {
 	let _: [i64; 78] = rand.sample(&StandardUniform);
 	let _: [isize; 8] = rand.sample(&StandardUniform);
 	let _: [usize; 9] = rand.sample(&StandardUniform);
+}
+
+#[test]
+fn test_wrapping() {
+	let mut rand = crate::rng::Mock::slice(&[42]);
+	assert_eq!(rand.next::<num::Wrapping<u32>>(), num::Wrapping(42));
 }
 
 #[test]

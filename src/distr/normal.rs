@@ -86,17 +86,17 @@ impl Distribution<f64> for StandardNormal {
 /// Error type returned from [`Normal`] and [`LogNormal`] constructors.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum NormalError {
-	/// The mean value is too small (log-normal samples must be positive).
+	/// The linear-space mean is invalid for the requested log-normal distribution.
 	MeanTooSmall,
-	/// The standard deviation or other dispersion parameter is not finite.
+	/// The scale or other dispersion parameter is invalid or not finite.
 	BadVariance,
 }
 
 impl fmt::Display for NormalError {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		f.write_str(match self {
-			NormalError::MeanTooSmall => "mean < 0 or NaN in log-normal distribution",
-			NormalError::BadVariance => "variation parameter is non-finite in (log)normal distribution",
+			NormalError::MeanTooSmall => "mean must be positive in log-normal distribution, except for zero mean and zero variation",
+			NormalError::BadVariance => "variation parameter is invalid or non-finite in (log)normal distribution",
 		})
 	}
 }
@@ -116,6 +116,10 @@ pub trait NormalImpl<Float>: Sized {
 /// is a continuous probability distribution with mean `μ` (`mu`) and standard deviation `σ` (`sigma`).
 /// It is used to model continuous data that tend to cluster around a mean.
 /// The normal distribution is symmetric and characterized by its bell-shaped curve.
+///
+/// Although the mathematical standard deviation is non-negative, this distribution accepts a signed scale `σ`.
+/// Its absolute value is the standard deviation; its sign controls how a shared z-score maps to a sample,
+/// which is useful when generating correlated values with [`Normal::from_zscore`].
 ///
 /// See [`StandardNormal`] for an optimised implementation for `μ = 0` and `σ = 1`.
 ///
@@ -159,7 +163,7 @@ impl<Float: Copy> Normal<Float> where Self: NormalImpl<Float> {
 	/// Parameters:
 	///
 	/// - mean (`μ`, unrestricted)
-	/// - standard deviation (`σ`, must be finite)
+	/// - signed standard-deviation scale (`σ`, must be finite)
 	#[inline]
 	pub fn try_new(mean: Float, std_dev: Float) -> Result<Normal<Float>, NormalError> {
 		NormalImpl::try_new(mean, std_dev)
@@ -169,7 +173,7 @@ impl<Float: Copy> Normal<Float> where Self: NormalImpl<Float> {
 	/// Parameters:
 	///
 	/// - mean (`μ`, unrestricted)
-	/// - standard deviation (`σ`, must be finite)
+	/// - signed standard-deviation scale (`σ`, must be finite)
 	#[track_caller]
 	#[inline]
 	pub fn new(mean: Float, std_dev: Float) -> Normal<Float> {
@@ -204,7 +208,9 @@ impl<Float: Copy> Normal<Float> where Self: NormalImpl<Float> {
 		self.mean
 	}
 
-	/// Returns the standard deviation (`σ`) of the distribution.
+	/// Returns the signed standard-deviation scale (`σ`) of the distribution.
+	///
+	/// Its absolute value is the mathematical standard deviation.
 	#[inline]
 	pub fn std_dev(&self) -> Float {
 		self.std_dev
@@ -243,8 +249,7 @@ macro_rules! impl_normal {
 				if !cv.is_finite() || cv < 0.0 {
 					return Err(NormalError::BadVariance);
 				}
-				let std_dev = cv * mean;
-				Ok(Normal { mean, std_dev })
+				Normal::try_new(mean, cv * mean)
 			}
 
 			#[inline]
@@ -269,6 +274,9 @@ impl_normal!(f64);
 /// This is the distribution of the random variable `X = exp(Y)` where `Y` is normally distributed with mean `μ` and variance `σ²`.
 /// In other words, if `X` is log-normal distributed, then `ln(X)` is `N(μ, σ²)` distributed.
 ///
+/// The scale `σ` may be negative. Its absolute value is the standard deviation of the underlying normal distribution;
+/// its sign controls how a shared z-score maps to a sample when using [`LogNormal::from_zscore`].
+///
 /// # Plot
 ///
 /// The following diagram shows the log-normal distribution with various values of `μ` and `σ`.
@@ -280,7 +288,7 @@ impl_normal!(f64);
 /// ```
 /// use urandom::distr::LogNormal;
 ///
-/// // mean 2, standard deviation 3
+/// // log-space mean 2, log-space standard deviation 3
 /// let log_normal = LogNormal::new(2.0, 3.0);
 /// let v = urandom::new().sample(&log_normal);
 /// println!("{v} is from an ln N(2, 9) distribution");
@@ -297,7 +305,7 @@ impl<Float: Copy> LogNormal<Float> where Self: NormalImpl<Float> {
 	/// Parameters are the "standard" log-space measures (these are the mean and standard deviation of the logarithm of samples):
 	///
 	/// - `mu` (`μ`, unrestricted) is the mean of the underlying distribution
-	/// - `sigma` (`σ`, must be finite) is the standard deviation of the underlying normal distribution
+	/// - `sigma` (`σ`, must be finite) is the signed standard-deviation scale of the underlying normal distribution
 	#[inline]
 	pub fn try_new(mu: Float, sigma: Float) -> Result<LogNormal<Float>, NormalError> {
 		NormalImpl::try_new(mu, sigma)
@@ -307,7 +315,7 @@ impl<Float: Copy> LogNormal<Float> where Self: NormalImpl<Float> {
 	/// Parameters are the "standard" log-space measures (these are the mean and standard deviation of the logarithm of samples):
 	///
 	/// - `mu` (`μ`, unrestricted) is the mean of the underlying distribution
-	/// - `sigma` (`σ`, must be finite) is the standard deviation of the underlying normal distribution
+	/// - `sigma` (`σ`, must be finite) is the signed standard-deviation scale of the underlying normal distribution
 	#[track_caller]
 	#[inline]
 	pub fn new(mu: Float, sigma: Float) -> LogNormal<Float> {
@@ -321,7 +329,7 @@ impl<Float: Copy> LogNormal<Float> where Self: NormalImpl<Float> {
 	/// - mean (`μ > 0`) is the (real) mean of the distribution
 	/// - coefficient of variation (`cv = σ / μ`, requiring `cv ≥ 0`) is a standardized measure of dispersion
 	///
-	/// As a special exception, `μ = 0, cv = 0` is allowed (samples are `-inf`).
+	/// As a special exception, `μ = 0, cv = 0` is allowed and produces the degenerate distribution whose samples are all zero.
 	#[inline]
 	pub fn try_from_mean_cv(mean: Float, cv: Float) -> Result<LogNormal<Float>, NormalError> {
 		NormalImpl::try_from_mean_cv(mean, cv)
@@ -333,7 +341,7 @@ impl<Float: Copy> LogNormal<Float> where Self: NormalImpl<Float> {
 	/// - mean (`μ > 0`) is the (real) mean of the distribution
 	/// - coefficient of variation (`cv = σ / μ`, requiring `cv ≥ 0`) is a standardized measure of dispersion
 	///
-	/// As a special exception, `μ = 0, cv = 0` is allowed (samples are `-inf`).
+	/// As a special exception, `μ = 0, cv = 0` is allowed and produces the degenerate distribution whose samples are all zero.
 	#[track_caller]
 	#[inline]
 	pub fn from_mean_cv(mean: Float, cv: Float) -> LogNormal<Float> {
@@ -368,16 +376,16 @@ macro_rules! impl_log_normal {
 
 			#[inline]
 			fn try_from_mean_cv(mean: $ty, cv: $ty) -> Result<LogNormal<$ty>, NormalError> {
-				if cv == 0.0 {
+				if !cv.is_finite() || cv < 0.0 {
+					return Err(NormalError::BadVariance);
+				}
+				if mean == 0.0 && cv == 0.0 {
 					let mu = mean.ln();
 					let norm = Normal::try_new(mu, 0.0)?;
 					return Ok(LogNormal { norm });
 				}
 				if !(mean > 0.0) {
 					return Err(NormalError::MeanTooSmall);
-				}
-				if !(cv >= 0.0) {
-					return Err(NormalError::BadVariance);
 				}
 
 				// Using X ~ lognormal(μ, σ), CV² = Var(X) / E(X)²
@@ -386,9 +394,9 @@ macro_rules! impl_log_normal {
 				// but Var(X) = (CV × E(X))² so CV² = exp(σ²) - 1
 				// thus σ² = log(CV² + 1)
 				// and exp(μ) = E(X) / exp(σ² / 2) = E(X) / sqrt(CV² + 1)
-				let a = 1.0 + cv * cv; // e
-				let mu = 0.5 * (mean * mean / a).ln();
-				let sigma = a.ln().sqrt();
+				let a = cv.hypot(1.0);
+				let mu = mean.ln() - a.ln();
+				let sigma = (2.0 * a.ln()).sqrt();
 				let norm = Normal::try_new(mu, sigma)?;
 				Ok(LogNormal { norm })
 			}

@@ -13,11 +13,17 @@ fn test_normal() {
 fn test_normal_cv() {
 	let norm = Normal::from_mean_cv(1024.0, 1.0 / 256.0);
 	assert_eq!((norm.mean, norm.std_dev), (1024.0, 4.0));
+
+	let norm = Normal::from_mean_cv(-1024.0, 1.0 / 256.0);
+	assert_eq!((norm.mean, norm.std_dev), (-1024.0, -4.0));
 }
 
 #[test]
 fn test_normal_invalid_sd() {
+	assert_eq!(Normal::try_new(10.0, -1.0).unwrap().std_dev(), -1.0);
+	assert_eq!(Normal::try_new(10.0, f64::INFINITY), Err(NormalError::BadVariance));
 	assert!(Normal::try_from_mean_cv(10.0, -1.0).is_err());
+	assert!(Normal::try_from_mean_cv(f64::MAX, 2.0).is_err());
 }
 
 #[test]
@@ -36,6 +42,7 @@ fn test_log_normal_cv() {
 		(lnorm.norm.mean, lnorm.norm.std_dev),
 		(f64::NEG_INFINITY, 0.0)
 	);
+	assert_eq!(lnorm.from_zscore(0.0), 0.0);
 
 	let lnorm = LogNormal::from_mean_cv(1.0, 0.0);
 	assert_eq!((lnorm.norm.mean, lnorm.norm.std_dev), (0.0, 0.0));
@@ -52,9 +59,12 @@ fn test_log_normal_cv() {
 
 #[test]
 fn test_log_normal_invalid_sd() {
+	assert!(LogNormal::try_new(1.0, -1.0).is_ok());
 	assert!(LogNormal::try_from_mean_cv(-1.0, 1.0).is_err());
+	assert!(LogNormal::try_from_mean_cv(-1.0, 0.0).is_err());
 	assert!(LogNormal::try_from_mean_cv(0.0, 1.0).is_err());
 	assert!(LogNormal::try_from_mean_cv(1.0, -1.0).is_err());
+	assert!(LogNormal::try_from_mean_cv(1.0, f64::INFINITY).is_err());
 }
 
 #[test]

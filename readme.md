@@ -99,13 +99,13 @@ Frequently Asked Questions
 
 * *Can I implement my own random number generator?*
 
-  Yes, you can but it is not recommended. The chosen PRNGs are fast, well known and have good statistical properties.
-
-  By not exposing consumers to the PRNG implementation details, the crate's API surface is kept small and simple.
+  This is not a supported extension point. The chosen PRNGs are fast, well known and have good statistical properties.
+  Consumers should construct one of the provided generators and use the `Random` struct's inherent methods.
 
 * *The Rng traits are incompatible with `rand`, is this a problem?*
 
-  No. The traits are only necessary to implement new Rngs but by design it is not recommended to do this. Consumers of randomness should use the `Random` struct and its methods.
+  No. The traits support the generators provided by this crate and are not intended for downstream implementations.
+  Consumers of randomness should use the `Random` struct and its methods.
 
 * *Why are random floats generated in the half-open interval `[1.0, 2.0)` instead of `[0.0, 1.0)`?*
 

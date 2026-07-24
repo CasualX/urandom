@@ -9,7 +9,7 @@ pub struct SplitMix64 {
 }
 
 impl SplitMix64 {
-	/// Creates a new instance seeded securely from system entropy.
+	/// Creates a new instance seeded from system entropy.
 	///
 	/// This method is the recommended way to construct PRNGs since it is convenient and secure.
 	///

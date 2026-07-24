@@ -47,7 +47,7 @@ pub use self::random::Random;
 
 /// Creates a new instance of the default PRNG.
 ///
-/// The generator is seeded securely from the system entropy source.
+/// The generator is seeded from the system entropy source.
 ///
 /// # Examples
 ///
@@ -65,7 +65,8 @@ pub fn new() -> Random<impl Rng + Clone> {
 ///
 /// The seed does not need to look random, the PRNG constructor ensures it can handle degenerate seed values.
 ///
-/// This function guarantees that the same seed always produces the same sequence of randomness.
+/// The same seed and sequence of operations produces the same results across compatible crate versions and supported targets.
+/// This guarantee extends to the distributions provided by this crate, except where their documentation notes target-dependent behavior.
 ///
 /// # Examples
 ///
@@ -109,7 +110,7 @@ pub fn seeded_hash<T: ?Sized + core::hash::Hash>(value: &T) -> Random<impl Rng +
 
 /// Creates a new cryptographically secure PRNG.
 ///
-/// The generator is seeded securely from the system entropy source.
+/// The generator is seeded from the system entropy source.
 ///
 /// # Examples
 ///

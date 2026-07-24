@@ -219,13 +219,6 @@ impl<R: Rng + ?Sized> Random<R> {
 		distr::Uniform::<T>::from(interval).sample(self)
 	}
 
-	#[track_caller]
-	#[inline]
-	#[doc(hidden)]
-	pub fn range<T, I>(&mut self, interval: I) -> T where T: distr::SampleUniform, distr::Uniform<T>: From<I> {
-		distr::Uniform::<T>::from(interval).sample(self)
-	}
-
 	/// Returns a random float in the open `(0.0, 1.0)` interval.
 	///
 	/// This is a high quality uniform random float without bias in the low bits of the mantissa using the [`Float01`](distr::Float01) distribution.
@@ -411,9 +404,10 @@ impl<R: Rng + ?Sized> Random<R> {
 		}
 	}
 
-	/// Shuffle only the first _n_ elements.
+	/// Randomly selects up to _n_ elements and moves them into the start of the slice.
 	///
-	/// This is an efficient method to select _n_ elements at random from the slice without repetition, provided the slice may be mutated.
+	/// The selected elements are shuffled, and elements after the selected prefix may also be reordered by the selection process.
+	/// If `n` is greater than or equal to the slice length, this shuffles the whole slice.
 	#[inline]
 	pub fn partial_shuffle<T>(&mut self, slice: &mut [T], mut n: usize) {
 		// TODO: As with `shuffle`, the index draws can be reordered and batched
