@@ -48,7 +48,7 @@ impl Wyrand {
 	///
 	/// ```
 	/// let mut rand = urandom::rng::Wyrand::from_seed(42);
-	/// let value = rand.next_u32();
+	/// let value: u32 = rand.random();
 	/// assert_eq!(value, 3396458620);
 	/// ```
 	#[inline]

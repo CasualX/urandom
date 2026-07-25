@@ -48,7 +48,7 @@ impl SplitMix64 {
 	///
 	/// ```
 	/// let mut rand = urandom::rng::SplitMix64::from_seed(42);
-	/// let value = rand.next_u32();
+	/// let value: u32 = rand.random();
 	/// assert_eq!(value, 3184996902);
 	/// ```
 	#[inline]

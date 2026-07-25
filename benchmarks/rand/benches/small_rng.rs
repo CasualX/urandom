@@ -57,7 +57,7 @@ fn u32_urandom(b: &mut Bencher) {
 	b.bytes = size_of::<u32>() as u64 * RAND_BENCH_N;
 	b.iter(|| {
 		for _ in 0..RAND_BENCH_N {
-			let value = rand.next_u32();
+			let value: u32 = rand.random();
 			black_box(value);
 		}
 	});
@@ -83,7 +83,7 @@ fn u64_urandom(b: &mut Bencher) {
 	b.bytes = size_of::<u64>() as u64 * RAND_BENCH_N;
 	b.iter(|| {
 		for _ in 0..RAND_BENCH_N {
-			let value = rand.next_u64();
+			let value: u64 = rand.random();
 			black_box(value);
 		}
 	});

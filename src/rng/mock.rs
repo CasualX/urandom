@@ -16,10 +16,10 @@ impl<'a> Mock<iter::Copied<slice::Iter<'a, u64>>> {
 	///
 	/// let mut rand = Mock::slice(&[1, 2, 13, 42]);
 	///
-	/// assert_eq!(rand.next_u64(), 1);
-	/// assert_eq!(rand.next_u64(), 2);
-	/// assert_eq!(rand.next_u64(), 13);
-	/// assert_eq!(rand.next_u64(), 42);
+	/// assert_eq!(rand.random::<u64>(), 1);
+	/// assert_eq!(rand.random::<u64>(), 2);
+	/// assert_eq!(rand.random::<u64>(), 13);
+	/// assert_eq!(rand.random::<u64>(), 42);
 	///
 	/// // Any further calls to the Mock will panic unless the underlying iterator is unbounded.
 	/// ```
@@ -36,9 +36,9 @@ impl Mock<iter::Repeat<u64>> {
 	///
 	/// let mut rand = Mock::repeat(42);
 	///
-	/// assert_eq!(rand.next_u64(), 42);
-	/// assert_eq!(rand.next_u64(), 42);
-	/// assert_eq!(rand.next_u64(), 42);
+	/// assert_eq!(rand.random::<u64>(), 42);
+	/// assert_eq!(rand.random::<u64>(), 42);
+	/// assert_eq!(rand.random::<u64>(), 42);
 	/// ```
 	#[inline]
 	pub fn repeat(value: u64) -> Random<Self> {

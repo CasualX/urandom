@@ -18,63 +18,23 @@ impl<R> Random<R> {
 }
 
 impl<R: Rng + ?Sized> Random<R> {
-	/// Returns the next `u32` in the sequence.
-	///
-	/// # Examples
-	///
-	/// ```
-	/// let value = urandom::new().next_u32();
-	/// ```
 	#[inline]
-	pub fn next_u32(&mut self) -> u32 {
+	pub(crate) fn next_u32(&mut self) -> u32 {
 		self.rng.next_u32()
 	}
 
-	/// Returns the next `u64` in the sequence.
-	///
-	/// # Examples
-	///
-	/// ```
-	/// let value = urandom::new().next_u64();
-	/// ```
 	#[inline]
-	pub fn next_u64(&mut self) -> u64 {
+	pub(crate) fn next_u64(&mut self) -> u64 {
 		self.rng.next_u64()
 	}
 
-	/// Returns a uniform random `f32` in the half-open interval `[1.0, 2.0)`.
-	///
-	/// As only 23 bits are necessary to construct a random float in this range,
-	/// implementations may override this method to provide a more efficient implementation.
-	///
-	/// For high quality uniform random floats in the open interval `(0.0, 1.0)` without bias see the [`Float01`](distr::Float01) distribution.
-	///
-	/// # Examples
-	///
-	/// ```
-	/// let value = urandom::new().next_f32();
-	/// assert!(value >= 1.0 && value < 2.0);
-	/// ```
 	#[inline]
-	pub fn next_f32(&mut self) -> f32 {
+	pub(crate) fn next_f32(&mut self) -> f32 {
 		self.rng.next_f32()
 	}
 
-	/// Returns a uniform random `f64` in the half-open interval `[1.0, 2.0)`.
-	///
-	/// As only 52 bits are necessary to construct a random double in this range,
-	/// implementations may override this method to provide a more efficient implementation.
-	///
-	/// For high quality uniform random floats in the open interval `(0.0, 1.0)` without bias see [`float01`](Random::float01).
-	///
-	/// # Examples
-	///
-	/// ```
-	/// let value = urandom::new().next_f64();
-	/// assert!(value >= 1.0 && value < 2.0);
-	/// ```
 	#[inline]
-	pub fn next_f64(&mut self) -> f64 {
+	pub(crate) fn next_f64(&mut self) -> f64 {
 		self.rng.next_f64()
 	}
 

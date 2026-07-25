@@ -61,7 +61,7 @@ impl Xoshiro256 {
 	///
 	/// ```
 	/// let mut rand = urandom::rng::Xoshiro256::from_seed(42);
-	/// let value = rand.next_u32();
+	/// let value: u32 = rand.random();
 	/// assert_eq!(value, 368317477);
 	/// ```
 	pub fn from_seed(seed: u64) -> Random<Xoshiro256> {
