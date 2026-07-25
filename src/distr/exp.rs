@@ -66,6 +66,7 @@ impl Distribution<f64> for Exp1 {
 
 /// Error type returned from [`Exp`] constructors.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum ExpError {
 	/// `lambda < 0` or `nan`.
 	LambdaTooSmall,
@@ -82,6 +83,7 @@ impl fmt::Display for ExpError {
 #[cfg(feature = "std")]
 impl std::error::Error for ExpError {}
 
+// Sealed trait, not publicly exported
 pub trait ExpImpl<Float>: Sized {
 	fn try_new(lambda: Float) -> Result<Self, ExpError>;
 }

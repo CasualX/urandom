@@ -4,53 +4,53 @@ Random number generators.
 Pseudorandom number generators
 -------------------------------
 
-These generators implement fast PRNG which are suitable for normal use in non-cryptography applications.
+These are fast pseudorandom number generators suitable for ordinary, non-cryptographic applications.
 
-* [`Xoshiro256`] Rng:
+* [`Xoshiro256`]:
 
-  See the excellent [PRNG shootout](http://prng.di.unimi.it/) article.
+  See the [PRNG shootout](http://prng.di.unimi.it/) for background and analysis.
 
-* [`SplitMix64`] Rng:
+* [`SplitMix64`]:
 
   Fast RNG, with 64 bits of state, that can be used to initialize the state of other generators.
 
-* [`Wyrand`] Rng:
+* [`Wyrand`]:
 
   Tiny and very fast pseudorandom number generator based on [rapidhash](https://github.com/Nicoshev/rapidhash).
 
 Cryptographically secure generators
 -----------------------------------
 
-These generators implement suitable CSPRNG implementations.
+These generators are suitable for cryptographic applications.
 
-* [`ChaCha8`], [`ChaCha12`], [`ChaCha20`] Rng:
+* [`ChaCha8`], [`ChaCha12`], [`ChaCha20`]:
 
   Daniel J. Bernstein's ChaCha adapted as a deterministic random number generator.
 
-  The current algorithm used by the default csprng is ChaCha12.
-  Please see this relevant [rand issue](https://github.com/rust-random/rand/issues/932) for the discussion.
-  This may change as new evidence of cipher security and performance becomes available.
+  The [`csprng`](crate::csprng) constructor uses [`ChaCha12`]. This choice is stable across compatible versions of this crate.
+  See this [`rand` discussion](https://github.com/rust-random/rand/issues/932) for background on the choice of round count.
 
-* [`System`] Rng:
+* [`System`]:
 
-  Randomness directly from the system entropy source.
+  Reads randomness directly from the system entropy source.
 
-  For performance reasons this generator fetches entropy in blocks of `N` 32-bit words.
-  The bigger `N` is, the less often the system entropy source is called.
+  For performance, this generator fetches entropy in blocks of `N` 32-bit words.
+  Larger values of `N` reduce how often the system entropy source must be called.
 
 Other generators
 ----------------
 
-* [`Mock`] Rng:
+* [`Mock`]:
 
-  Mocks the Rng. Produces randomness directly from the given iterator and panics when it runs out of items.
+  A deterministic test generator backed by an iterator. It panics when the iterator runs out of items.
 
-* [`Read`] Rng:
+* [`Read`]:
 
-  Read randomness from files and others with the `std::io::Read` trait.
+  Reads bytes from any source implementing [`std::io::Read`], such as a file or device.
 
 */
 
+// RNG implementations may use unsafe code where required
 #![allow(unsafe_code)]
 
 use core::{mem, ptr, slice};
@@ -75,10 +75,10 @@ pub trait Rng: Sealed {
 
 	/// Returns a uniform random `f32` in the half-open interval `[1.0, 2.0)`.
 	///
-	/// As only 23 bits are necessary to construct a random float in this range,
+	/// Because only 23 bits are needed to construct an `f32` in this range,
 	/// implementations may override this method to provide a more efficient implementation.
 	///
-	/// The default implementation simply gets its random bits from `next_u32`.
+	/// The default implementation uses bits from [`Rng::next_u32`].
 	#[inline]
 	fn next_f32(&mut self) -> f32 {
 		util::rng_f32(self.next_u32())
@@ -86,28 +86,33 @@ pub trait Rng: Sealed {
 
 	/// Returns a uniform random `f64` in the half-open interval `[1.0, 2.0)`.
 	///
-	/// As only 52 bits are necessary to construct a random double in this range,
+	/// Because only 52 bits are needed to construct an `f64` in this range,
 	/// implementations may override this method to provide a more efficient implementation.
 	///
-	/// The default implementation simply gets its random bits from `next_u64`.
+	/// The default implementation uses bits from [`Rng::next_u64`].
 	#[inline]
 	fn next_f64(&mut self) -> f64 {
 		util::rng_f64(self.next_u64())
 	}
 
-	/// Fills the byte slice with uniform random bytes.
+	/// Fills every element of `buf` with random data.
 	///
-	/// Implementations are required to produce the same result regardless of endianness.
+	/// On return, every element of `buf` is initialized.
+	///
+	/// Implementations must produce identical output on little-endian and big-endian targets.
 	fn fill_bytes(&mut self, buf: &mut [MaybeUninit<u8>]);
 
-	/// Advances the internal state significantly.
+	/// Advances the generator's state by a large, implementation-defined distance.
 	///
-	/// Useful to produce deterministic independent random number generators for parallel computation.
+	/// For deterministic pseudorandom generators, this may be used to derive separate streams for parallel computation.
+	///
+	/// Some generators, such as external entropy sources or test generators, may implement this as a no-op or panic.
+	/// See the concrete generator's documentation for its exact behavior.
 	fn jump(&mut self);
 }
 
-/// Marker trait for cryptographically secure random number generators.
-pub trait SecureRng : Rng {}
+/// Marker trait for random number generators suitable for cryptographic use.
+pub trait SecureRng: Rng {}
 
 //----------------------------------------------------------------
 // Random number generators

@@ -85,6 +85,7 @@ impl Distribution<f64> for StandardNormal {
 
 /// Error type returned from [`Normal`] and [`LogNormal`] constructors.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum NormalError {
 	/// The linear-space mean is invalid for the requested log-normal distribution.
 	MeanTooSmall,
@@ -104,6 +105,7 @@ impl fmt::Display for NormalError {
 #[cfg(feature = "std")]
 impl std::error::Error for NormalError {}
 
+// Sealed trait, not publicly exported
 pub trait NormalImpl<Float>: Sized {
 	fn try_new(_1: Float, _2: Float) -> Result<Self, NormalError>;
 	fn try_from_mean_cv(_1: Float, _2: Float) -> Result<Self, NormalError>;

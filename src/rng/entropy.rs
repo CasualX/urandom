@@ -2,6 +2,11 @@ use super::*;
 
 /// Provides cryptographically secure entropy.
 ///
+/// # Endianness
+///
+/// Bytes are written to `T`'s native in-memory representation. Multi-byte
+/// values are not portable across endianness.
+///
 /// # Panics
 ///
 /// If unable to provide secure entropy this method will panic.
@@ -16,6 +21,11 @@ pub fn getentropy<T: dataview::Pod>(buf: &mut [T]) -> &mut [T] {
 }
 
 /// Provides cryptographically secure entropy.
+///
+/// # Endianness
+///
+/// Bytes are written to `T`'s native in-memory representation. Multi-byte
+/// values are not portable across endianness.
 ///
 /// # Panics
 ///

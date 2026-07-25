@@ -19,12 +19,10 @@ use super::*;
 /// In a loop flip a coin, if heads produce a floating point number with the current exponent starting at `-1` if tails subtract one from the exponent and repeat.
 /// This produces smaller floating point numbers with exponentially less probability (of base 2) which is exactly what we want.
 ///
-/// The loop can be avoided by generating a single `u64` and looking at the individual bits, subtract one for every `0` bit until a `1` bit is encountered.
+/// The loop can be avoided by generating a single `u32` and looking at the individual bits, subtract one for every `0` bit until a `1` bit is encountered.
 /// This operation is efficiently implemented in hardware known as the _count leading zeros_ instruction (eg. [`LZCNT` in x86](https://www.felixcloutier.com/x86/lzcnt)).
 ///
-/// There is a small bias in case the Rng outputs all zeros but in practice this should never happen unless your PRNG is broken.
-///
-/// The result is two calls to the Rng, one for generating 64 bits worth of coin flips and one for generating the mantissa of the resulting float.
+/// The result is two calls to the Rng, one for generating 32 bits worth of coin flips and one for generating the mantissa of the resulting float.
 #[derive(Copy, Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Float01;
@@ -32,7 +30,7 @@ pub struct Float01;
 impl Distribution<f32> for Float01 {
 	#[inline]
 	fn sample<R: Rng + ?Sized>(&self, rand: &mut Random<R>) -> f32 {
-		let exp = 126 - rand.next_u64().leading_zeros();
+		let exp = 126 - rand.next_u32().leading_zeros();
 		replace_exponent_f32(rand.next_f32(), exp)
 	}
 }
@@ -40,7 +38,7 @@ impl Distribution<f32> for Float01 {
 impl Distribution<f64> for Float01 {
 	#[inline]
 	fn sample<R: Rng + ?Sized>(&self, rand: &mut Random<R>) -> f64 {
-		let exp = 1022 - rand.next_u64().leading_zeros();
+		let exp = 1022 - rand.next_u32().leading_zeros();
 		replace_exponent_f64(rand.next_f64(), exp)
 	}
 }

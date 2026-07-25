@@ -19,6 +19,7 @@ categories = ["algorithms", "no-std"]
 [features]
 default = ["std"]
 std = []
+serde = ["dep:serde", "std"]
 
 [dependencies]
 cfg-if = "1.0"

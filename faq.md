@@ -26,9 +26,9 @@ Frequently Asked Questions
 
     This crate is a single crate with a single focus: providing a better experience for consumers of randomness.
 
-* *Which features of the `rand` crate are good?*
+* *What design does urandom retain from `rand`?*
 
-  The distribution trait and related types are fairly well designed and didn't need much change.
+  The distribution trait and related types are were already well designed, so urandom retains much of that model.
 
 * *Which random number generators are implemented?*
 

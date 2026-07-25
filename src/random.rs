@@ -82,6 +82,11 @@ impl<R: Rng + ?Sized> Random<R> {
 	///
 	/// The underlying Rng may implement this as efficiently as possible.
 	///
+	/// # Endianness
+	///
+	/// Bytes are written to `T`'s native in-memory representation.
+	/// Multi-byte values are not portable across endianness.
+	///
 	/// # Examples
 	///
 	/// ```
@@ -98,6 +103,11 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// Fills the destination buffer with uniform random bytes from the Rng.
 	///
 	/// The underlying Rng may implement this as efficiently as possible.
+	///
+	/// # Endianness
+	///
+	/// Bytes are written to `T`'s native in-memory representation.
+	/// Multi-byte values are not portable across endianness.
 	///
 	/// # Examples
 	///
@@ -118,6 +128,11 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// Fills the instance with uniform random bytes from the Rng.
 	///
 	/// The underlying Rng may implement this as efficiently as possible.
+	///
+	/// # Endianness
+	///
+	/// Bytes are written to `T`'s native in-memory representation.
+	/// Multi-byte values are not portable across endianness.
 	///
 	/// # Examples
 	///
@@ -394,7 +409,6 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// ```
 	#[inline]
 	pub fn shuffle<T>(&mut self, slice: &mut [T]) {
-		// TODO: Fisher-Yates index draws can be reordered into increasing ranges and batched into one random word
 		let mut len = slice.len();
 		while len > 1 {
 			let k = self.index(len);
@@ -408,21 +422,17 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// The selected elements are shuffled, and elements after the selected prefix may also be reordered by the selection process.
 	/// If `n` is greater than or equal to the slice length, this shuffles the whole slice.
 	///
-	/// Returns the first _n_ shuffled elements.
+	/// Returns the first _n_ shuffled elements and consumes _n_ values from the Rng.
 	#[inline]
 	pub fn partial_shuffle<'a, T>(&mut self, slice: &'a mut [T], n: usize) -> &'a mut [T] {
-		// TODO: As with `shuffle`, the index draws can be reordered and batched
-		if slice.len() > 1 {
-			let n = usize::min(n, slice.len() - 1);
-			for i in 0..n {
-				let k = self.uniform(i..slice.len());
-				slice.swap(i, k);
-			}
-			&mut slice[..n]
+		let n = usize::min(n, slice.len());
+
+		for i in 0..n {
+			let k = self.uniform(i..slice.len());
+			slice.swap(i, k);
 		}
-		else {
-			slice
-		}
+
+		&mut slice[..n]
 	}
 }
 
@@ -482,4 +492,12 @@ fn test_choose_multiple_reservoir_range() {
 	let mean = (counts[0] + counts[1]) / 2;
 	let success = counts.iter().all(|&count| (count - mean).abs() < 500);
 	assert!(success, "mean: {mean}, counts: {counts:?}");
+}
+
+#[test]
+fn test_partial_shuffle() {
+	let mut items = [1, 2, 3, 4, 100];
+	let mut rng = crate::new();
+	let items = rng.partial_shuffle(&mut items, 5);
+	assert_eq!(items.len(), 5);
 }

@@ -1,35 +1,35 @@
 /*!
 Produce and consume randomness.
 
-This crate provides utilities to generate random numbers, to convert them to useful types and distributions, and some randomness-related algorithms.
+This crate provides random number generators, distributions, sampling utilities, and randomness-related algorithms.
 
-This library is inspired by the semi-official [`rand`](https://crates.io/crates/rand) crate and an attempt to provide a better experience.
+It is a fork of the semi-official [`rand`](https://crates.io/crates/rand) crate, focused on providing a cohesive and ergonomic consumer API.
 
 # Quick Start
 
-To get you started quickly, the easiest and highest-level way to get a random value is to use `urandom::new().random()`.
+The easiest way to get started is to create a [`Random`] generator with [`new`] and use its inherent methods.
 
 The [`Random`] struct provides a convenient API over the random number generators, while the [`distr`] module provides distributions and sampling utilities.
 
 ```
 let mut rand = urandom::new();
 
-// Generates a random boolean
-if rand.coin_flip() {
-	// Try printing a random Unicode code point (probably a bad idea)!
-	println!("char: {}", rand.random::<char>());
-}
+// Roll a six-sided die.
+let roll: u32 = rand.uniform(1..=6);
 
-// Generates a float between 13.0 and 42.0
-let y: f64 = rand.uniform(13.0..42.0);
+// Choose a random element.
+let colors = ["red", "green", "blue"];
+let color = rand.choose(&colors).unwrap();
 
-// Shuffles the list of numbers
-let mut numbers: Vec<i32> = (1..100).collect();
+// Shuffle a collection in place.
+let mut numbers: Vec<_> = (1..=10).collect();
 rand.shuffle(&mut numbers);
+
+println!("Rolled {roll}, chose {color}");
 ```
 */
 
-// Unsafe code is restricted to certain specific Rng implementations
+// Unsafe code is restricted throughout the crate except within the `rng` module
 #![deny(unsafe_code)]
 
 #![cfg_attr(not(any(test, feature = "std")), no_std)]
@@ -39,18 +39,20 @@ mod random;
 pub mod rng;
 pub mod distr;
 
+pub use self::random::Random;
 pub use self::rng::Rng;
 pub use self::distr::Distribution;
-pub use self::random::Random;
 
 //----------------------------------------------------------------
 
-/// Creates a new non-cryptographic PRNG.
+/// Creates a new non-cryptographic pseudorandom number generator (PRNG).
 ///
 /// The generator is seeded from the system entropy source.
+/// Construct it once and reuse it to generate many values.
+///
 /// Use [`csprng`] when outputs must be unpredictable.
 ///
-/// See [`Xoshiro256`](crate::rng::Xoshiro256) for the concrete implementation.
+/// See [`Xoshiro256`](rng::Xoshiro256) for the concrete implementation.
 ///
 /// # Examples
 ///
@@ -61,17 +63,17 @@ pub use self::random::Random;
 #[must_use]
 #[inline]
 pub fn new() -> Random<impl Rng + Clone> {
-	crate::rng::Xoshiro256::new()
+	rng::Xoshiro256::new()
 }
 
-/// Creates a new non-cryptographic PRNG with the given seed.
+/// Creates a reproducible non-cryptographic pseudorandom number generator with the given seed.
 ///
-/// The seed does not need to look random, the PRNG constructor ensures it can handle degenerate seed values.
+/// The seed does not need to look random. The generator's initialization handles degenerate seed values.
 ///
-/// The same seed and sequence of operations produces the same results across compatible crate versions and supported targets.
+/// Using the same seed and performing the same sequence of operations produces the same results across compatible versions of this crate and supported targets.
 /// This guarantee extends to the distributions provided by this crate, except where their documentation notes target-dependent behavior.
 ///
-/// See [`Xoshiro256`](crate::rng::Xoshiro256) for the concrete implementation.
+/// See [`Xoshiro256`](rng::Xoshiro256) for the concrete implementation.
 ///
 /// # Examples
 ///
@@ -83,10 +85,10 @@ pub fn new() -> Random<impl Rng + Clone> {
 #[must_use]
 #[inline]
 pub fn seeded(seed: u64) -> Random<impl Rng + Clone> {
-	crate::rng::Xoshiro256::from_seed(seed)
+	rng::Xoshiro256::from_seed(seed)
 }
 
-/// Creates a new non-cryptographic PRNG keyed by a hashable value.
+/// Creates a reproducible non-cryptographic pseudorandom number generator seeded from a hashable value.
 ///
 /// The value is hashed with Rust's [`DefaultHasher`](std::collections::hash_map::DefaultHasher)
 /// and the resulting hash is used to seed the generator.
@@ -97,7 +99,7 @@ pub fn seeded(seed: u64) -> Random<impl Rng + Clone> {
 ///
 /// This function is not suitable for cryptographic use.
 ///
-/// See [`Xoshiro256`](crate::rng::Xoshiro256) for the concrete implementation.
+/// See [`Xoshiro256`](rng::Xoshiro256) for the concrete implementation.
 ///
 /// # Examples
 ///
@@ -115,11 +117,12 @@ pub fn seeded_hash<T: ?Sized + core::hash::Hash>(value: &T) -> Random<impl Rng +
 	seeded(hasher.finish())
 }
 
-/// Creates a new cryptographically secure PRNG.
+/// Creates a new cryptographically secure pseudorandom number generator (CSPRNG).
 ///
 /// The generator is seeded from the system entropy source.
+/// Construct it once and reuse it to generate many values.
 ///
-/// See [`ChaCha12`](crate::rng::ChaCha12) for the concrete implementation.
+/// See [`ChaCha12`](rng::ChaCha12) for the concrete implementation.
 ///
 /// # Examples
 ///
@@ -130,5 +133,5 @@ pub fn seeded_hash<T: ?Sized + core::hash::Hash>(value: &T) -> Random<impl Rng +
 #[must_use]
 #[inline]
 pub fn csprng() -> Random<impl rng::SecureRng + Clone> {
-	crate::rng::ChaCha12::new()
+	rng::ChaCha12::new()
 }

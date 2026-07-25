@@ -5,7 +5,16 @@ impl<const N: usize> SecureRng for System<N> {}
 /// Randomness directly from the system entropy source.
 ///
 /// For performance reasons this generator fetches entropy in blocks of `N` 32-bit words.
-/// The bigger `N` is, the less often the system entropy source is called.
+/// The bigger `N` is, the less often the system entropy source is called. `N` must be
+/// larger or equal to `2`, recommended at least 64 or higher.
+///
+/// # Compile-time validation
+///
+/// Block sizes below two are rejected:
+///
+/// ```compile_fail
+/// let _ = urandom::rng::System::<1>::new();
+/// ```
 pub struct System<const N: usize> {
 	index: u32,
 	random: [u32; N],
@@ -21,7 +30,10 @@ impl<const N: usize> System<N> {
 	/// let value: i32 = rand.random();
 	/// ```
 	#[inline]
-	pub fn new() -> Random<Self> {
+	pub const fn new() -> Random<Self> {
+		const {
+			assert!(N >= 2, "System block size N must be at least 2");
+		}
 		Random::wrap(Self {
 			index: !0,
 			random: [0; N],

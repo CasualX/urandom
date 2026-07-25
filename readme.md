@@ -8,9 +8,9 @@
 
 Produce and consume randomness.
 
-This crate provides utilities to generate random numbers, to convert them to useful types and distributions, and some randomness-related algorithms.
+This crate provides random number generators, distributions, sampling utilities, and randomness-related algorithms.
 
-This library is a fork of the semi-official [`rand`](https://crates.io/crates/rand) crate and an attempt to provide a better experience.
+It is a fork of the semi-official [`rand`](https://crates.io/crates/rand) crate, focused on providing a cohesive and ergonomic consumer API.
 
 Usage
 -----
@@ -31,24 +31,24 @@ The `Random` struct provides a convenient API over the random number generators,
 ```rust
 let mut rand = urandom::new();
 
-// Generates a random boolean
-if rand.coin_flip() {
-	// Try printing a random Unicode code point (probably a bad idea)!
-	println!("char: {}", rand.random::<char>());
-}
+// Roll a six-sided die.
+let roll: u32 = rand.uniform(1..=6);
 
-// Generates a float between 13.0 and 42.0
-let y: f64 = rand.uniform(13.0..42.0);
+// Choose a random element.
+let colors = ["red", "green", "blue"];
+let color = rand.choose(&colors).unwrap();
 
-// Shuffles the list of numbers
-let mut numbers: Vec<i32> = (1..100).collect();
+// Shuffle a collection in place.
+let mut numbers: Vec<_> = (1..=10).collect();
 rand.shuffle(&mut numbers);
+
+println!("Rolled {roll}, chose {color}");
 ```
 
 Reproducibility
 ---------------
 
-Generators created with `new()` and `csprng()` are seeded from system entropy and produce a different sequence each time they are constructed. If system entropy is unavailable, construction panics.
+Generators created with `new()` and `csprng()` are independently seeded and expected to produce a different sequence each time. If system entropy is unavailable, construction panics.
 
 For reproducible output, use `seeded(...)`
 
@@ -59,7 +59,7 @@ let mut b = urandom::seeded(42);
 assert_eq!(a.random::<u64>(), b.random::<u64>());
 ```
 
-For a fixed seed or key, the generated sequence is stable across compatible releases of urandom. A new major version may intentionally change generators, distributions, or algorithms and therefore produce different output.
+For a fixed seed, the generated sequence is stable across compatible releases of urandom. A new major version may intentionally change generators, distributions, or algorithms and therefore produce different output.
 
 The quick constructors return opaque generator types. This keeps common usage simple and allows urandom to select an appropriate implementation. When a concrete generator type must be named, such as when storing it in a struct or serializing it, select a backend from the rng module directly.
 
