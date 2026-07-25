@@ -2,6 +2,20 @@ use super::*;
 use core::time::Duration;
 
 #[test]
+fn test_float_constructors() {
+	assert!(matches!(Uniform::try_new(0.0f32, f32::INFINITY), Err(UniformError::NonFinite)));
+	assert!(matches!(Uniform::try_new_inclusive(f64::NAN, 1.0), Err(UniformError::NonFinite)));
+
+	let _ = Uniform::new(0.0f32, f32::INFINITY);
+	let _ = Uniform::new_inclusive(f64::NAN, 1.0);
+	let _: Uniform<f32> = (0.0..f32::INFINITY).into();
+	let _: Uniform<f64> = (f64::NAN..=1.0).into();
+
+	let _ = <Uniform<f32> as UniformSampler<f32>>::new(0.0, f32::INFINITY);
+	let _ = <Uniform<f64> as UniformSampler<f64>>::new_inclusive(f64::NAN, 1.0);
+}
+
+#[test]
 fn test_bias() {
 	let distr = Uniform::new_inclusive(0u32, 0xC0000000);
 	println!("distr: {distr:#x?}");

@@ -40,6 +40,7 @@ pub struct UniformInt<T> {
 }
 
 impl<T> UniformInt<T> {
+	#[inline]
 	pub(crate) const fn constant(base: T, range: T) -> UniformInt<T> {
 		UniformInt { base, range }
 	}
