@@ -65,6 +65,6 @@ test uniform_sample_rand    ... bench:       1,097.90 ns/iter (+/- 35.66)
 test uniform_sample_urandom ... bench:         950.26 ns/iter (+/- 41.07)
 ```
 
-Both crates now use Lemire's multiply-and-reject algorithm. Urandom is faster
-in this run, but there is no longer a fundamental algorithmic advantage;
-the remaining difference comes from API and code-generation details.
+Both crates use the same multiply-and-reject algorithm. Urandom computes the
+rejection threshold lazily, usually avoiding the expensive modulo, while rand
+computes it when constructing the sampler. This explains urandom's advantage.
