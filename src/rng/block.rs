@@ -3,7 +3,9 @@ use super::*;
 pub trait BlockRng {
 	type Output: Copy + Default + PartialEq + dataview::Pod;
 
+	/// Generates the next block in a byte representation that is identical on little-endian and big-endian targets.
 	fn generate(&mut self, random: &mut Self::Output);
+	/// Advances the generator state by a large, implementation-defined distance.
 	fn jump(&mut self);
 }
 
@@ -71,7 +73,9 @@ impl<T: BlockRng> Rng for BlockRngImpl<T> {
 
 	#[inline(never)]
 	fn fill_bytes(&mut self, mut buf: &mut [MaybeUninit<u8>]) {
-		// Fill directly from the generator
+		// Full blocks bypass cached bytes to avoid splicing large fills
+		// This may reorder output across Rng methods, which do not share a stream-order contract
+		// Keep the cache for the final partial block or a later read
 		// Use a temporary block buffer due to potential alignment issues
 		let mut tmp = T::Output::default();
 		while buf.len() >= mem::size_of_val(&tmp) {
@@ -79,7 +83,7 @@ impl<T: BlockRng> Rng for BlockRngImpl<T> {
 			unsafe { ptr::copy_nonoverlapping(&tmp as *const _ as *const u8, buf.as_mut_ptr() as *mut u8, mem::size_of_val(&tmp)); }
 			buf = &mut buf[mem::size_of_val(&tmp)..];
 		}
-		// Fill the remaining bytes from the random block
+		// Fill the remaining bytes from the cached block
 		if buf.len() > 0 {
 			loop {
 				let random = bytes(&self.random);

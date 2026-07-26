@@ -106,17 +106,13 @@ impl<R: Rng + ?Sized> Random<R> {
 		rng::util::random_bytes(&mut self.rng)
 	}
 
-	/// Advances the internal state significantly.
-	///
-	/// Useful to produce deterministic independent random number generators for parallel computation.
-	#[inline]
-	pub fn jump(&mut self) {
-		self.rng.jump();
-	}
-
 	/// Returns a clone of the current generator, then advances `self` by one jump.
 	///
 	/// Repeated calls produce deterministic, widely separated streams suitable for independent parallel computations.
+	///
+	/// # Panics
+	///
+	/// Panics if the underlying generator does not support jumping.
 	///
 	/// # Examples
 	///

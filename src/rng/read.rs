@@ -32,20 +32,6 @@ impl<R> ReadRng<R> {
 	}
 }
 
-impl<R> AsRef<R> for ReadRng<R> {
-	#[inline]
-	fn as_ref(&self) -> &R {
-		&self.reader
-	}
-}
-
-impl<R> AsMut<R> for ReadRng<R> {
-	#[inline]
-	fn as_mut(&mut self) -> &mut R {
-		&mut self.reader
-	}
-}
-
 impl<R> Sealed for ReadRng<R> {}
 
 impl<R: io::Read> Rng for ReadRng<R> {
@@ -72,8 +58,11 @@ impl<R: io::Read> Rng for ReadRng<R> {
 			read_failed(err);
 		}
 	}
+	/// This operation is unsupported and panics.
 	#[inline]
-	fn jump(&mut self) {}
+	fn jump(&mut self) {
+		unimplemented!()
+	}
 }
 
 #[cold]

@@ -11,7 +11,7 @@ pub struct WyrandRng {
 impl WyrandRng {
 	/// Creates a new instance seeded from system entropy.
 	///
-	/// This method is the recommended way to construct PRNGs since it is convenient and secure.
+	/// This method is the recommended way to construct PRNGs since it is convenient and securely seeded.
 	///
 	/// # Panics
 	///

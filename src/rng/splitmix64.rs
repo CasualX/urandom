@@ -11,7 +11,7 @@ pub struct SplitMix64Rng {
 impl SplitMix64Rng {
 	/// Creates a new instance seeded from system entropy.
 	///
-	/// This method is the recommended way to construct PRNGs since it is convenient and secure.
+	/// This method is the recommended way to construct PRNGs since it is convenient and securely seeded.
 	///
 	/// # Panics
 	///
@@ -89,6 +89,7 @@ impl Rng for SplitMix64Rng {
 		util::rng_fill_bytes(&mut rng, buf);
 		*self = rng;
 	}
+	/// Advances the generator by 2<sup>40</sup> state transitions.
 	#[inline]
 	fn jump(&mut self) {
 		jump(&mut self.state)

@@ -84,6 +84,22 @@ fn test_fill_bytes() {
 	crate::rng::tests::check_fill_bytes(&mut ChaCha20Rng::new());
 }
 
+#[test]
+fn fill_bytes_uses_little_endian_word_order() {
+	let expected = [
+		0xbee7079f, 0x7a385155, 0x7c97ba98, 0x0d082d73,
+		0xa0290fcb, 0x6965e348, 0x3e53c612, 0xed7aee32,
+		0x7621b729, 0x434ee69c, 0xb03371d5, 0xd539d874,
+		0x281fed31, 0x45fb0a51, 0x1f0ae1ac, 0x6f4d794b,
+	].map(u32::to_le_bytes);
+
+	let mut rand = ChaCha20Rng::from_seed([0; 8]);
+	let mut output = [[0u8; 4]; 16];
+	rand.fill_bytes(&mut output);
+
+	assert_eq!(output, expected);
+}
+
 #[cfg(feature = "serde")]
 #[test]
 fn serde() {

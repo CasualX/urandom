@@ -1,6 +1,13 @@
 /*!
 Random number generators.
 
+Reproducibility
+---------------
+
+Deterministic generators are reproducible from the same seed only when given
+the same sequence of calls with the same arguments. Different [`Rng`] methods
+are not interchangeable views of a single random stream.
+
 Pseudorandom number generators
 -------------------------------
 
@@ -40,11 +47,13 @@ Other generators
 
   A deterministic test generator backed by an iterator. It panics when the iterator runs out of items.
 
+*/
+
+#![cfg_attr(feature = "std", doc = r#"
 * [`ReadRng`]:
 
   Reads bytes from any source implementing [`std::io::Read`], such as a file or device.
-
-*/
+"#)]
 
 // RNG implementations may use unsafe code where required
 #![allow(unsafe_code)]
@@ -62,6 +71,10 @@ use sealed::Sealed;
 /// Random number generator interface.
 ///
 /// This trait is sealed and cannot be implemented outside this crate.
+///
+/// Implementations that promise reproducibility must return the same output
+/// from the same initial state for an identical sequence of calls and arguments.
+/// Different methods do not need to consume equivalent parts of one random stream.
 pub trait Rng: Sealed {
 	/// Returns the next `u32` in the sequence.
 	fn next_u32(&mut self) -> u32;
@@ -102,12 +115,16 @@ pub trait Rng: Sealed {
 	///
 	/// For deterministic pseudorandom generators, this may be used to derive separate streams for parallel computation.
 	///
-	/// Some generators, such as external entropy sources or test generators, may implement this as a no-op or panic.
+	/// Generators that do not support jumping panic.
 	/// See the concrete generator's documentation for its exact behavior.
 	fn jump(&mut self);
 }
 
 /// Marker trait for random number generators suitable for cryptographic use.
+///
+/// This marker describes the algorithm, not how a particular instance was initialized.
+/// A manually seeded generator cannot provide more unpredictability than its seed;
+/// cryptographic use requires a secret seed with sufficient entropy.
 pub trait SecureRng: Rng {}
 
 //----------------------------------------------------------------

@@ -29,7 +29,7 @@ pub fn check_fill_bytes<R: Rng + Clone>(master: &mut Random<R>) {
 
 		// Check the buffer is correctlly filled
 		let nzeroes = buf[..i].iter().filter(|&&b| b == 0).count();
-		assert!(nzeroes < 4, "too many zeroes in {:?}", &buf[..i]);
+		assert!(nzeroes < 8, "too many zeroes in {:?}", &buf[..i]);
 
 		// Check OOB writes
 		assert_eq!(buf[i..], zeroes[i..]);

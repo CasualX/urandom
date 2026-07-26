@@ -1,6 +1,8 @@
 use super::*;
 
 
+// These are the supported ChaCha round counts and the only variants certified through SecureRng
+
 /// [`ChaChaRng`] with 8 rounds.
 pub type ChaCha8Rng = ChaChaRng<8>;
 impl SecureRng for ChaChaRng<8> {}
@@ -26,7 +28,7 @@ pub struct ChaChaRng<const N: usize> {
 impl<const N: usize> ChaChaRng<N> where Self: SecureRng {
 	/// Creates a new instance seeded from system entropy.
 	///
-	/// This method is the recommended way to construct PRNGs since it is convenient and secure.
+	/// This method is the recommended way to construct PRNGs since it is convenient and securely seeded.
 	///
 	/// # Panics
 	///
@@ -106,6 +108,7 @@ impl<const N: usize> Rng for ChaChaRng<N> where Self: SecureRng {
 	fn fill_bytes(&mut self, buf: &mut [MaybeUninit<u8>]) {
 		self.inner.fill_bytes(buf);
 	}
+	/// Selects the next stream.
 	#[inline]
 	fn jump(&mut self) {
 		self.inner.jump();
@@ -199,6 +202,12 @@ impl<const N: usize> BlockRng for ChaChaState<N> {
 	#[inline(never)]
 	fn generate(&mut self, random: &mut Self::Output) {
 		chacha_block(self, random);
+		#[cfg(target_endian = "big")]
+		for block in random {
+			for word in block {
+				*word = word.to_le();
+			}
+		}
 	}
 
 	#[inline]
