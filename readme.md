@@ -63,7 +63,7 @@ assert_eq!(a.random::<u64>(), b.random::<u64>());
 
 For a fixed seed, the generated sequence is stable across compatible releases of urandom. A new major version may intentionally change generators, distributions, or algorithms and therefore produce different output.
 
-The quick constructors return opaque generator types. This keeps common usage simple and allows urandom to select an appropriate implementation. When a concrete generator type must be named, such as when storing it in a struct or serializing it, select a backend from the rng module directly.
+The convenient constructors return concrete generator types, making the selected algorithms part of the stable API. Generator types can also be chosen from the `rng` module when desired.
 
 Features
 --------

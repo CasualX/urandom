@@ -52,8 +52,6 @@ pub use self::distr::Distribution;
 ///
 /// Use [`csprng`] when outputs must be unpredictable.
 ///
-/// See [`Xoshiro256Rng`](rng::Xoshiro256Rng) for the concrete implementation.
-///
 /// # Examples
 ///
 /// ```
@@ -62,7 +60,7 @@ pub use self::distr::Distribution;
 /// ```
 #[must_use]
 #[inline]
-pub fn new() -> Random<impl Rng + Clone> {
+pub fn new() -> Random<rng::Xoshiro256Rng> {
 	rng::Xoshiro256Rng::new()
 }
 
@@ -73,8 +71,6 @@ pub fn new() -> Random<impl Rng + Clone> {
 /// Using the same seed and performing the same sequence of operations produces the same results across compatible versions of this crate and supported targets.
 /// This guarantee extends to the distributions provided by this crate, except where their documentation notes target-dependent behavior.
 ///
-/// See [`Xoshiro256Rng`](rng::Xoshiro256Rng) for the concrete implementation.
-///
 /// # Examples
 ///
 /// ```
@@ -84,7 +80,7 @@ pub fn new() -> Random<impl Rng + Clone> {
 /// ```
 #[must_use]
 #[inline]
-pub fn seeded(seed: u64) -> Random<impl Rng + Clone> {
+pub fn seeded(seed: u64) -> Random<rng::Xoshiro256Rng> {
 	rng::Xoshiro256Rng::from_seed_u64(seed)
 }
 
@@ -99,8 +95,6 @@ pub fn seeded(seed: u64) -> Random<impl Rng + Clone> {
 ///
 /// This function is not suitable for cryptographic use.
 ///
-/// See [`Xoshiro256Rng`](rng::Xoshiro256Rng) for the concrete implementation.
-///
 /// # Examples
 ///
 /// ```
@@ -110,7 +104,7 @@ pub fn seeded(seed: u64) -> Random<impl Rng + Clone> {
 #[cfg(feature = "std")]
 #[must_use]
 #[inline]
-pub fn seeded_hash<T: ?Sized + core::hash::Hash>(value: &T) -> Random<impl Rng + Clone> {
+pub fn seeded_hash<T: ?Sized + core::hash::Hash>(value: &T) -> Random<rng::Xoshiro256Rng> {
 	use core::hash::Hasher;
 	let mut hasher = std::collections::hash_map::DefaultHasher::new();
 	value.hash(&mut hasher);
@@ -122,8 +116,6 @@ pub fn seeded_hash<T: ?Sized + core::hash::Hash>(value: &T) -> Random<impl Rng +
 /// The generator is seeded from the system entropy source.
 /// Construct it once and reuse it to generate many values.
 ///
-/// See [`ChaCha12Rng`](rng::ChaCha12Rng) for the concrete implementation.
-///
 /// # Examples
 ///
 /// ```
@@ -132,6 +124,6 @@ pub fn seeded_hash<T: ?Sized + core::hash::Hash>(value: &T) -> Random<impl Rng +
 /// ```
 #[must_use]
 #[inline]
-pub fn csprng() -> Random<impl rng::SecureRng + Clone> {
+pub fn csprng() -> Random<rng::ChaCha12Rng> {
 	rng::ChaCha12Rng::new()
 }
