@@ -27,6 +27,15 @@ rand.shuffle(&mut numbers);
 
 println!("Rolled {roll}, chose {color}");
 ```
+
+# Reproducibility
+
+Urandom treats the output of its deterministic random number generators as part of its stable API.
+Unless an API documents otherwise, repeating the same sequence of RNG operations on a concrete generator initialized with the same seed
+produces the same results across SemVer-compatible crate releases and supported targets.
+
+See the [`rng`] module documentation for the generator guarantee and the [`distr`] module documentation
+for the best-effort reproducibility policy of distributions and sampling algorithms.
 */
 
 // Unsafe code is restricted throughout the crate except within the `rng` module
@@ -68,8 +77,10 @@ pub fn new() -> Random<rng::Xoshiro256Rng> {
 ///
 /// The seed does not need to look random. The generator's initialization handles degenerate seed values.
 ///
-/// Using the same seed and performing the same sequence of operations produces the same results across compatible versions of this crate and supported targets.
-/// This guarantee extends to the distributions provided by this crate, except where their documentation notes target-dependent behavior.
+/// Unless otherwise documented, the same seed and sequence of RNG operations produces the same results
+/// across SemVer-compatible releases of this crate and supported targets.
+/// The underlying generator follows the [`rng`] module's reproducibility guarantee, while distributions and sampling algorithms
+/// follow the [`distr`] module's best-effort reproducibility policy.
 ///
 /// # Examples
 ///
@@ -115,6 +126,9 @@ pub fn hash<T: ?Sized + core::hash::Hash>(value: &T) -> u64 {
 ///
 /// The generator is seeded from the system entropy source.
 /// Construct it once and reuse it to generate many values.
+///
+/// This constructor uses [`rng::ChaCha12Rng`]. This choice is stable across SemVer-compatible releases.
+/// See this [`rand` discussion](https://github.com/rust-random/rand/issues/932) for background on the choice of round count.
 ///
 /// # Examples
 ///

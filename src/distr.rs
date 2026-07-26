@@ -5,14 +5,10 @@ This module is the home of the [`Distribution`] trait and several of its impleme
 It is the workhorse behind some of the convenient functionality of the [`Random`] struct,
 e.g. [`Random::random`], [`Random::uniform`] and of course [`Random::sample`].
 
-Abstractly, a [probability distribution] describes the probability of occurance of each value in its sample space.
+Abstractly, a [probability distribution] describes the probability of occurrence of each value in its sample space.
 
 More concretely, an implementation of `Distribution<T>` for type `D` is an algorithm for choosing values from the sample space (a subset of `T`)
-according to the distribution `D` represents, using an external source of randomness (an Rng supplied to the `sample` function).
-
-A type `D` may implement `Distribution<T>` for multiple types `T`.
-Any type implementing [`Distribution`] is stateless (i.e. immutable), but it may have internal parameters set at construction time
-(for example, [`Uniform`] allows specification of its sample space as a range within `T`).
+according to the distribution `D` represents, using mutable randomness supplied through [`Random`].
 
 # The `StandardUniform` distribution
 
@@ -31,8 +27,15 @@ Both [`StandardUniform`] and [`Uniform`] are in some sense uniform distributions
 Values may be sampled from this distribution using [`Random::uniform`] or by creating a distribution object from a `low..high` or `low..=high`.
 When the range limits are not known at compile time it is typically faster to reuse an existing distribution object than to call [`Random::uniform`].
 
-User types `T` may also implement `Distribution<T>` for [`Uniform`], although this is less straightforward than for [`StandardUniform`]
-(see the documentation in the uniform module. Doing so enables generation of values of type `T` with [`Random::uniform`].
+User-defined types can support [`Uniform`] sampling by implementing [`SampleUniform`] and providing a corresponding [`UniformSampler`].
+This enables values of the type to be generated with [`Random::uniform`]. See the [`Uniform`] documentation for a complete example.
+
+# Reproducibility
+
+Sampling implementations provided by this crate aim to preserve generated sequences across SemVer-compatible releases
+and are not changed unnecessarily. This is a best-effort policy, not a blanket guarantee of exact reproducibility:
+results may differ due to target or toolchain behavior, floating-point arithmetic, bug fixes, or other implementation constraints.
+Individual distributions may document more specific compatibility behavior.
 
 [probability distribution]: https://en.wikipedia.org/wiki/Probability_distribution
 */
@@ -75,19 +78,17 @@ cfg_if::cfg_if! {
 /// `rand.sample(&distr)`. There's also the [`Random::samples`] method, which
 /// produces an iterator that samples from the distribution.
 ///
-/// All implementations are expected to be immutable; this has the significant advantage of not needing to consider thread safety,
-/// and for most distributions efficient state-less sampling algorithms are available.
+/// Sampling only requires a shared reference to the distribution, while mutable randomness is supplied by [`Random`].
+/// This makes a configured distribution convenient to reuse without requiring mutable access to it,
+/// and for most distributions efficient stateless sampling algorithms are available.
 ///
-/// Implementations are typically expected to be portable with reproducible results when used with a PRNG with fixed seed;
-/// see the [portability chapter] of The Rust Rand Book. In some cases this does not apply,
-/// e.g. the `usize` type requires different sampling on 32-bit and 64-bit machines.
-///
-/// [portability chapter]: https://rust-random.github.io/book/portability.html
+/// Implementations provided by this crate follow the module-level [reproducibility](crate::distr#reproducibility) policy.
+/// This policy does not apply to downstream implementations of this trait.
 pub trait Distribution<T> {
 	/// Generate a random value of `T`, using rand as the source of randomness.
 	fn sample<R: Rng + ?Sized>(&self, rand: &mut Random<R>) -> T;
 
-	/// Creates a distribution of values of 'U' by mapping the output of `Self` through the closure `F`
+	/// Creates a distribution of values of `U` by mapping the output of `Self` through the closure `F`
 	///
 	/// # Examples
 	///

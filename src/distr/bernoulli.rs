@@ -12,8 +12,9 @@ impl Bernoulli {
 	///
 	/// # Precision
 	///
-	/// For p >= 1.0, the resulting distribution will always generate true.
-	/// For p <= 0.0, the resulting distribution will always generate false.
+	/// - For `p >= 1.0`, the resulting distribution will always generate `true`.
+	/// - For `p <= 0.0`, the resulting distribution will always generate `false`.
+	/// - For `p.is_nan()`, the resulting distribution will always generate `false`.
 	#[inline]
 	pub const fn new(p: f64) -> Bernoulli {
 		Bernoulli { p }

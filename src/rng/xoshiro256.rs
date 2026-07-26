@@ -68,8 +68,7 @@ impl Xoshiro256Rng {
 
 	/// Creates a reproducible instance by expanding a 64-bit seed into the native 256-bit seed.
 	///
-	/// Implementations are required to be reproducible given the same seed.
-	/// _Changing_ the implementation of this function should be considered a breaking change.
+	/// The seed expansion and resulting stream are covered by the crate's [reproducibility guarantee](crate::rng#reproducibility).
 	///
 	/// # Examples
 	///

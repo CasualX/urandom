@@ -4,9 +4,12 @@ Random number generators.
 Reproducibility
 ---------------
 
-Deterministic generators are reproducible from the same seed only when given
-the same sequence of calls with the same arguments. Different [`Rng`] methods
-are not interchangeable views of a single random stream.
+The output of every deterministic pseudorandom generator provided by this crate is part of its stable API across SemVer-compatible releases.
+The same initial state and sequence of calls produces the same output on supported targets.
+Algorithms, seed expansion, and method behavior are not changed merely for performance.
+
+The call sequence is significant. Different [`Rng`] methods may advance the state differently and are not interchangeable views of a single byte stream.
+Entropy-backed generators and constructors are not reproducible because their initial state intentionally varies.
 
 Pseudorandom number generators
 -------------------------------
@@ -29,9 +32,6 @@ These generators are suitable for cryptographic applications.
 * [`ChaCha8Rng`], [`ChaCha12Rng`], [`ChaCha20Rng`]:
 
   Daniel J. Bernstein's ChaCha adapted as a deterministic random number generator.
-
-  The [`csprng`](crate::csprng) constructor uses [`ChaCha12Rng`]. This choice is stable across compatible versions of this crate.
-  See this [`rand` discussion](https://github.com/rust-random/rand/issues/932) for background on the choice of round count.
 
 * [`SystemRng`]:
 

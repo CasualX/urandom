@@ -106,3 +106,11 @@ fn serde() {
 	crate::rng::tests::check_serde_initial_state(ChaCha12Rng::new());
 	crate::rng::tests::check_serde_middle_state(ChaCha12Rng::new());
 }
+
+#[cfg(feature = "serde")]
+#[test]
+fn deserialize_v1_middle_state() {
+	let saved = include_str!("chacha12-midstate-v1.json");
+	let mut rand: crate::Random<ChaCha12Rng> = serde_json::from_str(saved).unwrap();
+	assert_eq!(rand.next_u64(), 9316889689305211805);
+}

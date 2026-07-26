@@ -56,8 +56,7 @@ impl WyrandRng {
 
 	/// Creates a reproducible instance from a 64-bit seed.
 	///
-	/// Implementations are required to be reproducible given the same seed.
-	/// _Changing_ the implementation of this function should be considered a breaking change.
+	/// The resulting stream is covered by the crate's [reproducibility guarantee](crate::rng#reproducibility).
 	///
 	/// # Examples
 	///

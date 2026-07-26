@@ -52,7 +52,7 @@ Generators created with `new()` and `csprng()` are independently seeded and expe
 
 To use a different entropy source, construct a concrete generator with its native seed using `from_seed(...)`.
 
-For reproducible output, use `seeded(...)`
+For reproducible output, use `seeded(...)`:
 
 ```rust
 let mut a = urandom::seeded(42);
@@ -61,9 +61,14 @@ let mut b = urandom::seeded(42);
 assert_eq!(a.random::<u64>(), b.random::<u64>());
 ```
 
-For a fixed seed, the generated sequence is stable across compatible releases of urandom. A new major version may intentionally change generators, distributions, or algorithms and therefore produce different output.
+Unless an API documents otherwise, repeating the same sequence of RNG operations on a deterministic generator initialized with the same seed
+produces the same results across SemVer-compatible urandom releases and supported targets.
 
-The convenient constructors return concrete generator types, making the selected algorithms part of the stable API. Generator types can also be chosen from the `rng` module when desired.
+Distributions and sampling algorithms provided by this crate make a best effort to preserve generated sequences across SemVer-compatible releases,
+but do not provide a blanket guarantee of exact reproducibility. See the `distr` module documentation and the notes for individual distributions.
+
+Different calls may consume randomness differently, and external inputs must themselves be reproducible.
+Entropy-backed construction with `new()` or `csprng()` is intentionally non-deterministic.
 
 Features
 --------
@@ -74,9 +79,10 @@ Features
 
 * `serde`: Enables serialization and deserialization for random number generators and distributions.
 
-  Deserializing a generator state resumes the same random sequence from the point at which it was saved.
+  Serialized generator state remains deserializable across SemVer-compatible releases and resumes the same random sequence from the point at which it was saved.
 
-System entropy is currently provided by `getrandom`. Custom entropy sources rely on [`getrandom`'s custom-backend mechanism](https://docs.rs/getrandom/0.3/#custom-backend). This integration is not part of urandom's stable API and may change between otherwise compatible releases.
+System entropy is currently provided by `getrandom`. Custom entropy sources rely on [`getrandom`'s custom-backend mechanism](https://docs.rs/getrandom/0.3/#custom-backend).
+This integration is not part of urandom's stable API and may change between otherwise SemVer-compatible releases.
 
 License
 -------

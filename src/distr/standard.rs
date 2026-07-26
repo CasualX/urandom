@@ -83,10 +83,11 @@ impl_standard_dist! { i64, rand => rand.next_u64() as i64 }
 impl_standard_dist! { u64, rand => rand.next_u64() as u64 }
 impl_standard_dist! { i128, rand => { let low = rand.next_u64() as i128; let high = rand.next_u64() as i128; low | high << 64 } }
 impl_standard_dist! { u128, rand => { let low = rand.next_u64() as u128; let high = rand.next_u64() as u128; low | high << 64 } }
+// Consume the same random word on both pointer widths, truncating it on 32-bit.
 #[cfg(target_pointer_width = "32")]
-impl_standard_dist! { isize, rand => rand.next_u32() as isize }
+impl_standard_dist! { isize, rand => rand.next_u64() as isize }
 #[cfg(target_pointer_width = "32")]
-impl_standard_dist! { usize, rand => rand.next_u32() as usize }
+impl_standard_dist! { usize, rand => rand.next_u64() as usize }
 #[cfg(target_pointer_width = "64")]
 impl_standard_dist! { isize, rand => rand.next_u64() as isize }
 #[cfg(target_pointer_width = "64")]
@@ -223,6 +224,17 @@ fn test_arrays() {
 	let _: [i64; 78] = rand.sample(&StandardUniform);
 	let _: [isize; 8] = rand.sample(&StandardUniform);
 	let _: [usize; 9] = rand.sample(&StandardUniform);
+}
+
+#[test]
+fn test_pointer_sized_uses_u64() {
+	let mut actual = crate::seeded(42);
+	let mut expected = crate::seeded(42);
+	assert_eq!(actual.random::<usize>(), expected.random::<u64>() as usize);
+
+	let mut actual = crate::seeded(42);
+	let mut expected = crate::seeded(42);
+	assert_eq!(actual.random::<isize>(), expected.random::<u64>() as isize);
 }
 
 #[test]

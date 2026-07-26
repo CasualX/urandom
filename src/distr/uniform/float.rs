@@ -4,21 +4,14 @@ use super::*;
 ///
 /// # Implementation notes
 ///
-/// Floating point samplers include the `low` argument and exclude the `high` argument regardless of which constructor was chosen.
-/// Thus, when `high < low`, the numerically upper endpoint is included and the numerically lower endpoint is excluded.
-/// Equal bounds produce that bound for every sample. Floating-point rounding may occasionally produce either endpoint,
-/// and extreme bounds may produce non-finite results.
-///
-/// Accepting equal and reversed bounds is intentional. It allows callers to use
-/// a signed or dynamically computed span without first ordering its endpoints,
-/// and makes the sampled direction follow the direction from `low` to `high`.
-/// Consequently, floating-point samplers do not return [`UniformError::EmptyRange`].
+/// Floating-point samplers do not distinguish between exclusive and inclusive bounds:
+/// both constructors use the same scale-and-shift calculation with the bounds as given.
+/// Equal and reversed bounds are accepted. Floating-point rounding and extreme values may affect the result.
 ///
 /// Fast floating point values are requested directly from the `Rng` then scaled and shifted into the requested range.
 ///
-/// The fallible constructors reject non-finite inputs and non-finite values produced while calculating the sampler's scale and base.
-/// This validates construction only: sampling arithmetic may still overflow or produce a non-finite value for extreme bounds.
-/// The infallible constructors skip validation, allowing IEEE-754 infinities and NaNs to propagate into samples.
+/// The fallible constructors perform basic sanity checks and return [`UniformError::NonFinite`]
+/// when the calculated bounds are not finite. The infallible constructors skip these checks.
 #[derive(Copy, Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct UniformFloat<T> {
