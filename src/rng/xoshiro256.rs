@@ -8,11 +8,11 @@ use super::*;
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[repr(transparent)]
-pub struct Xoshiro256 {
+pub struct Xoshiro256Rng {
 	state: [u64; 4],
 }
 
-impl Xoshiro256 {
+impl Xoshiro256Rng {
 	/// Creates a new instance seeded from system entropy.
 	///
 	/// This method is the recommended way to construct PRNGs since it is convenient and secure.
@@ -24,13 +24,13 @@ impl Xoshiro256 {
 	/// # Examples
 	///
 	/// ```
-	/// let mut rand = urandom::rng::Xoshiro256::new();
+	/// let mut rand = urandom::rng::Xoshiro256Rng::new();
 	/// let value: i32 = rand.random();
 	/// ```
 	#[inline]
-	pub fn new() -> Random<Xoshiro256> {
+	pub fn new() -> Random<Xoshiro256Rng> {
 		let state = util::getrandom();
-		Random::wrap(Xoshiro256 { state })
+		Random::wrap(Xoshiro256Rng { state })
 	}
 
 	/// Creates a new instance seeded from another generator.
@@ -42,14 +42,14 @@ impl Xoshiro256 {
 	/// # Examples
 	///
 	/// ```
-	/// let mut master = urandom::rng::SplitMix64::new();
-	/// let mut rand = urandom::rng::Xoshiro256::from_rng(&mut master);
+	/// let mut master = urandom::rng::SplitMix64Rng::new();
+	/// let mut rand = urandom::rng::Xoshiro256Rng::from_rng(&mut master);
 	/// let value: i32 = rand.random();
 	/// ```
 	#[inline]
-	pub fn from_rng<R: Rng + ?Sized>(rand: &mut Random<R>) -> Random<Xoshiro256> {
+	pub fn from_rng<R: Rng + ?Sized>(rand: &mut Random<R>) -> Random<Xoshiro256Rng> {
 		let state = rand.random_bytes();
-		Random::wrap(Xoshiro256 { state })
+		Random::wrap(Xoshiro256Rng { state })
 	}
 
 	/// Creates a new instance using the given seed.
@@ -60,20 +60,20 @@ impl Xoshiro256 {
 	/// # Examples
 	///
 	/// ```
-	/// let mut rand = urandom::rng::Xoshiro256::from_seed(42);
+	/// let mut rand = urandom::rng::Xoshiro256Rng::from_seed(42);
 	/// let value: u32 = rand.random();
 	/// assert_eq!(value, 368317477);
 	/// ```
-	pub fn from_seed(seed: u64) -> Random<Xoshiro256> {
-		let mut master = SplitMix64::from_seed(seed);
+	pub fn from_seed(seed: u64) -> Random<Xoshiro256Rng> {
+		let mut master = SplitMix64Rng::from_seed(seed);
 		let state = [master.next_u64(), master.next_u64(), master.next_u64(), master.next_u64()];
-		Random::wrap(Xoshiro256 { state })
+		Random::wrap(Xoshiro256Rng { state })
 	}
 }
 
-impl Sealed for Xoshiro256 {}
+impl Sealed for Xoshiro256Rng {}
 
-impl Rng for Xoshiro256 {
+impl Rng for Xoshiro256Rng {
 	#[inline]
 	fn next_u32(&mut self) -> u32 {
 		(next_plus(&mut self.state) >> 32) as u32
@@ -104,18 +104,18 @@ impl Rng for Xoshiro256 {
 
 #[test]
 fn fill_bytes() {
-	crate::rng::tests::check_fill_bytes(&mut Xoshiro256::new());
+	crate::rng::tests::check_fill_bytes(&mut Xoshiro256Rng::new());
 }
 
 #[cfg(feature = "serde")]
 #[test]
 fn serde() {
-	tests::check_serde_initial_state(Xoshiro256::new());
-	tests::check_serde_middle_state(Xoshiro256::new());
+	tests::check_serde_initial_state(Xoshiro256Rng::new());
+	tests::check_serde_middle_state(Xoshiro256Rng::new());
 }
 
 //----------------------------------------------------------------
-// Xoshiro256 implementation details
+// Xoshiro256Rng implementation details
 
 #[inline]
 fn advance(s: &mut [u64; 4]) {

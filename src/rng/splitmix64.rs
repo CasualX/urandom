@@ -4,11 +4,11 @@ use super::*;
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[repr(transparent)]
-pub struct SplitMix64 {
+pub struct SplitMix64Rng {
 	state: u64,
 }
 
-impl SplitMix64 {
+impl SplitMix64Rng {
 	/// Creates a new instance seeded from system entropy.
 	///
 	/// This method is the recommended way to construct PRNGs since it is convenient and secure.
@@ -20,13 +20,13 @@ impl SplitMix64 {
 	/// # Examples
 	///
 	/// ```
-	/// let mut rand = urandom::rng::SplitMix64::new();
+	/// let mut rand = urandom::rng::SplitMix64Rng::new();
 	/// let value: i32 = rand.random();
 	/// ```
 	#[inline]
-	pub fn new() -> Random<SplitMix64> {
+	pub fn new() -> Random<SplitMix64Rng> {
 		let state = util::getrandom();
-		Random::wrap(SplitMix64 { state })
+		Random::wrap(SplitMix64Rng { state })
 	}
 
 	/// Creates a new instance seeded from another generator.
@@ -35,8 +35,8 @@ impl SplitMix64 {
 	///
 	/// The master PRNG should use a sufficiently different algorithm from the child PRNG (ideally a CSPRNG) to avoid correlations between the child PRNGs.
 	#[inline]
-	pub fn from_rng<R: Rng + ?Sized>(rand: &mut Random<R>) -> Random<SplitMix64> {
-		Random::wrap(SplitMix64 { state: rand.next_u64() })
+	pub fn from_rng<R: Rng + ?Sized>(rand: &mut Random<R>) -> Random<SplitMix64Rng> {
+		Random::wrap(SplitMix64Rng { state: rand.next_u64() })
 	}
 
 	/// Creates a new instance using the given seed.
@@ -47,19 +47,19 @@ impl SplitMix64 {
 	/// # Examples
 	///
 	/// ```
-	/// let mut rand = urandom::rng::SplitMix64::from_seed(42);
+	/// let mut rand = urandom::rng::SplitMix64Rng::from_seed(42);
 	/// let value: u32 = rand.random();
 	/// assert_eq!(value, 3184996902);
 	/// ```
 	#[inline]
-	pub fn from_seed(seed: u64) -> Random<SplitMix64> {
-		Random::wrap(SplitMix64 { state: seed })
+	pub fn from_seed(seed: u64) -> Random<SplitMix64Rng> {
+		Random::wrap(SplitMix64Rng { state: seed })
 	}
 }
 
-impl Sealed for SplitMix64 {}
+impl Sealed for SplitMix64Rng {}
 
-impl Rng for SplitMix64 {
+impl Rng for SplitMix64Rng {
 	#[inline]
 	fn next_u32(&mut self) -> u32 {
 		(next(&mut self.state) >> 32) as u32
@@ -83,12 +83,12 @@ impl Rng for SplitMix64 {
 #[cfg(feature = "serde")]
 #[test]
 fn serde() {
-	tests::check_serde_initial_state(SplitMix64::new());
-	tests::check_serde_middle_state(SplitMix64::new());
+	tests::check_serde_initial_state(SplitMix64Rng::new());
+	tests::check_serde_middle_state(SplitMix64Rng::new());
 }
 
 //----------------------------------------------------------------
-// SplitMix64 implementation details
+// SplitMix64Rng implementation details
 
 const GOLDEN_GAMMA: u64 = 0x9e3779b97f4a7c15;
 

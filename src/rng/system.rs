@@ -1,6 +1,6 @@
 use super::*;
 
-impl<const N: usize> SecureRng for System<N> {}
+impl<const N: usize> SecureRng for SystemRng<N> {}
 
 /// Randomness directly from the system entropy source.
 ///
@@ -13,26 +13,26 @@ impl<const N: usize> SecureRng for System<N> {}
 /// Block sizes below two are rejected:
 ///
 /// ```compile_fail
-/// let _ = urandom::rng::System::<1>::new();
+/// let _ = urandom::rng::SystemRng::<1>::new();
 /// ```
-pub struct System<const N: usize> {
+pub struct SystemRng<const N: usize> {
 	index: u32,
 	random: [u32; N],
 }
 
-impl<const N: usize> System<N> {
+impl<const N: usize> SystemRng<N> {
 	/// Creates a new instance.
 	///
 	/// # Examples
 	///
 	/// ```
-	/// let mut rand = urandom::rng::System::<31>::new();
+	/// let mut rand = urandom::rng::SystemRng::<31>::new();
 	/// let value: i32 = rand.random();
 	/// ```
 	#[inline]
 	pub const fn new() -> Random<Self> {
 		const {
-			assert!(N >= 2, "System block size N must be at least 2");
+			assert!(N >= 2, "SystemRng block size N must be at least 2");
 		}
 		Random::wrap(Self {
 			index: !0,
@@ -41,9 +41,9 @@ impl<const N: usize> System<N> {
 	}
 }
 
-impl<const N: usize> Sealed for System<N> {}
+impl<const N: usize> Sealed for SystemRng<N> {}
 
-impl<const N: usize> Rng for System<N> {
+impl<const N: usize> Rng for SystemRng<N> {
 	fn next_u32(&mut self) -> u32 {
 		let mut index = self.index as usize;
 		// Generate a new block if there are no more random words

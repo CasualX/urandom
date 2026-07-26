@@ -4,11 +4,11 @@ use super::*;
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[repr(transparent)]
-pub struct Wyrand {
+pub struct WyrandRng {
 	state: u64,
 }
 
-impl Wyrand {
+impl WyrandRng {
 	/// Creates a new instance seeded from system entropy.
 	///
 	/// This method is the recommended way to construct PRNGs since it is convenient and secure.
@@ -20,13 +20,13 @@ impl Wyrand {
 	/// # Examples
 	///
 	/// ```
-	/// let mut rand = urandom::rng::Wyrand::new();
+	/// let mut rand = urandom::rng::WyrandRng::new();
 	/// let value: i32 = rand.random();
 	/// ```
 	#[inline]
-	pub fn new() -> Random<Wyrand> {
+	pub fn new() -> Random<WyrandRng> {
 		let state = util::getrandom();
-		Random::wrap(Wyrand { state })
+		Random::wrap(WyrandRng { state })
 	}
 
 	/// Creates a new instance seeded from another generator.
@@ -35,8 +35,8 @@ impl Wyrand {
 	///
 	/// The master PRNG should use a sufficiently different algorithm from the child PRNG (ideally a CSPRNG) to avoid correlations between the child PRNGs.
 	#[inline]
-	pub fn from_rng<R: Rng + ?Sized>(rand: &mut Random<R>) -> Random<Wyrand> {
-		Random::wrap(Wyrand { state: rand.next_u64() })
+	pub fn from_rng<R: Rng + ?Sized>(rand: &mut Random<R>) -> Random<WyrandRng> {
+		Random::wrap(WyrandRng { state: rand.next_u64() })
 	}
 
 	/// Creates a new instance using the given seed.
@@ -47,19 +47,19 @@ impl Wyrand {
 	/// # Examples
 	///
 	/// ```
-	/// let mut rand = urandom::rng::Wyrand::from_seed(42);
+	/// let mut rand = urandom::rng::WyrandRng::from_seed(42);
 	/// let value: u32 = rand.random();
 	/// assert_eq!(value, 3396458620);
 	/// ```
 	#[inline]
-	pub fn from_seed(seed: u64) -> Random<Wyrand> {
-		Random::wrap(Wyrand { state: seed })
+	pub fn from_seed(seed: u64) -> Random<WyrandRng> {
+		Random::wrap(WyrandRng { state: seed })
 	}
 }
 
-impl Sealed for Wyrand {}
+impl Sealed for WyrandRng {}
 
-impl Rng for Wyrand {
+impl Rng for WyrandRng {
 	#[inline]
 	fn next_u32(&mut self) -> u32 {
 		(wyrand(&mut self.state) >> 32) as u32
@@ -83,12 +83,12 @@ impl Rng for Wyrand {
 #[cfg(feature = "serde")]
 #[test]
 fn serde() {
-	tests::check_serde_initial_state(Wyrand::new());
-	tests::check_serde_middle_state(Wyrand::new());
+	tests::check_serde_initial_state(WyrandRng::new());
+	tests::check_serde_middle_state(WyrandRng::new());
 }
 
 //----------------------------------------------------------------
-// Wyrand implementation details
+// WyrandRng implementation details
 
 #[inline(always)]
 fn rapid_mum(a: u64, b: u64) -> (u64, u64) {

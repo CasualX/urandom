@@ -65,7 +65,7 @@ fn test_yolo() {
 
 #[test]
 fn test_edges() {
-	let mut rand = crate::rng::Mock::slice(&[0, 0, !0, !0]);
+	let mut rand = crate::rng::MockRng::slice(&[0, 0, !0, !0]);
 	let low_float: f64 = rand.sample(&Float01);
 	let low_bits = low_float.to_bits();
 	let high_float: f64 = rand.sample(&Float01);

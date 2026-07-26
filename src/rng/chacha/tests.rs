@@ -67,7 +67,7 @@ fn chacha20_test_vectors() {
 
 #[test]
 fn test_randomness() {
-	let mut rand = ChaCha20::new();
+	let mut rand = ChaCha20Rng::new();
 	let mut words1 = [0; 16 * CN];
 	for i in 0..16 * CN {
 		words1[i] = rand.next_u32();
@@ -81,12 +81,12 @@ fn test_randomness() {
 
 #[test]
 fn test_fill_bytes() {
-	crate::rng::tests::check_fill_bytes(&mut ChaCha20::new());
+	crate::rng::tests::check_fill_bytes(&mut ChaCha20Rng::new());
 }
 
 #[cfg(feature = "serde")]
 #[test]
 fn serde() {
-	crate::rng::tests::check_serde_initial_state(ChaCha12::new());
-	crate::rng::tests::check_serde_middle_state(ChaCha12::new());
+	crate::rng::tests::check_serde_initial_state(ChaCha12Rng::new());
+	crate::rng::tests::check_serde_middle_state(ChaCha12Rng::new());
 }

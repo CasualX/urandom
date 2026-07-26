@@ -1,28 +1,29 @@
 use super::*;
 
 
-/// [`ChaCha`] with 8 rounds.
-pub type ChaCha8 = ChaCha<8>;
-impl SecureRng for ChaCha<8> {}
+/// [`ChaChaRng`] with 8 rounds.
+pub type ChaCha8Rng = ChaChaRng<8>;
+impl SecureRng for ChaChaRng<8> {}
 
-/// [`ChaCha`] with 12 rounds.
-pub type ChaCha12 = ChaCha<12>;
-impl SecureRng for ChaCha<12> {}
+/// [`ChaChaRng`] with 12 rounds.
+pub type ChaCha12Rng = ChaChaRng<12>;
+impl SecureRng for ChaChaRng<12> {}
 
-/// [`ChaCha`] with 20 rounds.
-pub type ChaCha20 = ChaCha<20>;
-impl SecureRng for ChaCha<20> {}
+/// [`ChaChaRng`] with 20 rounds.
+pub type ChaCha20Rng = ChaChaRng<20>;
+impl SecureRng for ChaChaRng<20> {}
 
 
 /// Daniel J. Bernstein's ChaCha adapted as a deterministic random number generator.
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct ChaCha<const N: usize> {
+#[repr(transparent)]
+pub struct ChaChaRng<const N: usize> {
 	#[cfg_attr(feature = "serde", serde(flatten))]
 	inner: BlockRngImpl<ChaChaState<N>>,
 }
 
-impl<const N: usize> ChaCha<N> where Self: SecureRng {
+impl<const N: usize> ChaChaRng<N> where Self: SecureRng {
 	/// Creates a new instance seeded from system entropy.
 	///
 	/// This method is the recommended way to construct PRNGs since it is convenient and secure.
@@ -34,24 +35,24 @@ impl<const N: usize> ChaCha<N> where Self: SecureRng {
 	/// # Examples
 	///
 	/// ```
-	/// let mut rand = urandom::rng::ChaCha12::new();
+	/// let mut rand = urandom::rng::ChaCha12Rng::new();
 	/// let value: i32 = rand.random();
 	/// ```
 	#[inline]
-	pub fn new() -> Random<ChaCha<N>> {
+	pub fn new() -> Random<ChaChaRng<N>> {
 		let state = util::getrandom();
 		let inner = BlockRngImpl::new(state);
-		Random::wrap(ChaCha { inner })
+		Random::wrap(ChaChaRng { inner })
 	}
 
 	/// Creates a new instance seeded from another generator.
 	///
 	/// This may be useful when needing to rapidly seed many instances from a master CSPRNG, and to allow forking of PRNGs.
 	#[inline]
-	pub fn from_rng<R: ?Sized + SecureRng>(rand: &mut Random<R>) -> Random<ChaCha<N>> {
+	pub fn from_rng<R: ?Sized + SecureRng>(rand: &mut Random<R>) -> Random<ChaChaRng<N>> {
 		let state = rand.random_bytes();
 		let inner = BlockRngImpl::new(state);
-		Random::wrap(ChaCha { inner })
+		Random::wrap(ChaChaRng { inner })
 	}
 
 	/// Creates a new instance using the given seed.
@@ -64,23 +65,23 @@ impl<const N: usize> ChaCha<N> where Self: SecureRng {
 	/// # Examples
 	///
 	/// ```
-	/// let mut rand = urandom::rng::ChaCha12::from_seed(42);
+	/// let mut rand = urandom::rng::ChaCha12Rng::from_seed(42);
 	/// let value: i32 = rand.random();
 	/// assert_eq!(value, 631540493);
 	/// ```
 	#[inline]
-	pub fn from_seed(seed: u64) -> Random<ChaCha<N>> {
+	pub fn from_seed(seed: u64) -> Random<ChaChaRng<N>> {
 		let low = (seed & 0xffffffff) as u32;
 		let high = (seed >> 32) as u32;
 		let state = ChaChaState::new([low, high, low, high, low, high, low, high], 1, 0);
 		let inner = BlockRngImpl::new(state);
-		Random::wrap(ChaCha { inner })
+		Random::wrap(ChaChaRng { inner })
 	}
 }
 
-impl<const N: usize> Sealed for ChaCha<N> {}
+impl<const N: usize> Sealed for ChaChaRng<N> {}
 
-impl<const N: usize> Rng for ChaCha<N> where Self: SecureRng {
+impl<const N: usize> Rng for ChaChaRng<N> where Self: SecureRng {
 	#[inline]
 	fn next_u32(&mut self) -> u32 {
 		self.inner.next_u32()

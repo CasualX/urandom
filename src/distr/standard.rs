@@ -227,7 +227,7 @@ fn test_arrays() {
 
 #[test]
 fn test_float_range() {
-	let mut rand = crate::rng::Mock::slice(&[0, u64::MAX]);
+	let mut rand = crate::rng::MockRng::slice(&[0, u64::MAX]);
 	assert_eq!(rand.random::<f32>(), 0.0);
 	assert!(rand.random::<f64>() < 1.0);
 
@@ -242,7 +242,7 @@ fn test_float_range() {
 
 #[test]
 fn test_wrapping() {
-	let mut rand = crate::rng::Mock::slice(&[42]);
+	let mut rand = crate::rng::MockRng::slice(&[42]);
 	assert_eq!(rand.random::<num::Wrapping<u32>>(), num::Wrapping(42));
 }
 
@@ -260,10 +260,10 @@ fn test_nzint() {
 
 #[test]
 fn test_small_nzint_reuses_random_word() {
-	let mut rand = crate::rng::Mock::slice(&[0x0100]);
+	let mut rand = crate::rng::MockRng::slice(&[0x0100]);
 	assert_eq!(rand.random::<num::NonZeroU8>().get(), 1);
 
-	let mut rand = crate::rng::Mock::slice(&[0x00010000]);
+	let mut rand = crate::rng::MockRng::slice(&[0x00010000]);
 	assert_eq!(rand.random::<num::NonZeroI16>().get(), 1);
 }
 

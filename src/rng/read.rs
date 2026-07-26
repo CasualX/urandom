@@ -7,48 +7,48 @@ use super::*;
 ///
 /// # Panics
 ///
-/// `Read` uses [`io::Read::read_exact`], which retries on interrupts.
+/// `ReadRng` uses [`io::Read::read_exact`], which retries on interrupts.
 /// All other errors from the underlying reader, including when it does not have enough data, will panic in case of an error.
 ///
 /// # Examples
 ///
 /// ```
 /// let data = [1, 2, 3, 4, 5, 6, 7, 8];
-/// let mut rand = urandom::rng::Read::new(&data[..]);
+/// let mut rand = urandom::rng::ReadRng::new(&data[..]);
 ///
 /// println!("{:x}", rand.random::<u32>());
 /// ```
 #[derive(Clone, Debug)]
 #[repr(transparent)]
-pub struct Read<R> {
+pub struct ReadRng<R> {
 	reader: R,
 }
 
-impl<R> Read<R> {
+impl<R> ReadRng<R> {
 	/// Creates a new instance.
 	#[inline]
-	pub fn new(reader: R) -> Random<Read<R>> {
-		Random::wrap(Read { reader })
+	pub fn new(reader: R) -> Random<ReadRng<R>> {
+		Random::wrap(ReadRng { reader })
 	}
 }
 
-impl<R> AsRef<R> for Read<R> {
+impl<R> AsRef<R> for ReadRng<R> {
 	#[inline]
 	fn as_ref(&self) -> &R {
 		&self.reader
 	}
 }
 
-impl<R> AsMut<R> for Read<R> {
+impl<R> AsMut<R> for ReadRng<R> {
 	#[inline]
 	fn as_mut(&mut self) -> &mut R {
 		&mut self.reader
 	}
 }
 
-impl<R> Sealed for Read<R> {}
+impl<R> Sealed for ReadRng<R> {}
 
-impl<R: io::Read> Rng for Read<R> {
+impl<R: io::Read> Rng for ReadRng<R> {
 	#[inline]
 	fn next_u32(&mut self) -> u32 {
 		let mut buf = [0u8; 4];
@@ -78,7 +78,7 @@ impl<R: io::Read> Rng for Read<R> {
 
 #[cold]
 fn read_failed(err: io::Error) -> ! {
-	panic!("random bytes from Read implementation failed: {:?}", err)
+	panic!("random bytes from ReadRng implementation failed: {:?}", err)
 }
 
 #[test]
@@ -88,7 +88,7 @@ fn test_next_u64() {
 		0, 0, 0, 0, 0, 0, 0, 1,
 		0, 4, 0, 0, 3, 0, 0, 2,
 		5, 0, 0, 0, 0, 0, 0, 0u8];
-	let mut rand = Read::new(&v[..]);
+	let mut rand = ReadRng::new(&v[..]);
 
 	assert_eq!(rand.next_u64(), 1 << 56);
 	assert_eq!(rand.next_u64(), (2 << 56) + (3 << 32) + (4 << 8));
@@ -98,7 +98,7 @@ fn test_next_u64() {
 #[test]
 fn test_next_u32() {
 	let v = [0u8, 0, 0, 1, 0, 0, 2, 0, 3, 0, 0, 0];
-	let mut rand = Read::new(&v[..]);
+	let mut rand = ReadRng::new(&v[..]);
 
 	assert_eq!(rand.next_u32(), 1 << 24);
 	assert_eq!(rand.next_u32(), 2 << 16);
@@ -110,18 +110,18 @@ fn test_fill_bytes() {
 	let v = [1u8, 2, 3, 4, 5, 6, 7, 8];
 	let mut w = [0u8; 8];
 
-	let mut rand = Read::new(&v[..]);
+	let mut rand = ReadRng::new(&v[..]);
 	rand.fill_bytes(&mut w);
 
 	assert!(v == w);
 }
 
 #[test]
-#[should_panic(expected = "random bytes from Read implementation failed")]
+#[should_panic(expected = "random bytes from ReadRng implementation failed")]
 fn test_insufficient_bytes() {
 	let v = [1u8, 2, 3, 4, 5, 6, 7, 8];
 	let mut w = [0u8; 9];
 
-	let mut rand = Read::new(&v[..]);
+	let mut rand = ReadRng::new(&v[..]);
 	rand.fill_bytes(&mut w);
 }

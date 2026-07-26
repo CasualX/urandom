@@ -6,31 +6,27 @@ Pseudorandom number generators
 
 These are fast pseudorandom number generators suitable for ordinary, non-cryptographic applications.
 
-* [`Xoshiro256`]:
+* [`Xoshiro256Rng`]:
 
   See the [PRNG shootout](http://prng.di.unimi.it/) for background and analysis.
 
-* [`SplitMix64`]:
+* [`SplitMix64Rng`]:
 
   Fast RNG, with 64 bits of state, that can be used to initialize the state of other generators.
-
-* [`Wyrand`]:
-
-  Tiny and very fast pseudorandom number generator based on [rapidhash](https://github.com/Nicoshev/rapidhash).
 
 Cryptographically secure generators
 -----------------------------------
 
 These generators are suitable for cryptographic applications.
 
-* [`ChaCha8`], [`ChaCha12`], [`ChaCha20`]:
+* [`ChaCha8Rng`], [`ChaCha12Rng`], [`ChaCha20Rng`]:
 
   Daniel J. Bernstein's ChaCha adapted as a deterministic random number generator.
 
-  The [`csprng`](crate::csprng) constructor uses [`ChaCha12`]. This choice is stable across compatible versions of this crate.
+  The [`csprng`](crate::csprng) constructor uses [`ChaCha12Rng`]. This choice is stable across compatible versions of this crate.
   See this [`rand` discussion](https://github.com/rust-random/rand/issues/932) for background on the choice of round count.
 
-* [`System`]:
+* [`SystemRng`]:
 
   Reads randomness directly from the system entropy source.
 
@@ -40,11 +36,11 @@ These generators are suitable for cryptographic applications.
 Other generators
 ----------------
 
-* [`Mock`]:
+* [`MockRng`]:
 
   A deterministic test generator backed by an iterator. It panics when the iterator runs out of items.
 
-* [`Read`]:
+* [`ReadRng`]:
 
   Reads bytes from any source implementing [`std::io::Read`], such as a file or device.
 
@@ -118,29 +114,29 @@ pub trait SecureRng: Rng {}
 // Random number generators
 
 mod splitmix64;
-pub use self::splitmix64::SplitMix64;
+pub use self::splitmix64::SplitMix64Rng;
 
 mod xoshiro256;
-pub use self::xoshiro256::Xoshiro256;
+pub use self::xoshiro256::Xoshiro256Rng;
 
-mod wyrand;
-pub use self::wyrand::Wyrand;
+// mod wyrand;
+// pub use self::wyrand::WyrandRng;
 
 mod mock;
-pub use self::mock::Mock;
+pub use self::mock::MockRng;
 
 cfg_if::cfg_if! {
 	if #[cfg(feature = "std")] {
 		mod read;
-		pub use self::read::Read;
+		pub use self::read::ReadRng;
 	}
 }
 
 mod chacha;
-pub use self::chacha::{ChaCha, ChaCha8, ChaCha12, ChaCha20};
+pub use self::chacha::{ChaChaRng, ChaCha8Rng, ChaCha12Rng, ChaCha20Rng};
 
 mod system;
-pub use self::system::System;
+pub use self::system::SystemRng;
 
 mod entropy;
 pub use self::entropy::{getentropy, getentropy_uninit};
