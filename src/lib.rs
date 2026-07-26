@@ -85,7 +85,7 @@ pub fn new() -> Random<impl Rng + Clone> {
 #[must_use]
 #[inline]
 pub fn seeded(seed: u64) -> Random<impl Rng + Clone> {
-	rng::Xoshiro256Rng::from_seed(seed)
+	rng::Xoshiro256Rng::from_seed_u64(seed)
 }
 
 /// Creates a reproducible non-cryptographic pseudorandom number generator seeded from a hashable value.

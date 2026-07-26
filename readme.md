@@ -50,6 +50,8 @@ Reproducibility
 
 Generators created with `new()` and `csprng()` are independently seeded and expected to produce a different sequence each time. If system entropy is unavailable, construction panics.
 
+To use a different entropy source, construct a concrete generator with its native seed using `from_seed(...)`.
+
 For reproducible output, use `seeded(...)`
 
 ```rust
