@@ -10,7 +10,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  gate:
+  ubuntu:
+    name: Rust ${{ matrix.rust }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -36,3 +37,55 @@ jobs:
 
       - name: Run tests
         run: cargo test --all-features
+
+  arm64:
+    name: ARM64
+    runs-on: ubuntu-24.04-arm
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v7
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+
+      - name: Run tests
+        run: cargo test --all-features
+
+      - name: Run tests (no default features)
+        run: cargo test --no-default-features
+
+  windows:
+    name: Windows x86
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v7
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: x86_64-pc-windows-msvc, i686-pc-windows-msvc
+
+      - name: Run x86-64 tests
+        run: cargo test --target x86_64-pc-windows-msvc --all-features
+
+      - name: Run x86-64 tests (native CPU)
+        env:
+          RUSTFLAGS: -C target-cpu=native
+        run: cargo test --target x86_64-pc-windows-msvc --all-features
+
+      - name: Run 32-bit tests
+        run: cargo test --target i686-pc-windows-msvc --all-features
+
+      - name: Run 32-bit tests (native CPU)
+        env:
+          RUSTFLAGS: -C target-cpu=native
+        run: cargo test --target i686-pc-windows-msvc --all-features
+
+      - name: Run 32-bit tests (no default features)
+        run: cargo test --target i686-pc-windows-msvc --no-default-features
