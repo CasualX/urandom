@@ -84,31 +84,31 @@ pub fn seeded(seed: u64) -> Random<rng::Xoshiro256Rng> {
 	rng::Xoshiro256Rng::from_seed_u64(seed)
 }
 
-/// Creates a reproducible non-cryptographic pseudorandom number generator seeded from a hashable value.
+/// Hashes a value with Rust's [`DefaultHasher`](std::collections::hash_map::DefaultHasher).
 ///
-/// The value is hashed with Rust's [`DefaultHasher`](std::collections::hash_map::DefaultHasher)
-/// and the resulting hash is used to seed the generator.
+/// This is a convenience function for obtaining a `u64` hash, for example to use as a seed.
 ///
-/// The generated sequence is deterministic for a given Rust version and target. However, the
-/// data fed by [`Hash`](core::hash::Hash) is not guaranteed to be portable across targets or
-/// stable between Rust versions, and the algorithm used by `DefaultHasher` may also change.
+/// The hash is deterministic for a given Rust version and target. However, the data fed by
+/// [`Hash`](core::hash::Hash) is not guaranteed to be portable across targets or stable between
+/// Rust versions, and the algorithm used by `DefaultHasher` may also change.
 ///
 /// This function is not suitable for cryptographic use.
 ///
 /// # Examples
 ///
 /// ```
-/// let mut rand = urandom::seeded_hash("example");
+/// let seed = urandom::hash("example");
+/// let mut rand = urandom::seeded(seed);
 /// let value: i32 = rand.random();
 /// ```
 #[cfg(feature = "std")]
 #[must_use]
 #[inline]
-pub fn seeded_hash<T: ?Sized + core::hash::Hash>(value: &T) -> Random<rng::Xoshiro256Rng> {
+pub fn hash<T: ?Sized + core::hash::Hash>(value: &T) -> u64 {
 	use core::hash::Hasher;
 	let mut hasher = std::collections::hash_map::DefaultHasher::new();
 	value.hash(&mut hasher);
-	seeded(hasher.finish())
+	hasher.finish()
 }
 
 /// Creates a new cryptographically secure pseudorandom number generator (CSPRNG).
