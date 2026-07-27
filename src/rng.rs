@@ -1,15 +1,23 @@
 /*!
 Random number generators.
 
-Reproducibility
----------------
+Reproducibility guarantee
+-------------------------
 
-The output of every deterministic pseudorandom generator provided by this crate is part of its stable API across SemVer-compatible releases.
-The same initial state and sequence of calls produces the same output on supported targets.
-Algorithms, seed expansion, and method behavior are not changed merely for performance.
+The random stream of each deterministic generator in this module is part of its stable API.
+Across SemVer-compatible releases, a concrete generator initialized from the same explicit seed or state
+produces identical output on supported targets when given the same sequence of [`Rng`] calls and arguments.
+The generator algorithm, seed expansion, and behavior of those calls will not be changed, including for performance improvements.
 
-The call sequence is significant. Different [`Rng`] methods may advance the state differently and are not interchangeable views of a single byte stream.
-Entropy-backed generators and constructors are not reproducible because their initial state intentionally varies.
+The exact call sequence is part of the input to this guarantee. For example, one [`Rng::next_u64`] call
+is not interchangeable with two [`Rng::next_u32`] calls, even if both request 64 bits in total.
+
+With the `serde` feature, the guarantee also covers serialized generator state. State written by one release
+remains readable by SemVer-compatible releases, and restoring it continues the same stream at the saved position.
+
+This guarantee applies to concrete generator types constructed through this module. Root-level convenience
+constructors such as [`crate::seeded`] may select or initialize them differently in a later minor release.
+Entropy-backed construction is not reproducible because its initial state intentionally varies.
 
 Pseudorandom number generators
 -------------------------------
@@ -72,9 +80,8 @@ use sealed::Sealed;
 ///
 /// This trait is sealed and cannot be implemented outside this crate.
 ///
-/// Implementations that promise reproducibility must return the same output
-/// from the same initial state for an identical sequence of calls and arguments.
-/// Different methods do not need to consume equivalent parts of one random stream.
+/// Deterministic implementations provided by this module follow the module-level
+/// [reproducibility guarantee](crate::rng#reproducibility-guarantee).
 pub trait Rng: Sealed {
 	/// Returns the next `u32` in the sequence.
 	fn next_u32(&mut self) -> u32;

@@ -56,7 +56,7 @@ impl SplitMix64Rng {
 
 	/// Creates a reproducible instance from a 64-bit seed.
 	///
-	/// The resulting stream is covered by the crate's [reproducibility guarantee](crate::rng#reproducibility).
+	/// The resulting stream is covered by the [reproducibility guarantee](crate::rng#reproducibility-guarantee).
 	///
 	/// # Examples
 	///

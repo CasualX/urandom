@@ -28,14 +28,17 @@ rand.shuffle(&mut numbers);
 println!("Rolled {roll}, chose {color}");
 ```
 
-# Reproducibility
+# Reproducibility policy
 
-Urandom treats the output of its deterministic random number generators as part of its stable API.
-Unless an API documents otherwise, repeating the same sequence of RNG operations on a concrete generator initialized with the same seed
-produces the same results across SemVer-compatible crate releases and supported targets.
+Urandom has two levels of reproducibility:
 
-See the [`rng`] module documentation for the generator guarantee and the [`distr`] module documentation
-for the best-effort reproducibility policy of distributions and sampling algorithms.
+* Deterministic generator types in [`rng`] have a strong guarantee across SemVer-compatible releases.
+  Their algorithms, explicit seeding, and serialized state are stable.
+* Distributions, sampling algorithms, and the convenience constructors in this module are stable between
+  patch releases of the same minor version, on a best-effort basis.
+
+Use a concrete generator from [`rng`] when its exact random stream must remain stable across minor releases.
+See the [`rng`] and [`distr`] module documentation for the scope and limitations of each policy.
 */
 
 // Unsafe code is restricted throughout the crate except within the `rng` module
@@ -59,6 +62,9 @@ pub use self::distr::Distribution;
 /// The generator is seeded from the system entropy source.
 /// Construct it once and reuse it to generate many values.
 ///
+/// The choice of generator made by this convenience constructor may change in a minor release.
+/// Construct a concrete type from [`rng`] directly when that choice must remain stable.
+///
 /// Use [`csprng`] when outputs must be unpredictable.
 ///
 /// # Examples
@@ -77,10 +83,10 @@ pub fn new() -> Random<rng::Xoshiro256Rng> {
 ///
 /// The seed does not need to look random. The generator's initialization handles degenerate seed values.
 ///
-/// Unless otherwise documented, the same seed and sequence of RNG operations produces the same results
-/// across SemVer-compatible releases of this crate and supported targets.
-/// The underlying generator follows the [`rng`] module's reproducibility guarantee, while distributions and sampling algorithms
-/// follow the [`distr`] module's best-effort reproducibility policy.
+/// Given the same seed, this convenience constructor preserves its generator choice, initialization, and raw
+/// [`Rng`] output between patch releases of the same minor version. Those details may change in a minor release,
+/// and values produced through distributions remain subject to the [`distr`] module's platform limitations.
+/// For the stronger guarantee, construct a concrete generator from [`rng`] with its `from_seed` or `from_seed_u64` method.
 ///
 /// # Examples
 ///
@@ -127,7 +133,9 @@ pub fn hash<T: ?Sized + core::hash::Hash>(value: &T) -> u64 {
 /// The generator is seeded from the system entropy source.
 /// Construct it once and reuse it to generate many values.
 ///
-/// This constructor uses [`rng::ChaCha12Rng`]. This choice is stable across SemVer-compatible releases.
+/// This constructor currently uses [`rng::ChaCha12Rng`].
+/// The choice is stable between patch releases of the same minor version, but may change in a minor release.
+/// Construct [`rng::ChaCha12Rng`] directly when that choice must remain stable across minor releases.
 /// See this [`rand` discussion](https://github.com/rust-random/rand/issues/932) for background on the choice of round count.
 ///
 /// # Examples

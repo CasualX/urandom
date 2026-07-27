@@ -45,8 +45,8 @@ rand.shuffle(&mut numbers);
 println!("Rolled {roll}, chose {color}");
 ```
 
-Reproducibility
----------------
+Reproducibility policy
+----------------------
 
 Generators created with `new()` and `csprng()` are independently seeded and expected to produce a different sequence each time. If system entropy is unavailable, construction panics.
 
@@ -61,14 +61,26 @@ let mut b = urandom::seeded(42);
 assert_eq!(a.random::<u64>(), b.random::<u64>());
 ```
 
-Unless an API documents otherwise, repeating the same sequence of RNG operations on a deterministic generator initialized with the same seed
-produces the same results across SemVer-compatible urandom releases and supported targets.
+Urandom provides two levels of reproducibility:
 
-Distributions and sampling algorithms provided by this crate make a best effort to preserve generated sequences across SemVer-compatible releases,
-but do not provide a blanket guarantee of exact reproducibility. See the `distr` module documentation and the notes for individual distributions.
+* Concrete deterministic generators in the `rng` module have a strong guarantee across SemVer-compatible releases.
+  Given the same explicit seed or state and the same sequence of `Rng` calls and arguments, they produce the same
+  output on supported targets. Their algorithms, seed expansion, and method behavior are not changed, including
+  for performance improvements. With the `serde` feature, saved generator state remains readable and resumes the
+  same stream at the saved position.
 
-Different calls may consume randomness differently, and external inputs must themselves be reproducible.
-Entropy-backed construction with `new()` or `csprng()` is intentionally non-deterministic.
+  The calls must match exactly: one `next_u64()` is not equivalent to two `next_u32()` calls or `next_f64()` call.
+  Construction from system entropy is intentionally non-deterministic.
+
+* Distributions, sampling algorithms, and root-level convenience constructors such as `seeded()` preserve their
+  observable behavior between patch releases of the same minor version, on a best-effort basis. They may change
+  in a new minor release. Integer-only sampling is generally predictable across supported targets, while
+  floating-point results can depend on the platform, especially for math-heavy distributions. Uniform floating-point
+  sampling is predictable on targets with Rust's strict IEEE 754 floating-point semantics.
+
+For reproducible recordings, simulations, or game replays, pin urandom to one minor release (for example, `~1.0`)
+and keep external inputs and platform behavior consistent. When the generator stream itself must remain stable
+across minor releases, construct a concrete type from the `rng` module directly.
 
 Features
 --------
@@ -79,7 +91,7 @@ Features
 
 * `serde`: Enables serialization and deserialization for random number generators and distributions.
 
-  Serialized generator state remains deserializable across SemVer-compatible releases and resumes the same random sequence from the point at which it was saved.
+  Serialized generator state is covered by the strong generator guarantee described above.
 
 System entropy is currently provided by `getrandom`. Custom entropy sources rely on [`getrandom`'s custom-backend mechanism](https://docs.rs/getrandom/0.3/#custom-backend).
 This integration is not part of urandom's stable API and may change between otherwise SemVer-compatible releases.

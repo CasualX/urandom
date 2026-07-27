@@ -30,12 +30,20 @@ When the range limits are not known at compile time it is typically faster to re
 User-defined types can support [`Uniform`] sampling by implementing [`SampleUniform`] and providing a corresponding [`UniformSampler`].
 This enables values of the type to be generated with [`Random::uniform`]. See the [`Uniform`] documentation for a complete example.
 
-# Reproducibility
+# Reproducibility policy
 
-Sampling implementations provided by this crate aim to preserve generated sequences across SemVer-compatible releases
-and are not changed unnecessarily. This is a best-effort policy, not a blanket guarantee of exact reproducibility:
-results may differ due to target or toolchain behavior, floating-point arithmetic, bug fixes, or other implementation constraints.
-Individual distributions may document more specific compatibility behavior.
+Distribution implementations provided by this crate preserve their observable behavior between patch releases of the
+same minor version. Algorithms are not changed in ways that alter their output, including solely for performance.
+They may change in a new minor release.
+
+This is a best-effort policy because results can also depend on the execution platform. Sampling based only on
+integer operations is generally predictable across supported targets. Floating-point results are more sensitive
+to platform behavior, particularly for math-heavy distributions. Uniform floating-point sampling is predictable
+on targets with Rust's strict IEEE 754 floating-point semantics.
+
+For reproducible recordings, simulations, or game replays, pin urandom to one minor release (for example, `~1.0`)
+and keep relevant external inputs and platform behavior consistent. Individual distributions may document a
+stronger guarantee or additional limitations.
 
 [probability distribution]: https://en.wikipedia.org/wiki/Probability_distribution
 */
@@ -82,7 +90,7 @@ cfg_if::cfg_if! {
 /// This makes a configured distribution convenient to reuse without requiring mutable access to it,
 /// and for most distributions efficient stateless sampling algorithms are available.
 ///
-/// Implementations provided by this crate follow the module-level [reproducibility](crate::distr#reproducibility) policy.
+/// Implementations provided by this crate follow the module-level [reproducibility policy](crate::distr#reproducibility-policy).
 /// This policy does not apply to downstream implementations of this trait.
 pub trait Distribution<T> {
 	/// Generate a random value of `T`, using rand as the source of randomness.

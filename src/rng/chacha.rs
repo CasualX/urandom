@@ -75,7 +75,7 @@ impl<const N: usize> ChaChaRng<N> where Self: SecureRng {
 	///
 	/// This **is not suitable for cryptography**, as should be clear given that the input size is only 64 bits.
 	///
-	/// The seed expansion and resulting stream are covered by the crate's [reproducibility guarantee](crate::rng#reproducibility).
+	/// The seed expansion and resulting stream are covered by the [reproducibility guarantee](crate::rng#reproducibility-guarantee).
 	///
 	/// # Examples
 	///
