@@ -238,6 +238,33 @@ impl<R: Rng + ?Sized> Random<R> {
 		self.random()
 	}
 
+	/// Returns `true` with probability `numerator / denominator`.
+	///
+	/// For example, `chance_ratio(2, 3)` has a two-in-three chance of returning `true`.
+	/// If `numerator` is zero, this always returns `false`; if both arguments are equal, this always returns `true`.
+	///
+	/// # Panics
+	///
+	/// Panics if `numerator` is negative, `denominator` is not positive, or `numerator > denominator`.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// let mut rand = urandom::new();
+	/// assert!(!rand.chance_ratio(0, 3));
+	/// assert!(rand.chance_ratio(3, 3));
+	/// ```
+	#[track_caller]
+	#[inline]
+	pub fn chance_ratio<T>(&mut self, numerator: T, denominator: T) -> bool where
+		T: Default + PartialOrd + distr::SampleUniform,
+		distr::UniformInt<T>: distr::UniformSampler<T>,
+	{
+		let zero = T::default();
+		assert!(zero < denominator && zero <= numerator && numerator <= denominator);
+		self.uniform(zero..denominator) < numerator
+	}
+
 	/// Returns a random sample from the collection.
 	///
 	/// Returns `None` if and only if the collection is empty.
