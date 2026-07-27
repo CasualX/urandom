@@ -89,7 +89,7 @@ macro_rules! impl_uniform_int {
 						break self.base.wrapping_add(msw as $ty);
 					}
 					if zone == range {
-						zone = <$large>::wrapping_sub(0, range) % range;
+						zone = <$large>::wrapping_neg(range) % range;
 						if lsw >= zone {
 							break self.base.wrapping_add(msw as $ty);
 						}

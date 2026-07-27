@@ -65,6 +65,15 @@ test uniform_sample_rand    ... bench:       1,097.90 ns/iter (+/- 35.66)
 test uniform_sample_urandom ... bench:         950.26 ns/iter (+/- 41.07)
 ```
 
-Both crates use the same multiply-and-reject algorithm. Urandom computes the
-rejection threshold lazily, usually avoiding the expensive modulo, while rand
-computes it when constructing the sampler. This explains urandom's advantage.
+The two rand rows take different paths. A constructed `Uniform` uses unbiased
+Lemire sampling; its `UniformInt` computes and stores the rejection threshold
+during construction. `random_range` instead dispatches through
+`UniformSampler::sample_single`. With rand's default features, that method uses
+Canon's method, which rand documents as slightly biased; enabling rand's
+optional `unbiased` feature selects a looping variant instead.
+
+Urandom has no separate single-sample hook. Its `UniformInt` implements one
+unbiased multiply-and-reject path for both uses and computes the exact threshold
+lazily, usually returning before the expensive modulo is needed. This explains
+its advantage in these default-feature benchmarks while avoiding the bias of
+rand's one-off path.
