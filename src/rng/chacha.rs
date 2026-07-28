@@ -17,7 +17,7 @@ impl SecureRng for ChaChaRng<20> {}
 
 
 /// Daniel J. Bernstein's ChaCha adapted as a deterministic random number generator.
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[repr(transparent)]
 pub struct ChaChaRng<const N: usize> {
@@ -94,6 +94,13 @@ impl<const N: usize> ChaChaRng<N> where Self: SecureRng {
 
 impl<const N: usize> Sealed for ChaChaRng<N> {}
 
+impl<const N: usize> core::fmt::Debug for ChaChaRng<N> {
+	fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+		// The state contains the seed and buffered keystream.
+		f.debug_struct("ChaChaRng").finish_non_exhaustive()
+	}
+}
+
 impl<const N: usize> Rng for ChaChaRng<N> where Self: SecureRng {
 	#[inline]
 	fn next_u32(&mut self) -> u32 {
@@ -122,17 +129,24 @@ impl<const N: usize> Rng for ChaChaRng<N> where Self: SecureRng {
 
 use core::fmt;
 
+#[allow(dead_code)]
+mod slp;
+
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "avx2"))]
+mod avx2;
+
+#[allow(dead_code)]
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "sse2"))]
+mod sse2;
+
 cfg_if::cfg_if! {
 	if #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "avx2"))] {
-		mod avx2;
 		use self::avx2::block as chacha_block;
 	}
 	else if #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "sse2"))] {
-		mod sse2;
 		use self::sse2::block as chacha_block;
 	}
 	else {
-		mod slp;
 		use self::slp::block as chacha_block;
 	}
 }

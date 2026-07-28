@@ -53,6 +53,8 @@ impl<R: io::Read> Rng for ReadRng<R> {
 	}
 	#[inline]
 	fn fill_bytes(&mut self, buf: &mut [MaybeUninit<u8>]) {
+		buf.fill(MaybeUninit::new(0));
+		// SAFETY: Every element was initialized above.
 		let buf: &mut [u8] = unsafe { mem::transmute(buf) };
 		if let Err(err) = self.reader.read_exact(buf) {
 			read_failed(err);
@@ -103,6 +105,17 @@ fn test_fill_bytes() {
 	rand.fill_bytes(&mut w);
 
 	assert!(v == w);
+}
+
+#[test]
+fn test_fill_bytes_uninit() {
+	let v = [1u8, 2, 3, 4, 5, 6, 7, 8];
+	let mut w = [MaybeUninit::<u8>::uninit(); 8];
+
+	let mut rand = ReadRng::new(&v[..]);
+	let w = rand.fill_bytes_uninit(&mut w);
+
+	assert_eq!(v, w);
 }
 
 #[test]

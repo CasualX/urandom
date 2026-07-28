@@ -95,5 +95,5 @@ pub fn block<const N: usize>(state: &mut super::ChaChaState<N>, ws: &mut [[u32; 
 		finalize!(&mut ws[3], a4, b4, c4, d4, &words4);
 	}
 
-	state.set_counter(state.get_counter() + 4);
+	state.set_counter(state.get_counter().wrapping_add(4));
 }

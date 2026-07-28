@@ -1,5 +1,112 @@
 use super::*;
 
+// 256-bit-key vectors from draft-strombergson-chacha-test-vectors-01, TC1.
+// https://datatracker.ietf.org/doc/html/draft-strombergson-chacha-test-vectors-01
+#[test]
+fn reduced_round_test_vectors() {
+	#[track_caller]
+	fn check<const N: usize>(expected: [u32; 16]) {
+		let mut state = ChaChaState::<N>::new([0; 8], 0, 0);
+		let mut result = Default::default();
+		chacha_block(&mut state, &mut result);
+		assert_eq!(expected, result[0]);
+	}
+
+	check::<8>([
+		0x2fef003e, 0xd6405f89, 0xe8b85b7f, 0xa1a5091f,
+		0xc30e842c, 0x3b7f9ace, 0x88e11b18, 0x1e1a71ef,
+		0x72e14c98, 0x416f21b9, 0x6753449f, 0x19566d45,
+		0xa3424a31, 0x01b086da, 0xb8fd7b38, 0x42fe0c0e,
+	]);
+	check::<12>([
+		0x6a9af49b, 0x53f95507, 0x12ce1f81, 0xd583265f,
+		0xbbc32904, 0x1474e049, 0xa589007e, 0x5f15ae2e,
+		0x79f86405, 0xc0e37ad2, 0x3428e82c, 0x798cfaac,
+		0x2c9f623a, 0x1969dea0, 0x2fe80b61, 0xbe261341,
+	]);
+	check::<20>([
+		0xade0b876, 0x903df1a0, 0xe56a5d40, 0x28bd8653,
+		0xb819d2bd, 0x1aed8da0, 0xccef36a8, 0xc70d778b,
+		0x7c5941da, 0x8d485751, 0x3fe02477, 0x374ad8b8,
+		0xf4b8436a, 0x1ca11815, 0x69b687c3, 0x8665eeb2,
+	]);
+}
+
+#[track_caller]
+fn compare_with_slp<const N: usize>(backend: fn(&mut ChaChaState<N>, &mut [[u32; 16]; CN])) {
+	let states = [
+		ChaChaState::new([0; 8], 0, 0),
+		ChaChaState::new([u32::MAX; 8], 1, u64::MAX),
+		ChaChaState::new(
+			[0x03020100, 0x07060504, 0x0b0a0908, 0x0f0e0d0c, 0x13121110, 0x17161514, 0x1b1a1918, 0x1f1e1d1c],
+			0x0123456789abcdef,
+			0xfedcba9876543210,
+		),
+		ChaChaState::new([0x55555555, 0xaaaaaaaa, 0xdeadbeef, 0x01234567, 0x89abcdef, 1, 2, 3], u64::MAX - 4, 42),
+	];
+
+	for state in states {
+		let mut expected_state = state.clone();
+		let mut expected = Default::default();
+		slp::block(&mut expected_state, &mut expected);
+
+		let mut actual_state = state;
+		let mut actual = Default::default();
+		backend(&mut actual_state, &mut actual);
+
+		assert_eq!(actual, expected);
+		assert_eq!(actual_state.get_counter(), expected_state.get_counter());
+		assert_eq!(actual_state.get_stream(), expected_state.get_stream());
+	}
+}
+
+#[test]
+fn selected_backend_matches_slp() {
+	compare_with_slp::<8>(chacha_block);
+	compare_with_slp::<12>(chacha_block);
+	compare_with_slp::<20>(chacha_block);
+}
+
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "sse2"))]
+#[test]
+fn sse2_matches_slp() {
+	compare_with_slp::<8>(sse2::block);
+	compare_with_slp::<12>(sse2::block);
+	compare_with_slp::<20>(sse2::block);
+}
+
+#[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "avx2"))]
+#[test]
+fn avx2_matches_slp() {
+	compare_with_slp::<8>(avx2::block);
+	compare_with_slp::<12>(avx2::block);
+	compare_with_slp::<20>(avx2::block);
+}
+
+#[test]
+fn counter_wraps() {
+	let mut state = ChaChaState::<20>::new([0; 8], u64::MAX - 3, 0);
+	let mut result = Default::default();
+	chacha_block(&mut state, &mut result);
+	assert_eq!(state.get_counter(), 0);
+}
+
+#[test]
+fn stream_selector_wraps() {
+	let mut state = ChaChaState::<20>::new([0; 8], 0, u64::MAX);
+	BlockRng::jump(&mut state);
+	assert_eq!(state.get_stream(), 0);
+}
+
+#[test]
+fn debug_redacts_secret_state() {
+	let state = ChaChaState::<20>::new([0xdeadbeef; 8], 1, 0);
+	let rng = ChaChaRng { inner: BlockRngImpl::new(state) };
+	let debug = format!("{rng:?}");
+	assert_eq!(debug, "ChaChaRng { .. }");
+	assert!(!debug.contains("deadbeef"));
+}
+
 #[test]
 fn chacha20_test_vectors() {
 	#[track_caller]
