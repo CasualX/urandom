@@ -30,6 +30,8 @@ fn wmul64(a: u64, b: u64) -> (u64, u64) {
 ///
 /// As a special case, we use `range = 0` to represent the full range of the result type (i.e. for the full inclusive range).
 ///
+/// For ranges smaller than `2^32`, `usize` and `isize` produce identical results on 32- and 64-bit targets.
+///
 /// [^1]: Daniel Lemire (2018). [*Fast Random Integer Generation in an Interval*](https://arxiv.org/abs/1805.10941). Université du Québec (TELUQ), Canada
 #[derive(Copy, Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

@@ -61,26 +61,27 @@ let mut b = urandom::seeded(42);
 assert_eq!(a.random::<u64>(), b.random::<u64>());
 ```
 
-Urandom provides two levels of reproducibility:
+This crate provides two levels of reproducibility:
 
-* Concrete deterministic generators in the `rng` module have a strong guarantee across SemVer-compatible releases.
-  Given the same explicit seed or state and the same sequence of `Rng` calls and arguments, they produce the same
-  output on supported targets. Their algorithms, seed expansion, and method behavior are not changed, including
-  for performance improvements. With the `serde` feature, saved generator state remains readable and resumes the
-  same stream at the saved position.
+* Concrete deterministic generators in the `rng` module and the root-level `new()`, `seeded()`, and `csprng()`
+  constructors have a strong guarantee across SemVer-compatible releases. The root-level constructors preserve
+  their generator choice and initialization behavior. Given the same explicit seed or state and the same sequence
+  of `Rng` calls and arguments, deterministic generators produce the same output on supported targets. Their
+  algorithms, seed expansion, and method behavior are not changed, including for performance improvements.
+  With the `serde` feature, saved generator state remains readable and resumes the same stream at the saved position.
 
   The calls must match exactly: one `next_u64()` is not equivalent to two `next_u32()` calls or `next_f64()` call.
   Construction from system entropy is intentionally non-deterministic.
 
-* Distributions, sampling algorithms, and root-level convenience constructors such as `seeded()` preserve their
-  observable behavior between patch releases of the same minor version, on a best-effort basis. They may change
-  in a new minor release. Integer-only sampling is generally predictable across supported targets, while
-  floating-point results can depend on the platform, especially for math-heavy distributions. Uniform floating-point
-  sampling is predictable on targets with Rust's strict IEEE 754 floating-point semantics.
+* Distributions and sampling algorithms preserve their observable behavior between patch releases of the same
+  minor version, on a best-effort basis. They may change in a new minor release. Integer-only sampling is generally
+  predictable across supported targets, while floating-point results can depend on the platform, especially for
+  math-heavy distributions. Uniform floating-point sampling is predictable on targets with Rust's strict IEEE 754
+  floating-point semantics.
 
 For reproducible recordings, simulations, or game replays, pin urandom to one minor release (for example, `~1.0`)
-and keep external inputs and platform behavior consistent. When the generator stream itself must remain stable
-across minor releases, construct a concrete type from the `rng` module directly.
+and keep external inputs and platform behavior consistent. The raw generator streams selected by `new()`, `seeded()`,
+and `csprng()` remain stable across minor releases, subject to the entropy caveat above.
 
 Features
 --------

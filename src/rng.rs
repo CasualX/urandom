@@ -15,9 +15,8 @@ is not interchangeable with two [`Rng::next_u32`] calls, even if both request 64
 With the `serde` feature, the guarantee also covers serialized generator state. State written by one release
 remains readable by SemVer-compatible releases, and restoring it continues the same stream at the saved position.
 
-This guarantee applies to concrete generator types constructed through this module. Root-level convenience
-constructors such as [`crate::seeded`] may select or initialize them differently in a later minor release.
-Entropy-backed construction is not reproducible because its initial state intentionally varies.
+This guarantee also applies to the root-level [`crate::new`], [`crate::seeded`], and [`crate::csprng`]
+constructors: their generator choice and initialization behavior remain stable across SemVer-compatible releases.
 
 Pseudorandom number generators
 -------------------------------
