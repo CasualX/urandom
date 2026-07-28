@@ -30,11 +30,11 @@ impl<const N: usize> SystemRng<N> {
 	/// let value: i32 = rand.random();
 	/// ```
 	#[inline]
-	pub const fn new() -> Random<Self> {
+	pub fn new() -> Random<Self> {
 		const {
 			assert!(N >= 2, "SystemRng block size N must be at least 2");
 		}
-		Random::wrap(Self {
+		Random::from(SystemRng {
 			index: !0,
 			random: [0; N],
 		})

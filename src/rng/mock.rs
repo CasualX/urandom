@@ -25,7 +25,7 @@ impl<'a> MockRng<iter::Copied<slice::Iter<'a, u64>>> {
 	/// ```
 	#[inline]
 	pub fn slice(slice: &'a [u64]) -> Random<Self> {
-		Random::wrap(MockRng(slice.iter().copied()))
+		Random::from(MockRng(slice.iter().copied()))
 	}
 }
 impl MockRng<iter::Repeat<u64>> {
@@ -42,7 +42,7 @@ impl MockRng<iter::Repeat<u64>> {
 	/// ```
 	#[inline]
 	pub fn repeat(value: u64) -> Random<Self> {
-		Random::wrap(MockRng(iter::repeat(value)))
+		Random::from(MockRng(iter::repeat(value)))
 	}
 }
 

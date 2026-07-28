@@ -63,7 +63,7 @@ impl Xoshiro256Rng {
 	/// ```
 	#[inline]
 	pub fn from_seed(seed: [u64; 4]) -> Random<Xoshiro256Rng> {
-		Random::wrap(Xoshiro256Rng { state: seed })
+		Random::from(Xoshiro256Rng { state: seed })
 	}
 
 	/// Creates a reproducible instance by expanding a 64-bit seed into the native 256-bit seed.
@@ -80,7 +80,7 @@ impl Xoshiro256Rng {
 	pub fn from_seed_u64(seed: u64) -> Random<Xoshiro256Rng> {
 		let mut master = SplitMix64Rng::from_seed_u64(seed);
 		let state = [master.next_u64(), master.next_u64(), master.next_u64(), master.next_u64()];
-		Random::wrap(Xoshiro256Rng { state })
+		Random::from(Xoshiro256Rng { state })
 	}
 }
 

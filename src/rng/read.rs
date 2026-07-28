@@ -28,7 +28,7 @@ impl<R> ReadRng<R> {
 	/// Creates a new instance.
 	#[inline]
 	pub fn new(reader: R) -> Random<ReadRng<R>> {
-		Random::wrap(ReadRng { reader })
+		Random::from(ReadRng { reader })
 	}
 }
 

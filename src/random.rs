@@ -1,4 +1,4 @@
-use core::mem;
+use core::{mem, ops};
 use super::*;
 
 /// Rich interface for consuming random number generators.
@@ -10,9 +10,25 @@ pub struct Random<R: ?Sized> {
 	rng: R,
 }
 
-impl<R> Random<R> {
+impl<R: ?Sized> ops::Deref for Random<R> {
+	type Target = R;
+
 	#[inline]
-	pub(crate) const fn wrap(rng: R) -> Random<R> {
+	fn deref(&self) -> &R {
+		&self.rng
+	}
+}
+
+impl<R: ?Sized> ops::DerefMut for Random<R> {
+	#[inline]
+	fn deref_mut(&mut self) -> &mut R {
+		&mut self.rng
+	}
+}
+
+impl<R> From<R> for Random<R> {
+	#[inline]
+	fn from(rng: R) -> Random<R> {
 		Random { rng }
 	}
 }

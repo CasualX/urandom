@@ -68,7 +68,7 @@ impl<const N: usize> ChaChaRng<N> where Self: SecureRng {
 	pub fn from_seed(seed: [u32; 8]) -> Random<ChaChaRng<N>> {
 		let state = ChaChaState::new(seed, 1, 0);
 		let inner = BlockRngImpl::new(state);
-		Random::wrap(ChaChaRng { inner })
+		Random::from(ChaChaRng { inner })
 	}
 
 	/// Creates a reproducible instance by expanding a 64-bit seed into the native 256-bit seed.

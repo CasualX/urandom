@@ -51,7 +51,7 @@ impl WyrandRng {
 	/// ```
 	#[inline]
 	pub fn from_seed(seed: u64) -> Random<WyrandRng> {
-		Random::wrap(WyrandRng { state: seed })
+		Random::from(WyrandRng { state: seed })
 	}
 
 	/// Creates a reproducible instance from a 64-bit seed.

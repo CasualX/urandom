@@ -51,7 +51,7 @@ impl SplitMix64Rng {
 	/// ```
 	#[inline]
 	pub fn from_seed(seed: u64) -> Random<SplitMix64Rng> {
-		Random::wrap(SplitMix64Rng { state: seed })
+		Random::from(SplitMix64Rng { state: seed })
 	}
 
 	/// Creates a reproducible instance from a 64-bit seed.
