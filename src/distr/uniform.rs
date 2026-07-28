@@ -1,12 +1,14 @@
 use super::*;
 
+mod duration;
 mod float;
 mod int;
 mod other;
 
+pub use self::duration::UniformDuration;
 pub use self::float::UniformFloat;
 pub use self::int::UniformInt;
-pub use self::other::{UniformChar, UniformDuration};
+pub use self::other::UniformChar;
 
 /// Helper trait specifies the concrete sampler for the sampling type.
 pub trait SampleUniform: Sized {

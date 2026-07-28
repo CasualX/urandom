@@ -73,6 +73,25 @@ fn test_edges_large() {
 }
 
 #[test]
+fn test_u128() {
+	let mut rand = crate::seeded(42);
+	let low = (u64::MAX as u128) + 123;
+	let high = u128::MAX - 456;
+	for _ in 0..10000 {
+		let value = rand.uniform(low..high);
+		assert!(value >= low && value < high);
+	}
+
+	for _ in 0..100 {
+		let _: u128 = rand.uniform(u128::MIN..=u128::MAX);
+		let _: i128 = rand.uniform(i128::MIN..=i128::MAX);
+	}
+
+	assert_eq!(rand.uniform(u128::MAX..=u128::MAX), u128::MAX);
+	assert_eq!(rand.uniform(i128::MIN..=i128::MIN), i128::MIN);
+}
+
+#[test]
 fn test_edges_small() {
 	let distr1 = Uniform::new_inclusive(10, 10);
 	let distr2 = Uniform::new(23, 24);
