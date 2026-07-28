@@ -88,6 +88,9 @@ impl Rng for WyrandRng {
 		util::rng_fill_bytes(&mut rng, buf);
 		*self = rng;
 	}
+}
+
+impl JumpRng for WyrandRng {
 	#[inline]
 	fn jump(&mut self) {
 		jump(&mut self.state)

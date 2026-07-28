@@ -73,9 +73,4 @@ impl<const N: usize> Rng for SystemRng<N> {
 	fn fill_bytes(&mut self, buf: &mut [MaybeUninit<u8>]) {
 		getentropy_uninit(buf);
 	}
-	/// Discards any buffered entropy.
-	#[inline]
-	fn jump(&mut self) {
-		self.index = !0;
-	}
 }

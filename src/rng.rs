@@ -6,7 +6,7 @@ Reproducibility guarantee
 
 The random stream of each deterministic generator in this module is part of its stable API.
 Across SemVer-compatible releases, a concrete generator initialized from the same explicit seed or state
-produces identical output on supported targets when given the same sequence of [`Rng`] calls and arguments.
+produces identical output on supported targets when given the same sequence of [`Rng`] and [`JumpRng`] calls and arguments.
 The generator algorithm, seed expansion, and behavior of those calls will not be changed, including for performance improvements.
 
 The exact call sequence is part of the input to this guarantee. For example, one [`Rng::next_u64`] call
@@ -116,13 +116,11 @@ pub trait Rng: Sealed {
 	///
 	/// Implementations must produce identical output on little-endian and big-endian targets.
 	fn fill_bytes(&mut self, buf: &mut [MaybeUninit<u8>]);
+}
 
+/// Random number generator interface for generators that support jumping ahead.
+pub trait JumpRng: Rng {
 	/// Advances the generator's state by a large, implementation-defined distance.
-	///
-	/// For deterministic pseudorandom generators, this may be used to derive separate streams for parallel computation.
-	///
-	/// Generators that do not support jumping panic.
-	/// See the concrete generator's documentation for its exact behavior.
 	fn jump(&mut self);
 }
 

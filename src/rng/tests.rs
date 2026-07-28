@@ -12,6 +12,21 @@ fn test_trait_object() {
 	test(&mut crate::csprng());
 }
 
+#[test]
+fn test_split_rng() {
+	fn test<R: JumpRng + Clone>(rand: &mut Random<R>) {
+		let _ = rand.split();
+	}
+	test(&mut crate::seeded(42));
+	test(&mut crate::csprng());
+	test(&mut SplitMix64Rng::from_seed_u64(42));
+
+	let mut rand = crate::seeded(42);
+	let mut current = rand.clone();
+	let mut child = rand.split();
+	assert_eq!(child.next_u64(), current.next_u64());
+	assert_ne!(rand.next_u64(), child.next_u64());
+}
 
 #[track_caller]
 pub fn check_fill_bytes<R: Rng + Clone>(master: &mut Random<R>) {

@@ -61,9 +61,4 @@ impl<I> Rng for MockRng<I> where I: Iterator<Item = u64> {
 	fn fill_bytes(&mut self, buf: &mut [MaybeUninit<u8>]) {
 		util::rng_fill_bytes(self, buf);
 	}
-	/// This operation is unsupported and panics.
-	#[inline]
-	fn jump(&mut self) {
-		unimplemented!()
-	}
 }

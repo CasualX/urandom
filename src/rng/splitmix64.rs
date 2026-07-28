@@ -88,6 +88,9 @@ impl Rng for SplitMix64Rng {
 		util::rng_fill_bytes(&mut rng, buf);
 		*self = rng;
 	}
+}
+
+impl JumpRng for SplitMix64Rng {
 	/// Advances the generator by 2<sup>40</sup> state transitions.
 	#[inline]
 	fn jump(&mut self) {

@@ -114,6 +114,9 @@ impl<const N: usize> Rng for ChaChaRng<N> where Self: SecureRng {
 	fn fill_bytes(&mut self, buf: &mut [MaybeUninit<u8>]) {
 		self.inner.fill_bytes(buf);
 	}
+}
+
+impl<const N: usize> JumpRng for ChaChaRng<N> where Self: SecureRng {
 	/// Selects the next stream.
 	#[inline]
 	fn jump(&mut self) {

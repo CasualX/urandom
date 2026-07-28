@@ -104,6 +104,9 @@ impl<T: BlockRng> Rng for BlockRngImpl<T> {
 		}
 	}
 
+}
+
+impl<T: BlockRng> JumpRng for BlockRngImpl<T> {
 	#[inline]
 	fn jump(&mut self) {
 		self.state.jump();

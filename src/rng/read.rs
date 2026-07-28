@@ -60,11 +60,6 @@ impl<R: io::Read> Rng for ReadRng<R> {
 			read_failed(err);
 		}
 	}
-	/// This operation is unsupported and panics.
-	#[inline]
-	fn jump(&mut self) {
-		unimplemented!()
-	}
 }
 
 #[cold]

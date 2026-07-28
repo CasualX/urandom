@@ -110,10 +110,6 @@ impl<R: Rng + ?Sized> Random<R> {
 	///
 	/// Repeated calls produce deterministic, widely separated streams suitable for independent parallel computations.
 	///
-	/// # Panics
-	///
-	/// Panics if the underlying generator does not support jumping.
-	///
 	/// # Examples
 	///
 	/// ```
@@ -124,7 +120,7 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// # fn parallel_computation(_: urandom::Random<impl urandom::Rng>) {}
 	/// ```
 	#[inline]
-	pub fn split(&mut self) -> Self where Self: Clone {
+	pub fn split(&mut self) -> Self where R: rng::JumpRng + Clone {
 		let cur = self.clone();
 		self.rng.jump();
 		return cur;

@@ -109,6 +109,9 @@ impl Rng for Xoshiro256Rng {
 		util::rng_fill_bytes(&mut rng, buf);
 		*self = rng;
 	}
+}
+
+impl JumpRng for Xoshiro256Rng {
 	/// Advances the generator by 2<sup>128</sup> state transitions.
 	#[inline(never)]
 	fn jump(&mut self) {
