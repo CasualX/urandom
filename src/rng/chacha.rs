@@ -19,6 +19,7 @@ impl SecureRng for ChaChaRng<20> {}
 /// Daniel J. Bernstein's ChaCha adapted as a deterministic random number generator.
 #[derive(Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(bound = "ChaChaRng<N>: SecureRng"))]
 #[repr(transparent)]
 pub struct ChaChaRng<const N: usize> {
 	#[cfg_attr(feature = "serde", serde(flatten))]
