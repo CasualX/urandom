@@ -2,11 +2,19 @@ use super::*;
 
 #[test]
 fn test_normal() {
-	let norm = Normal::new(10.0, 10.0);
 	let mut rand = crate::new();
-	for value in rand.samples(norm).take(1000) {
-		eprintln!("{}", value);
+	let mut sum = 0.0f64;
+	let mut sum_sq = 0.0f64;
+	let samples = 100_000;
+	for value in rand.samples::<f64, _>(StandardNormal).take(samples) {
+		assert!(value.is_finite());
+		sum += value;
+		sum_sq += value * value;
 	}
+	let mean = sum / samples as f64;
+	let variance = sum_sq / samples as f64 - mean * mean;
+	assert!(mean.abs() < 0.02, "mean {mean}");
+	assert!((variance - 1.0).abs() < 0.03, "variance {variance}");
 }
 
 #[test]
@@ -24,6 +32,15 @@ fn test_normal_invalid_sd() {
 	assert_eq!(Normal::try_new(10.0, f64::INFINITY), Err(NormalError::BadVariance));
 	assert!(Normal::try_from_mean_cv(10.0, -1.0).is_err());
 	assert!(Normal::try_from_mean_cv(f64::MAX, 2.0).is_err());
+}
+
+#[test]
+fn test_degenerate_normal_is_exact() {
+	let normal = Normal::new(-f64::MAX, 0.0);
+	let mut rand = crate::new();
+	for value in rand.samples(normal).take(100) {
+		assert_eq!(value, -f64::MAX);
+	}
 }
 
 #[test]

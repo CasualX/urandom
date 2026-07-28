@@ -2,6 +2,20 @@ use super::*;
 use core::time::Duration;
 
 #[test]
+fn test_usize_matches_u64() {
+	let highs = [1usize, 2, 3, 255, 65_537, u32::MAX as usize];
+	for high in highs {
+		let mut actual = crate::seeded(high as u64);
+		let mut model = crate::seeded(high as u64);
+		for _ in 0..100 {
+			let value = actual.uniform(0usize..high);
+			let expected = model.uniform(0u64..high as u64) as usize;
+			assert_eq!(value, expected, "high {high}");
+		}
+	}
+}
+
+#[test]
 fn test_float_constructors() {
 	assert!(matches!(Uniform::try_new(0.0f32, f32::INFINITY), Err(UniformError::NonFinite)));
 	assert!(matches!(Uniform::try_new_inclusive(f64::NAN, 1.0), Err(UniformError::NonFinite)));
@@ -118,6 +132,14 @@ fn test_duration() {
 	for _ in 0..10 {
 		assert_eq!(rand.uniform(exact..=exact), exact);
 	}
+}
+
+#[test]
+fn maximum_duration_singleton_does_not_overflow() {
+	let max = Duration::new(u64::MAX, 999_999_999);
+	let distr = UniformDuration::try_new_inclusive(max, max).unwrap();
+	let mut rand = crate::rng::MockRng::slice(&[u64::MAX, u64::MAX]);
+	assert_eq!(distr.sample(&mut rand), max);
 }
 
 #[cfg(feature = "serde")]

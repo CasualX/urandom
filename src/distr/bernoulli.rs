@@ -30,7 +30,8 @@ impl Bernoulli {
 impl Distribution<bool> for Bernoulli {
 	#[inline]
 	fn sample<R: Rng + ?Sized>(&self, rand: &mut Random<R>) -> bool {
-		<Float01 as Distribution<f64>>::sample(&Float01, rand) <= self.p
+		// Use a strict boundary because Float01 can equal p with nonzero probability.
+		<Float01 as Distribution<f64>>::sample(&Float01, rand) < self.p
 	}
 }
 
@@ -45,4 +46,12 @@ fn test_trivial() {
 		assert_eq!(Distribution::<bool>::sample(&always_false, &mut rand), false);
 		assert_eq!(Distribution::<bool>::sample(&always_true, &mut rand), true);
 	}
+}
+
+#[test]
+fn exact_threshold_belongs_to_failure_side() {
+	// Float01 maps these two words to exactly 0.5.
+	// A strict comparison keeps the boundary on the failure side.
+	let mut rand = crate::rng::MockRng::slice(&[u64::MAX, 0]);
+	assert!(!rand.sample(&Bernoulli::new(0.5)));
 }
