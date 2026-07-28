@@ -1,8 +1,8 @@
-use core::{fmt, mem};
+use core::mem;
 use super::*;
 
 /// Rich interface for consuming random number generators.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[repr(transparent)]
 pub struct Random<R: ?Sized> {
@@ -416,12 +416,6 @@ impl<R: Rng + ?Sized> Random<R> {
 		}
 
 		&mut slice[..n]
-	}
-}
-
-impl<R: Rng + ?Sized> fmt::Debug for Random<R> {
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		f.write_str("Random(impl Rng)")
 	}
 }
 
