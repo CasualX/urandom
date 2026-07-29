@@ -71,11 +71,13 @@ cfg_if::cfg_if! {
 	if #[cfg(feature = "std")] {
 		mod exp;
 		mod normal;
+		mod triangular;
 		mod ziggurat_tables;
 		mod ziggurat;
 
 		pub use self::exp::{Exp, Exp1, ExpError};
 		pub use self::normal::{LogNormal, Normal, NormalError, StandardNormal};
+		pub use self::triangular::{Triangular, TriangularError};
 	}
 }
 
