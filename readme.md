@@ -12,6 +12,10 @@ This crate provides random number generators, distributions, sampling utilities,
 
 It is a fork of the semi-official [`rand`](https://crates.io/crates/rand) crate, focused on providing a cohesive and ergonomic consumer API.
 
+[Compare `urandom` with `rand`](docs/rand.md).
+
+Migrating from urandom 0.2.2? Read the 1.0 [migration guide](docs/migration-guide.md).
+
 Usage
 -----
 
@@ -27,6 +31,9 @@ Quick Start
 
 To get you started quickly, the easiest and highest-level way to get a random value is to use `urandom::new().random()`.
 The `Random` struct provides a convenient API over the random number generators, while the `distr` module provides distributions and sampling utilities.
+
+For general non-cryptographic use start with `urandom::new()`.
+For cryptographically secure random numbers start with `urandom::csprng()`.
 
 ```rust
 let mut rand = urandom::new();

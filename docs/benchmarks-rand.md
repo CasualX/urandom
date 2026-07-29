@@ -1,8 +1,8 @@
 Performance comparison to the `rand` crate
 ==========================================
 
-These benchmarks compare urandom 1.0.0 with rand 0.10.2. The results below
-were collected on an AMD Ryzen 7 7800X3D using rustc 1.98.0-nightly
+These benchmarks compare the current urandom 1.0 implementation with rand
+0.10.2. The results below were collected on my machine using rustc 1.98.0-nightly
 (2026-06-01, LLVM 22.1.6). The benchmark process was pinned to one core.
 
 The exact timings are machine- and compiler-dependent. The conclusions from
@@ -31,7 +31,7 @@ repeated pinned runs.
 
 Urandom's `u32` and `f64` paths use xoshiro256+ because those values do not
 need all 64 output bits. Rand generates a full xoshiro256++ `u64` first.
-This explains urandom's advantage in those two benchmarks.
+This contributes to urandom's advantage in those two benchmarks.
 
 Comparison of rand's `StdRng` vs urandom's `csprng()`
 -----------------------------------------------------
