@@ -68,7 +68,7 @@ fn test_wmul128() {
 pub struct UniformInt<T> {
 	base: T,
 	// When T is signed, it is really an unsigned integer of the same size
-	range: T,
+	pub(crate) range: T,
 }
 
 impl<T> UniformInt<T> {

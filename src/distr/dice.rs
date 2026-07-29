@@ -12,7 +12,6 @@ use super::*;
 /// assert!(sum >= 1 && sum <= 12);
 /// ```
 #[derive(Copy, Clone, Debug)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Dice(UniformInt<u8>);
 
 impl Dice {
@@ -55,3 +54,6 @@ impl Distribution<i32> for Dice {
 		self.0.sample(rand) as i32
 	}
 }
+
+#[cfg(feature = "serde")]
+mod s;
