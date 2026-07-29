@@ -257,7 +257,7 @@ impl<const N: usize> BlockRng for ChaChaState<N> {
 
 impl<const N: usize> fmt::Debug for ChaChaState<N> {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		f.debug_struct("ChaChaCore")
+		f.debug_struct("ChaChaState")
 			.field("seed", &format_args!("{:x?}", self.seed))
 			.field("counter", &self.get_counter())
 			.field("stream", &self.get_stream())
@@ -271,3 +271,54 @@ mod s;
 #[cfg(feature = "getrandom")]
 #[cfg(test)]
 mod tests;
+
+#[test]
+fn test_from_seed() {
+	use super::tests::ReproVector;
+	ReproVector {
+		u32_value: 0x8e8c_7b1b,
+		u64_value: 0xb2e5_d228_2adf_5af2,
+		f32_bits: 0x3fbe_15cb,
+		f64_bits: 0x3ff9_8221_61ef_ea99,
+		bytes: [0xd2, 0xa4, 0x82, 0x60, 0x7b, 0xa5, 0xfa, 0xab, 0x56, 0x1f, 0x94, 0xb1, 0x41, 0x88, 0xd4, 0xed, 0x2c],
+		after_jump: 0x89fb_79ac_b50b_7644,
+		fork_left: 0x3145_a75e_8ba1_c6eb,
+		fork_right: 0xd5e4_0d30_82a9_fb9b,
+	}.check(ChaCha8Rng::from_seed_u64(42));
+
+	ReproVector {
+		u32_value: 0x25a4_8b0d,
+		u64_value: 0x3689_639d_33fe_74a6,
+		f32_bits: 0x3fc0_a61e,
+		f64_bits: 0x3ffc_13f7_890d_7ea8,
+		bytes: [0x9b, 0x67, 0xdc, 0xbc, 0x72, 0x39, 0x96, 0xfc, 0xc3, 0x81, 0x7b, 0xac, 0xfa, 0x5e, 0x14, 0xcb, 0xd1],
+		after_jump: 0x77f6_df64_9f89_0ed9,
+		fork_left: 0xe4ba_5342_4574_e251,
+		fork_right: 0x6a76_99f0_8c63_ebb3,
+	}.check(ChaCha12Rng::from_seed_u64(42));
+
+	ReproVector {
+		u32_value: 0x673a_7168,
+		u64_value: 0x8da2_dba7_badf_9172,
+		f32_bits: 0x3fc1_ee4e,
+		f64_bits: 0x3ff1_ddb6_993e_14a1,
+		bytes: [0x1f, 0x4f, 0xce, 0xfd, 0xfc, 0x17, 0x26, 0x31, 0x42, 0x1d, 0x2e, 0xea, 0x61, 0x00, 0xab, 0x72, 0x79],
+		after_jump: 0x81f7_1ca1_87b3_485b,
+		fork_left: 0x4b96_469b_3e90_7350,
+		fork_right: 0xc564_52c4_15b8_8d1e,
+	}.check(ChaCha20Rng::from_seed_u64(42));
+
+	ReproVector {
+		u32_value: 0xa09a_fa6c,
+		u64_value: 0x5215_5cdb_e072_3b83,
+		f32_bits: 0x3fa3_41e8,
+		f64_bits: 0x3ff4_8641_b2ee_b0c8,
+		bytes: [0x04, 0x9d, 0x30, 0x32, 0x7e, 0xee, 0x85, 0x16, 0x22, 0xc6, 0x5e, 0xa3, 0x58, 0xaa, 0xb7, 0xd5, 0x0d],
+		after_jump: 0x6fac_49bc_247c_6632,
+		fork_left: 0x9225_f952_3fba_9468,
+		fork_right: 0xa819_0d24_8fe2_641b,
+	}.check(ChaCha12Rng::from_seed([
+		0x0302_0100, 0x0706_0504, 0x0b0a_0908, 0x0f0e_0d0c,
+		0x1312_1110, 0x1716_1514, 0x1b1a_1918, 0x1f1e_1d1c,
+	]));
+}

@@ -162,6 +162,34 @@ fn serde() {
 	tests::check_serde_middle_state(Xoshiro256Rng::new());
 }
 
+#[test]
+fn test_from_seed_u64() {
+	tests::ReproVector {
+		u32_value: 0x15f4_1425,
+		u64_value: 0x519e_4174_576f_3791,
+		f32_bits: 0x3f88_0249,
+		f64_bits: 0x3ff4_e743_fce4_9537,
+		bytes: [0x73, 0x6a, 0x84, 0x74, 0x38, 0x1c, 0x23, 0xcb, 0x7d, 0xde, 0x50, 0x4e, 0x00, 0x9f, 0x8d, 0x96, 0x56],
+		after_jump: 0x6bab_2441_bc00_1e39,
+		fork_left: 0xef37_c207_4f11_4358,
+		fork_right: 0xa79c_eb61_e325_5531,
+	}.check(Xoshiro256Rng::from_seed_u64(42));
+}
+
+#[test]
+fn test_from_seed() {
+	tests::ReproVector {
+		u32_value: 0x0000_0000,
+		u64_value: 0x0000_0000_0380_0067,
+		f32_bits: 0x3f80_0060,
+		f64_bits: 0x3ff8_0016_0001_8040,
+		bytes: [0xcd, 0x33, 0xc4, 0x9a, 0x01, 0xa2, 0x12, 0x80, 0xba, 0x33, 0xee, 0xcd, 0x8a, 0x97, 0x69, 0x8a, 0xbd],
+		after_jump: 0x6240_8345_715a_13e6,
+		fork_left: 0x0351_a198_3194_e5d1,
+		fork_right: 0x114a_cc21_ed10_b213,
+	}.check(Xoshiro256Rng::from_seed([1, 2, 3, 4]));
+}
+
 //----------------------------------------------------------------
 // Xoshiro256Rng implementation details
 

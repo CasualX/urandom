@@ -117,6 +117,20 @@ fn serde() {
 	tests::check_serde_middle_state(SplitMix64Rng::new());
 }
 
+#[test]
+fn test_from_seed() {
+	tests::ReproVector {
+		u32_value: 0xbdd7_3226,
+		u64_value: 0x28ef_e333_b266_f103,
+		f32_bits: 0x3fa3_a933,
+		f64_bits: 0x3ff5_81ce_1ff0_e4ae,
+		bytes: [0xf2, 0x23, 0x48, 0x24, 0x5a, 0x58, 0xbc, 0x09, 0x06, 0xdb, 0x80, 0x3c, 0xfa, 0x31, 0x44, 0xde, 0x5d],
+		after_jump: 0x315a_be1a_f4f6_78c8,
+		fork_left: 0x96be_37b8_81a2_d0d5,
+		fork_right: 0xb391_f99a_aa78_5466,
+	}.check(SplitMix64Rng::from_seed(42));
+}
+
 //----------------------------------------------------------------
 // SplitMix64Rng implementation details
 

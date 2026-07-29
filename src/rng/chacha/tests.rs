@@ -207,6 +207,35 @@ fn fill_bytes_uses_little_endian_word_order() {
 	assert_eq!(output, expected);
 }
 
+#[inline]
+fn stable_digest(bytes: &[u8]) -> u64 {
+	bytes.iter().fold(0xcbf2_9ce4_8422_2325, |hash, &byte| {
+		(hash ^ u64::from(byte)).wrapping_mul(0x0000_0100_0000_01b3)
+	})
+}
+
+#[test]
+fn fill_block_boundary_vectors() {
+	let expected = [
+		(255, 0x6c41_6acb_0be4_591b, 0xc90c_bac1_9958_3d34),
+		(256, 0x7fe9_0e7c_2491_dbc3, 0x3689_639d_33fe_74a6),
+		(257, 0xeadf_01f2_23d7_cc9f, 0xcf36_8963_9d33_fe74),
+		(512, 0x57d6_0f31_ca02_d12a, 0x3689_639d_33fe_74a6),
+		(513, 0x438d_5d9a_42ca_10e4, 0xcf36_8963_9d33_fe74),
+	];
+
+	let mut master = ChaCha12Rng::from_seed_u64(42);
+	let _ = master.next_u32();
+
+	for (len, expected_digest, expected_next) in expected {
+		let mut rand = master.clone();
+		let mut bytes = [0u8; 513];
+		rand.fill_bytes(&mut bytes[..len]);
+		assert_eq!(stable_digest(&bytes[..len]), expected_digest, "length {len}");
+		assert_eq!(rand.next_u64(), expected_next, "next value after length {len}");
+	}
+}
+
 #[cfg(feature = "serde")]
 #[test]
 fn serde() {

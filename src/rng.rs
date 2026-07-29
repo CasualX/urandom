@@ -172,6 +172,5 @@ use self::block::{BlockRng, BlockRngImpl};
 
 //----------------------------------------------------------------
 
-#[cfg(feature = "getrandom")]
 #[cfg(test)]
 mod tests;
