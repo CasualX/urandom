@@ -122,6 +122,9 @@ pub trait Rng: Sealed {
 pub trait JumpRng: Rng {
 	/// Advances the generator's state by a large, implementation-defined distance.
 	fn jump(&mut self);
+
+	/// Consumes this generator and returns two independently reseeded descendants.
+	fn fork(self) -> (Self, Self) where Self: Sized;
 }
 
 /// Marker trait for random number generators suitable for cryptographic use.

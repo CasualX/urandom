@@ -126,6 +126,12 @@ impl<R: Rng + ?Sized> Random<R> {
 	///
 	/// Repeated calls produce deterministic, widely separated streams suitable for independent parallel computations.
 	///
+	/// # Warning
+	///
+	/// Only call `split` on the original generator.
+	/// Splitting a returned generator can produce duplicate random streams.
+	/// Use [`Random::fork`] when generators need to split recursively.
+	///
 	/// # Examples
 	///
 	/// ```
@@ -140,6 +146,25 @@ impl<R: Rng + ?Sized> Random<R> {
 		let cur = self.clone();
 		self.rng.jump();
 		return cur;
+	}
+
+	/// Consumes this generator and returns two independently reseeded descendants.
+	///
+	/// The underlying generator decides how to derive its descendant states.
+	/// This operation may be applied recursively to either returned generator.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// let rand = urandom::seeded(42);
+	/// let (mut left, mut right) = rand.fork();
+	///
+	/// assert_ne!(left.random::<u64>(), right.random::<u64>());
+	/// ```
+	#[inline]
+	pub fn fork(self) -> (Self, Self) where R: rng::JumpRng + Sized {
+		let (left, right) = self.rng.fork();
+		(Random::from(left), Random::from(right))
 	}
 
 	/// Returns a sample from the [`StandardUniform`](distr::StandardUniform) distribution.

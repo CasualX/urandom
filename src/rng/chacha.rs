@@ -69,9 +69,7 @@ impl<const N: usize> ChaChaRng<N> where Self: SecureRng {
 	/// ```
 	#[inline]
 	pub fn from_seed(seed: [u32; 8]) -> Random<ChaChaRng<N>> {
-		let state = ChaChaState::new(seed, 1, 0);
-		let inner = BlockRngImpl::new(state);
-		Random::from(ChaChaRng { inner })
+		Random::from(from_seed(seed))
 	}
 
 	/// Creates a reproducible instance by expanding a 64-bit seed into the native 256-bit seed.
@@ -125,6 +123,21 @@ impl<const N: usize> JumpRng for ChaChaRng<N> where Self: SecureRng {
 	fn jump(&mut self) {
 		self.inner.jump();
 	}
+
+	/// Derives two independently keyed descendants from the next 512 output bits.
+	#[inline]
+	fn fork(mut self) -> (Self, Self) {
+		let left_seed = core::array::from_fn(|_| self.next_u32());
+		let right_seed = core::array::from_fn(|_| self.next_u32());
+		(from_seed(left_seed), from_seed(right_seed))
+	}
+}
+
+#[inline]
+fn from_seed<const N: usize>(seed: [u32; 8]) -> ChaChaRng<N> where ChaChaRng<N>: SecureRng {
+	let state = ChaChaState::new(seed, 1, 0);
+	let inner = BlockRngImpl::new(state);
+	ChaChaRng { inner }
 }
 
 

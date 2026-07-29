@@ -117,6 +117,33 @@ impl JumpRng for Xoshiro256Rng {
 	fn jump(&mut self) {
 		jump(&mut self.state)
 	}
+
+	/// Derives two new states using separate output material mixed by SplitMix64.
+	#[inline(never)]
+	fn fork(mut self) -> (Self, Self) {
+		const WORD_DOMAIN: u64 = super::splitmix64::GOLDEN_GAMMA;
+		const LEFT_DOMAIN: u64 = WORD_DOMAIN;
+		const RIGHT_DOMAIN: u64 = WORD_DOMAIN.wrapping_mul(5);
+
+		let mut derive = |domain: u64| {
+			let state = core::array::from_fn(|index| {
+				let domain = domain.wrapping_add((index as u64).wrapping_mul(WORD_DOMAIN));
+				splitmix64::mix64(self.next_u64().wrapping_add(domain))
+			});
+			Xoshiro256Rng { state }
+		};
+
+		(derive(LEFT_DOMAIN), derive(RIGHT_DOMAIN))
+	}
+}
+
+#[test]
+fn fork_reseeds_degenerate_zero_state() {
+	let rand = Xoshiro256Rng { state: [0; 4] };
+	let (left, right) = rand.fork();
+	assert_ne!(left.state, [0; 4]);
+	assert_ne!(right.state, [0; 4]);
+	assert_ne!(left.state, right.state);
 }
 
 #[test]

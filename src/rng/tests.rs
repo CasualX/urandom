@@ -28,6 +28,56 @@ fn test_split_rng() {
 	assert_ne!(rand.next_u64(), child.next_u64());
 }
 
+#[test]
+fn test_fork_rng() {
+	#[track_caller]
+	fn check<R: JumpRng>(rand: Random<R>) {
+		let (mut left, mut right) = rand.fork();
+		assert_ne!(left.next_u64(), right.next_u64());
+	}
+
+	check(Xoshiro256Rng::from_seed_u64(42));
+	check(SplitMix64Rng::from_seed_u64(42));
+	check(ChaCha12Rng::from_seed([0; 8]));
+}
+
+#[test]
+fn recursive_forks_are_distinct() {
+	#[track_caller]
+	fn check<R: JumpRng>(rand: Random<R>) {
+		let (left, right) = rand.fork();
+		let (mut left_left, mut left_right) = left.fork();
+		let (mut right_left, mut right_right) = right.fork();
+		let mut values = [
+			left_left.next_u64(),
+			left_right.next_u64(),
+			right_left.next_u64(),
+			right_right.next_u64(),
+		];
+		values.sort_unstable();
+		assert!(values.windows(2).all(|pair| pair[0] != pair[1]));
+	}
+
+	check(Xoshiro256Rng::from_seed_u64(42));
+	check(SplitMix64Rng::from_seed_u64(42));
+	check(ChaCha12Rng::from_seed([0; 8]));
+}
+
+#[test]
+fn forks_are_reproducible() {
+	#[track_caller]
+	fn check<R: JumpRng + Clone>(rand: Random<R>) {
+		let (mut left1, mut right1) = rand.clone().fork();
+		let (mut left2, mut right2) = rand.fork();
+		assert_eq!(left1.next_u64(), left2.next_u64());
+		assert_eq!(right1.next_u64(), right2.next_u64());
+	}
+
+	check(Xoshiro256Rng::from_seed_u64(42));
+	check(SplitMix64Rng::from_seed_u64(42));
+	check(ChaCha12Rng::from_seed([0; 8]));
+}
+
 #[track_caller]
 pub fn check_fill_bytes<R: Rng + Clone>(master: &mut Random<R>) {
 	master.next_u64();

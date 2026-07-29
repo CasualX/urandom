@@ -30,6 +30,12 @@ impl<T: BlockRng> BlockRngImpl<T> {
 			random: T::Output::default(),
 		}
 	}
+
+	#[inline]
+	pub fn jump(&mut self) {
+		self.state.jump();
+		self.index = !0;
+	}
 }
 
 impl<T: BlockRng> Sealed for BlockRngImpl<T> {}
@@ -101,14 +107,6 @@ impl<T: BlockRng> Rng for BlockRngImpl<T> {
 		}
 	}
 
-}
-
-impl<T: BlockRng> JumpRng for BlockRngImpl<T> {
-	#[inline]
-	fn jump(&mut self) {
-		self.state.jump();
-		self.index = !0;
-	}
 }
 
 #[cfg(feature = "serde")]

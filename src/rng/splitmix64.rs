@@ -96,6 +96,16 @@ impl JumpRng for SplitMix64Rng {
 	fn jump(&mut self) {
 		jump(&mut self.state)
 	}
+
+	/// Derives two new starting points from this generator.
+	///
+	/// SplitMix64 has only 64 bits of state and a fixed increment, so its descendants are not guaranteed to occupy disjoint streams.
+	#[inline]
+	fn fork(mut self) -> (Self, Self) {
+		let left = SplitMix64Rng { state: next(&mut self.state) };
+		let right = SplitMix64Rng { state: next(&mut self.state) };
+		(left, right)
+	}
 }
 
 #[cfg(feature = "serde")]
@@ -108,7 +118,7 @@ fn serde() {
 //----------------------------------------------------------------
 // SplitMix64Rng implementation details
 
-const GOLDEN_GAMMA: u64 = 0x9e3779b97f4a7c15;
+pub(super) const GOLDEN_GAMMA: u64 = 0x9e3779b97f4a7c15;
 
 #[inline]
 fn next(x: &mut u64) -> u64 {
@@ -122,7 +132,7 @@ fn jump(x: &mut u64) {
 
 // https://zimbry.blogspot.com/2011/09/better-bit-mixing-improving-on.html
 #[inline]
-fn mix64(mut z: u64) -> u64 {
+pub(super) fn mix64(mut z: u64) -> u64 {
 	z = (z ^ (z >> 30)).wrapping_mul(0xbf58476d1ce4e5b9);
 	z = (z ^ (z >> 27)).wrapping_mul(0x94d049bb133111eb);
 	return z ^ (z >> 31);

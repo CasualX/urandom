@@ -95,6 +95,13 @@ impl JumpRng for WyrandRng {
 	fn jump(&mut self) {
 		jump(&mut self.state)
 	}
+
+	#[inline]
+	fn fork(mut self) -> (Self, Self) {
+		let left = WyrandRng { state: wyrand(&mut self.state) };
+		let right = WyrandRng { state: wyrand(&mut self.state) };
+		(left, right)
+	}
 }
 
 #[cfg(feature = "serde")]
