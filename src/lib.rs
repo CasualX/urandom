@@ -98,3 +98,24 @@ pub fn new() -> Random<rng::ChaCha12Rng> {
 pub fn seeded(seed: u64) -> Random<rng::Xoshiro256Rng> {
 	rng::Xoshiro256Rng::from_seed_u64(seed)
 }
+
+/// Returns a handle to the current thread's cryptographically secure random number generator.
+///
+/// The handle is stateless. Handles used on the same thread share a lazily initialized [`rng::ChaCha12Rng`],
+/// while each thread has an independent generator. The generator is automatically reseeded from system entropy
+/// before one seed would be used to produce more than 64 KiB of output.
+///
+/// # Examples
+///
+/// ```
+/// let mut rand = urandom::thread();
+/// let value: i32 = rand.random();
+///
+/// rand.reseed();
+/// ```
+#[must_use]
+#[inline]
+#[cfg(all(feature = "std", feature = "getrandom"))]
+pub fn thread() -> Random<rng::ThreadRng> {
+	Random::from(rng::ThreadRng::new())
+}

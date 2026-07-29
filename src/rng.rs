@@ -52,7 +52,6 @@
 //! * [`ChaChaRng`]:
 //!
 //!   Daniel J. Bernstein's ChaCha adapted as a deterministic random number generator.
-
 #![cfg_attr(feature = "getrandom", doc = r#"
 
 * [`SystemRng`] (requires `getrandom` feature):
@@ -67,6 +66,17 @@ Larger values of `N` reduce how often the system entropy source must be called.
 
 Other generators
 ----------------
+
+"#)]
+
+#![cfg_attr(all(feature = "std", feature = "getrandom"), doc = r#"
+* [`ThreadRng`]:
+
+  A stateless handle to a lazily initialized, automatically reseeded thread-local [`ChaCha12Rng`].
+
+"#)]
+
+#![cfg_attr(feature = "std", doc = r#"
 
 * [`ReadRng`] (requires `std` feature):
 
@@ -176,6 +186,11 @@ cfg_select! {
 
 mod chacha;
 pub use self::chacha::{ChaChaRng, ChaCha8Rng, ChaCha12Rng, ChaCha20Rng};
+
+#[cfg(all(feature = "std", feature = "getrandom"))]
+mod thread;
+#[cfg(all(feature = "std", feature = "getrandom"))]
+pub use self::thread::ThreadRng;
 
 #[cfg(feature = "getrandom")]
 mod system;
