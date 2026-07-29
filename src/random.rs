@@ -412,6 +412,73 @@ impl<R: Rng + ?Sized> Random<R> {
 		slice.get_mut(index)
 	}
 
+	/// Returns a shared reference to one element of the slice, selected in proportion to its weight.
+	///
+	/// The weight function receives elements in index order. Weights which are not
+	/// strictly greater than `W::default()` are skipped. `total` and the remaining
+	/// semantics are the same as [`weighted_index`](Random::weighted_index).
+	///
+	/// # Examples
+	///
+	/// ```
+	#[cfg_attr(feature = "getrandom", doc = "let mut rand = urandom::new();")]
+	#[cfg_attr(not(feature = "getrandom"), doc = "let mut rand = urandom::seeded(42);")]
+	/// let loot = [("potion", 7u32), ("sword", 2), ("shield", 1)];
+	/// let item = rand.choose_weighted(&loot, 10, |item| item.1).unwrap();
+	/// assert!(loot.contains(item));
+	/// ```
+	pub fn choose_weighted<'a, T, W, F: FnMut(&T) -> W>(&mut self, slice: &'a [T], total: W, mut f: F) -> Option<&'a T> where
+		W: Copy + Default + PartialOrd + ops::SubAssign + distr::SampleUniform
+	{
+		let index = self.weighted_index(slice.len(), total, |index| f(&slice[index]))?;
+		slice.get(index)
+	}
+
+	/// Returns an index from `[0, len)`, selected in proportion to its weight.
+	///
+	/// `total` defines the upper bound of the sample space. A value is sampled
+	/// from the [`Uniform`](distr::Uniform) distribution between `T::default()`
+	/// and `total`, then the weights are subtracted in index order until the
+	/// sampled index is found. `T::default()` is treated as zero.
+	///
+	/// The weight function is called in index order and stops as soon as an index
+	/// is selected. Weights which are not strictly greater than `T::default()` are
+	/// skipped. For floating-point weights this also skips `NaN`.
+	///
+	/// Returns `None` if `total` is not strictly greater than `T::default()`, or if
+	/// the sampled value lies in the unused remainder when the positive weights
+	/// sum to less than `total`.
+	///
+	/// # Examples
+	///
+	/// ```
+	#[cfg_attr(feature = "getrandom", doc = "let mut rand = urandom::new();")]
+	#[cfg_attr(not(feature = "getrandom"), doc = "let mut rand = urandom::seeded(42);")]
+	/// let weights = [1u32, 2, 7];
+	/// let index = rand.weighted_index(weights.len(), 10, |index| weights[index]).unwrap();
+	/// assert!(index < weights.len());
+	/// ```
+	pub fn weighted_index<T, F: FnMut(usize) -> T>(&mut self, len: usize, total: T, mut f: F) -> Option<usize> where
+		T: Copy + Default + PartialOrd + ops::SubAssign + distr::SampleUniform
+	{
+		let zero = T::default();
+		if total > zero {
+			let mut sample = distr::Uniform::try_new(zero, total).ok()?.sample(self);
+
+			for index in 0..len {
+				let weight = f(index);
+				if !(weight > zero) {
+					continue;
+				}
+				if sample < weight {
+					return Some(index);
+				}
+				sample -= weight;
+			}
+		}
+		None
+	}
+
 	/// Standard [Fisher–Yates](https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle) shuffle.
 	///
 	/// # Examples
@@ -456,64 +523,5 @@ impl<R: Rng + ?Sized> Random<R> {
 
 //----------------------------------------------------------------
 
-#[cfg(feature = "getrandom")]
-#[test]
-fn test_choose() {
-	let mut rand = crate::new();
-
-	let mut array = [0, 1, 2, 3, 4];
-	let mut result = [0i32; 5];
-
-	for _ in 0..10000 {
-		result[*rand.choose(&array).unwrap()] += 1;
-		result[*rand.choose_mut(&mut array).unwrap()] += 1;
-	}
-
-	let mean = (result[0] + result[1] + result[2] + result[3] + result[4]) / 5;
-	let success = result.iter().all(|&x| (x - mean).abs() < 500);
-	assert!(success, "mean: {mean}, result: {result:?}");
-}
-
-#[cfg(feature = "getrandom")]
-#[test]
-fn test_choose_iter_reservoir() {
-	let unknown_size = || (0..4).filter(|_| true);
-	let mut rand = crate::new();
-	let mut counts = [0i32; 4];
-
-	for _ in 0..10000 {
-		counts[rand.choose_iter(unknown_size()).unwrap()] += 1;
-	}
-
-	let mean = counts.iter().sum::<i32>() / counts.len() as i32;
-	let success = counts.iter().all(|&count| (count - mean).abs() < 500);
-	assert!(success, "mean: {mean}, counts: {counts:?}");
-
-	assert_eq!(rand.choose_iter(core::iter::empty::<i32>()), None);
-}
-
-#[cfg(feature = "getrandom")]
-#[test]
-fn test_choose_multiple_reservoir_range() {
-	let mut rand = crate::new();
-	let mut counts = [0i32; 2];
-
-	for _ in 0..10000 {
-		let mut result = [0];
-		assert_eq!(rand.choose_multiple(0..2, &mut result), 1);
-		counts[result[0]] += 1;
-	}
-
-	let mean = (counts[0] + counts[1]) / 2;
-	let success = counts.iter().all(|&count| (count - mean).abs() < 500);
-	assert!(success, "mean: {mean}, counts: {counts:?}");
-}
-
-#[cfg(feature = "getrandom")]
-#[test]
-fn test_partial_shuffle() {
-	let mut items = [1, 2, 3, 4, 100];
-	let mut rng = crate::new();
-	let items = rng.partial_shuffle(&mut items, 5);
-	assert_eq!(items.len(), 5);
-}
+#[cfg(test)]
+mod tests;
