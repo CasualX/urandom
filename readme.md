@@ -93,6 +93,7 @@ Features
 * `serde`: Enables serialization and deserialization for random number generators and distributions.
 
   Serialized generator state is covered by the strong generator guarantee described above.
+  See the [Serde data model guide](docs/serde.md) for backend requirements and compatibility details.
 
 System entropy is currently provided by `getrandom`. Custom entropy sources rely on [`getrandom`'s custom-backend mechanism](https://docs.rs/getrandom/0.3/#custom-backend).
 This integration is not part of urandom's stable API and may change between otherwise SemVer-compatible releases.

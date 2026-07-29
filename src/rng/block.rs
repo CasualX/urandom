@@ -15,12 +15,9 @@ fn bytes<T: dataview::Pod + ?Sized>(value: &T) -> &[u8] {
 }
 
 #[derive(Clone, Debug)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct BlockRngImpl<T: BlockRng> {
 	state: T,
-	#[cfg_attr(feature = "serde", serde(default = "default_index::<T>", skip_serializing_if = "is_index_oob::<T>"))]
 	index: u32,
-	#[cfg_attr(feature = "serde", serde(default, skip_serializing_if = "is_default"))]
 	random: T::Output,
 }
 
@@ -114,16 +111,5 @@ impl<T: BlockRng> JumpRng for BlockRngImpl<T> {
 	}
 }
 
-cfg_if::cfg_if! {
-	if #[cfg(feature = "serde")] {
-		fn is_default<T: Default + PartialEq>(value: &T) -> bool {
-			*value == T::default()
-		}
-		fn is_index_oob<T: BlockRng>(value: &u32) -> bool {
-			*value >= mem::size_of::<T::Output>() as u32
-		}
-		fn default_index<T: BlockRng>() -> u32 {
-			!0
-		}
-	}
-}
+#[cfg(feature = "serde")]
+mod s;

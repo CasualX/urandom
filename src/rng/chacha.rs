@@ -17,12 +17,14 @@ impl SecureRng for ChaChaRng<20> {}
 
 
 /// Daniel J. Bernstein's ChaCha adapted as a deterministic random number generator.
+///
+/// # Serialization security
+///
+/// With the `serde` feature, the serialized generator state contains the secret seed and buffered keystream.
+/// Anyone who obtains it can reproduce the generator's stream. Protect serialized state with the same care as the original seed.
 #[derive(Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(bound = "ChaChaRng<N>: SecureRng"))]
 #[repr(transparent)]
 pub struct ChaChaRng<const N: usize> {
-	#[cfg_attr(feature = "serde", serde(flatten))]
 	inner: BlockRngImpl<ChaChaState<N>>,
 }
 
@@ -158,6 +160,12 @@ cfg_if::cfg_if! {
 const CN: usize = 4; // Concurrent ChaCha instances
 const CONSTANT: [u32; 4] = [0x61707865, 0x3320646e, 0x79622d32, 0x6b206574];
 
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[repr(transparent)]
+pub struct ChaChaOutput([[u32; 16]; CN]);
+
+unsafe impl dataview::Pod for ChaChaOutput {}
+
 #[derive(Clone)]
 #[repr(C)]
 pub struct ChaChaState<const N: usize> {
@@ -214,13 +222,13 @@ impl<const N: usize> ChaChaState<N> {
 }
 
 impl<const N: usize> BlockRng for ChaChaState<N> {
-	type Output = [[u32; 16]; CN];
+	type Output = ChaChaOutput;
 
 	#[inline(never)]
 	fn generate(&mut self, random: &mut Self::Output) {
-		chacha_block(self, random);
+		chacha_block(self, &mut random.0);
 		#[cfg(target_endian = "big")]
-		for block in random {
+		for block in &mut random.0 {
 			for word in block {
 				*word = word.to_le();
 			}
@@ -244,27 +252,7 @@ impl<const N: usize> fmt::Debug for ChaChaState<N> {
 }
 
 #[cfg(feature = "serde")]
-impl<const N: usize> serde::Serialize for ChaChaState<N> {
-	fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-		[
-			self.seed[0], self.seed[1], self.seed[2], self.seed[3],
-			self.seed[4], self.seed[5], self.seed[6], self.seed[7],
-			self.counter[0], self.counter[1], self.stream[0], self.stream[1],
-		].serialize(serializer)
-	}
-}
-
-#[cfg(feature = "serde")]
-impl<'de, const N: usize> serde::Deserialize<'de> for ChaChaState<N> {
-	fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-		let values = <[u32; 12]>::deserialize(deserializer)?;
-		Ok(ChaChaState {
-			seed: [values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7]],
-			counter: [values[8], values[9]],
-			stream: [values[10], values[11]],
-		})
-	}
-}
+mod s;
 
 #[cfg(test)]
 mod tests;

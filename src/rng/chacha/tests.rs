@@ -216,6 +216,46 @@ fn serde() {
 
 #[cfg(feature = "serde")]
 #[test]
+fn serde_cache_fields_are_atomic() {
+	let mut rand = ChaCha12Rng::from_seed_u64(42);
+	let initial = serde_json::to_value(&rand).unwrap();
+	assert!(initial.get("index").is_none());
+	assert!(initial.get("random").is_none());
+
+	let _ = rand.next_u64();
+	let middle = serde_json::to_value(&rand).unwrap();
+	assert!(middle.get("index").is_some());
+	assert!(middle.get("random").is_some());
+	assert_eq!(middle["random"][0][0], 631540493);
+
+	rand.jump();
+	let jumped = serde_json::to_value(&rand).unwrap();
+	assert!(jumped.get("index").is_none());
+	assert!(jumped.get("random").is_none());
+
+	let expected = rand.clone().next_u64();
+	let mut restored: crate::Random<ChaCha12Rng> = serde_json::from_value(jumped.clone()).unwrap();
+	assert_eq!(restored.next_u64(), expected);
+}
+
+#[cfg(feature = "serde")]
+#[test]
+fn serde_rejects_partial_cache() {
+	let mut rand = ChaCha12Rng::from_seed_u64(42);
+	let _ = rand.next_u64();
+	let saved = serde_json::to_value(rand).unwrap();
+
+	let mut missing_random = saved.clone();
+	missing_random.as_object_mut().unwrap().remove("random");
+	assert!(serde_json::from_value::<ChaCha12Rng>(missing_random).is_err());
+
+	let mut missing_index = saved;
+	missing_index.as_object_mut().unwrap().remove("index");
+	assert!(serde_json::from_value::<ChaCha12Rng>(missing_index).is_err());
+}
+
+#[cfg(feature = "serde")]
+#[test]
 fn deserialize_v1_middle_state() {
 	let saved = include_str!("chacha12-midstate-v1.json");
 	let mut rand: crate::Random<ChaCha12Rng> = serde_json::from_str(saved).unwrap();

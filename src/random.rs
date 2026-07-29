@@ -4,9 +4,9 @@ use super::*;
 /// Rich interface for consuming random number generators.
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(transparent))]
 #[repr(transparent)]
 pub struct Random<R: ?Sized> {
-	#[cfg_attr(feature = "serde", serde(flatten))]
 	rng: R,
 }
 

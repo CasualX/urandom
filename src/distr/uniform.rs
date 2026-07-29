@@ -159,9 +159,9 @@ pub trait UniformSampler<T>: Distribution<T> + Sized {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(bound(serialize = "T::Sampler: serde::Serialize")))]
 #[cfg_attr(feature = "serde", serde(bound(deserialize = "T::Sampler: serde::Deserialize<'de>")))]
+#[cfg_attr(feature = "serde", serde(transparent))]
 #[repr(transparent)]
 pub struct Uniform<T: SampleUniform> {
-	#[cfg_attr(feature = "serde", serde(flatten))]
 	sampler: T::Sampler,
 }
 

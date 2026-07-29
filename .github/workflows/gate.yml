@@ -35,6 +35,9 @@ jobs:
       - name: Quick check (no default features)
         run: cargo check --no-default-features
 
+      - name: Quick check (serde, no std)
+        run: cargo check --no-default-features --features serde
+
       - name: Run tests
         run: cargo test --all-features
 
