@@ -90,12 +90,17 @@ Features
 
   Without this feature, the crate can be used in `no_std` environments with limited functionality. See the API documentation for details.
 
+* `getrandom` (default): Enables system entropy through the `getrandom` crate.
+
+  This enables `urandom::new()`, `urandom::csprng()`, each generator's `new()` constructor, `SystemRng`, `getentropy`, and `getentropy_uninit`.
+  Without this feature, deterministic constructors such as `urandom::seeded()`, `from_seed()`, `from_seed_u64()`, and `from_rng()` remain available.
+
 * `serde`: Enables serialization and deserialization for random number generators and distributions.
 
   Serialized generator state is covered by the strong generator guarantee described above.
   See the [Serde data model guide](docs/serde.md) for backend requirements and compatibility details.
 
-System entropy is currently provided by `getrandom`. Custom entropy sources rely on [`getrandom`'s custom-backend mechanism](https://docs.rs/getrandom/0.3/#custom-backend).
+When enabled, system entropy is provided by `getrandom`. Custom entropy sources rely on [`getrandom`'s custom-backend mechanism](https://docs.rs/getrandom/0.3/#custom-backend).
 This integration is not part of urandom's stable API and may change between otherwise SemVer-compatible releases.
 
 License

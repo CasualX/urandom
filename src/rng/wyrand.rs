@@ -24,6 +24,7 @@ impl WyrandRng {
 	/// let value: i32 = rand.random();
 	/// ```
 	#[inline]
+	#[cfg(feature = "getrandom")]
 	pub fn new() -> Random<WyrandRng> {
 		Self::from_seed(util::getrandom())
 	}
@@ -104,6 +105,7 @@ impl JumpRng for WyrandRng {
 	}
 }
 
+#[cfg(feature = "getrandom")]
 #[cfg(feature = "serde")]
 #[test]
 fn serde() {

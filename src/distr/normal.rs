@@ -17,7 +17,8 @@ use super::*;
 /// ```
 /// use urandom::distr::StandardNormal;
 ///
-/// let value: f64 = urandom::new().sample(&StandardNormal);
+#[cfg_attr(feature = "getrandom", doc = "let value: f64 = urandom::new().sample(&StandardNormal);")]
+#[cfg_attr(not(feature = "getrandom"), doc = "let value: f64 = urandom::seeded(42).sample(&StandardNormal);")]
 /// println!("{value}");
 /// ```
 ///
@@ -143,7 +144,8 @@ pub trait NormalImpl<Float>: Sized {
 ///
 /// // mean 2, standard deviation 3
 /// let normal = Normal::new(2.0, 3.0);
-/// let v = urandom::new().sample(&normal);
+#[cfg_attr(feature = "getrandom", doc = "let v = urandom::new().sample(&normal);")]
+#[cfg_attr(not(feature = "getrandom"), doc = "let v = urandom::seeded(42).sample(&normal);")]
 /// println!("{v} is from a N(2, 9) distribution");
 /// ```
 ///
@@ -224,7 +226,8 @@ impl<Float: Copy> Normal<Float> where Self: NormalImpl<Float> {
 	///
 	/// ```
 	/// # use urandom::distr::*;
-	/// let mut rand = urandom::new();
+	#[cfg_attr(feature = "getrandom", doc = "let mut rand = urandom::new();")]
+	#[cfg_attr(not(feature = "getrandom"), doc = "let mut rand = urandom::seeded(42);")]
 	/// let z = rand.sample(&StandardNormal);
 	/// let x1 = Normal::new(0.0, 1.0).from_zscore(z);
 	/// let x2 = Normal::new(2.0, -3.0).from_zscore(z);
@@ -292,7 +295,8 @@ impl_normal!(f64);
 ///
 /// // log-space mean 2, log-space standard deviation 3
 /// let log_normal = LogNormal::new(2.0, 3.0);
-/// let v = urandom::new().sample(&log_normal);
+#[cfg_attr(feature = "getrandom", doc = "let v = urandom::new().sample(&log_normal);")]
+#[cfg_attr(not(feature = "getrandom"), doc = "let v = urandom::seeded(42).sample(&log_normal);")]
 /// println!("{v} is from an ln N(2, 9) distribution");
 /// ```
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -356,7 +360,8 @@ impl<Float: Copy> LogNormal<Float> where Self: NormalImpl<Float> {
 	///
 	/// ```
 	/// # use urandom::distr::{LogNormal, StandardNormal};
-	/// let mut rand = urandom::new();
+	#[cfg_attr(feature = "getrandom", doc = "let mut rand = urandom::new();")]
+	#[cfg_attr(not(feature = "getrandom"), doc = "let mut rand = urandom::seeded(42);")]
 	/// let z = rand.sample(&StandardNormal);
 	/// let x1 = LogNormal::from_mean_cv(3.0, 1.0).from_zscore(z);
 	/// let x2 = LogNormal::from_mean_cv(2.0, 4.0).from_zscore(z);
@@ -420,5 +425,6 @@ macro_rules! impl_log_normal {
 impl_log_normal!(f32);
 impl_log_normal!(f64);
 
+#[cfg(feature = "getrandom")]
 #[cfg(test)]
 mod tests;

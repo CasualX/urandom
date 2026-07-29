@@ -1,60 +1,58 @@
-/*!
-Random number generators.
-
-Reproducibility guarantee
--------------------------
-
-The random stream of each deterministic generator in this module is part of its stable API.
-Across SemVer-compatible releases, a concrete generator initialized from the same explicit seed or state
-produces identical output on supported targets when given the same sequence of [`Rng`] and [`JumpRng`] calls and arguments.
-The generator algorithm, seed expansion, and behavior of those calls will not be changed, including for performance improvements.
-
-The exact call sequence is part of the input to this guarantee. For example, one [`Rng::next_u64`] call
-is not interchangeable with two [`Rng::next_u32`] calls, even if both request 64 bits in total.
-
-With the `serde` feature, the guarantee also covers serialized generator state. State written by one release
-remains readable by SemVer-compatible releases, and restoring it continues the same stream at the saved position.
-
-This guarantee also applies to the root-level [`crate::new`], [`crate::seeded`], and [`crate::csprng`]
-constructors: their generator choice and initialization behavior remain stable across SemVer-compatible releases.
-
-Pseudorandom number generators
--------------------------------
-
-These are fast pseudorandom number generators suitable for ordinary, non-cryptographic applications.
-
-* [`Xoshiro256Rng`]:
-
-  See the [PRNG shootout](http://prng.di.unimi.it/) for background and analysis.
-
-* [`SplitMix64Rng`]:
-
-  Fast RNG, with 64 bits of state, that can be used to initialize the state of other generators.
-
-Cryptographically secure generators
------------------------------------
-
-These generators are suitable for cryptographic applications.
-
-* [`ChaCha8Rng`], [`ChaCha12Rng`], [`ChaCha20Rng`]:
-
-  Daniel J. Bernstein's ChaCha adapted as a deterministic random number generator.
-
-* [`SystemRng`]:
-
-  Reads randomness directly from the system entropy source.
-
-  For performance, this generator fetches entropy in blocks of `N` 32-bit words.
-  Larger values of `N` reduce how often the system entropy source must be called.
-
-Other generators
-----------------
-
-* [`MockRng`]:
-
-  A deterministic test generator backed by an iterator. It panics when the iterator runs out of items.
-
-*/
+//! Random number generators.
+//!
+//! Reproducibility guarantee
+//! -------------------------
+//!
+//! The random stream of each deterministic generator in this module is part of its stable API.
+//! Across SemVer-compatible releases, a concrete generator initialized from the same explicit seed or state
+//! produces identical output on supported targets when given the same sequence of [`Rng`] and [`JumpRng`] calls and arguments.
+//! The generator algorithm, seed expansion, and behavior of those calls will not be changed, including for performance improvements.
+//!
+//! The exact call sequence is part of the input to this guarantee. For example, one [`Rng::next_u64`] call
+//! is not interchangeable with two [`Rng::next_u32`] calls, even if both request 64 bits in total.
+//!
+//! With the `serde` feature, the guarantee also covers serialized generator state. State written by one release
+//! remains readable by SemVer-compatible releases, and restoring it continues the same stream at the saved position.
+//!
+#![cfg_attr(feature = "getrandom", doc = "This guarantee also applies to the root-level [`crate::new`], [`crate::seeded`], and [`crate::csprng`] constructors: their generator choice and initialization behavior remain stable across SemVer-compatible releases.")]
+#![cfg_attr(not(feature = "getrandom"), doc = "This guarantee also applies to the root-level [`crate::seeded`] constructor: its generator choice and initialization behavior remain stable across SemVer-compatible releases.")]
+//!
+//! Pseudorandom number generators
+//! -------------------------------
+//!
+//! These are fast pseudorandom number generators suitable for ordinary, non-cryptographic applications.
+//!
+//! * [`Xoshiro256Rng`]:
+//!
+//!   See the [PRNG shootout](http://prng.di.unimi.it/) for background and analysis.
+//!
+//! * [`SplitMix64Rng`]:
+//!
+//!   Fast RNG, with 64 bits of state, that can be used to initialize the state of other generators.
+//!
+//! Cryptographically secure generators
+//! -----------------------------------
+//!
+//! These generators are suitable for cryptographic applications.
+//!
+//! * [`ChaCha8Rng`], [`ChaCha12Rng`], [`ChaCha20Rng`]:
+//!
+//!   Daniel J. Bernstein's ChaCha adapted as a deterministic random number generator.
+//!
+#![cfg_attr(feature = "getrandom", doc = "* [`SystemRng`]:")]
+#![cfg_attr(not(feature = "getrandom"), doc = "* `SystemRng` (requires the `getrandom` feature):")]
+//!
+//!   Reads randomness directly from the system entropy source.
+//!
+//!   For performance, this generator fetches entropy in blocks of `N` 32-bit words.
+//!   Larger values of `N` reduce how often the system entropy source must be called.
+//!
+//! Other generators
+//! ----------------
+//!
+//! * [`MockRng`]:
+//!
+//!   A deterministic test generator backed by an iterator. It panics when the iterator runs out of items.
 
 #![cfg_attr(feature = "std", doc = r#"
 * [`ReadRng`]:
@@ -159,10 +157,14 @@ cfg_if::cfg_if! {
 mod chacha;
 pub use self::chacha::{ChaChaRng, ChaCha8Rng, ChaCha12Rng, ChaCha20Rng};
 
+#[cfg(feature = "getrandom")]
 mod system;
+#[cfg(feature = "getrandom")]
 pub use self::system::SystemRng;
 
+#[cfg(feature = "getrandom")]
 mod entropy;
+#[cfg(feature = "getrandom")]
 pub use self::entropy::{getentropy, getentropy_uninit};
 
 mod block;
@@ -170,5 +172,6 @@ use self::block::{BlockRng, BlockRngImpl};
 
 //----------------------------------------------------------------
 
+#[cfg(feature = "getrandom")]
 #[cfg(test)]
 mod tests;

@@ -60,6 +60,7 @@ fn replace_exponent_f64(value: f64, exp: u32) -> f64 {
 	f64::from_bits((exp as u64) << (f64::MANTISSA_DIGITS - 1) | mantissa)
 }
 
+#[cfg(feature = "getrandom")]
 #[test]
 fn test_yolo() {
 	for float in crate::new().samples(Float01).take(10000) {

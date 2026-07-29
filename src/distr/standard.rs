@@ -27,7 +27,8 @@ use super::*;
 /// ```
 /// use urandom::distr::StandardUniform;
 ///
-/// let value: f32 = urandom::new().sample(&StandardUniform);
+#[cfg_attr(feature = "getrandom", doc = "let value: f32 = urandom::new().sample(&StandardUniform);")]
+#[cfg_attr(not(feature = "getrandom"), doc = "let value: f32 = urandom::seeded(42).sample(&StandardUniform);")]
 /// assert!(value >= 0.0 && value < 1.0, "f32 from [0.0, 1.0): {value}");
 /// ```
 ///
@@ -211,6 +212,7 @@ impl<T, const N: usize> Distribution<[T; N]> for StandardUniform where StandardU
 
 //----------------------------------------------------------------
 
+#[cfg(feature = "getrandom")]
 #[test]
 fn test_arrays() {
 	let mut rand = crate::new();
@@ -237,6 +239,7 @@ fn test_pointer_sized_uses_u64() {
 	assert_eq!(actual.random::<isize>(), expected.random::<u64>() as isize);
 }
 
+#[cfg(feature = "getrandom")]
 #[test]
 fn test_float_range() {
 	let mut rand = crate::rng::MockRng::slice(&[0, u64::MAX]);
@@ -258,6 +261,7 @@ fn test_wrapping() {
 	assert_eq!(rand.random::<num::Wrapping<u32>>(), num::Wrapping(42));
 }
 
+#[cfg(feature = "getrandom")]
 #[test]
 fn test_nzint() {
 	let mut rand = crate::new();
@@ -279,6 +283,7 @@ fn test_small_nzint_reuses_random_word() {
 	assert_eq!(rand.random::<num::NonZeroI16>().get(), 1);
 }
 
+#[cfg(feature = "getrandom")]
 #[test]
 fn test_char() {
 	let mut rand = crate::new();
@@ -289,6 +294,7 @@ fn test_char() {
 	}
 }
 
+#[cfg(feature = "getrandom")]
 #[test]
 fn test_bool() {
 	let mut rand = crate::new();

@@ -100,7 +100,8 @@ pub trait UniformSampler<T>: Distribution<T> + Sized {
 /// use urandom::distr::Uniform;
 ///
 /// let between = Uniform::new(10, 10000);
-/// let mut rand = urandom::new();
+#[cfg_attr(feature = "getrandom", doc = "let mut rand = urandom::new();")]
+#[cfg_attr(not(feature = "getrandom"), doc = "let mut rand = urandom::seeded(42);")]
 /// let mut sum = 0;
 /// for _ in 0..1000 {
 /// 	sum += rand.sample(&between);
@@ -151,7 +152,8 @@ pub trait UniformSampler<T>: Distribution<T> + Sized {
 /// }
 ///
 /// // Now it can be used to generate random samples.
-/// let mut rand = urandom::new();
+#[cfg_attr(feature = "getrandom", doc = "let mut rand = urandom::new();")]
+#[cfg_attr(not(feature = "getrandom"), doc = "let mut rand = urandom::seeded(42);")]
 /// let value = rand.uniform(MyF32(13.0)..MyF32(42.0));
 /// assert!(value.0 >= 13.0 && value.0 < 42.0);
 /// ```
@@ -251,5 +253,6 @@ impl<T: SampleUniform> Distribution<T> for Uniform<T> {
 	}
 }
 
+#[cfg(feature = "getrandom")]
 #[cfg(test)]
 mod tests;

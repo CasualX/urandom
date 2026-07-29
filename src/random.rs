@@ -66,7 +66,8 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// # Examples
 	///
 	/// ```
-	/// let mut rand = urandom::new();
+	#[cfg_attr(feature = "getrandom", doc = "let mut rand = urandom::new();")]
+	#[cfg_attr(not(feature = "getrandom"), doc = "let mut rand = urandom::seeded(42);")]
 	/// let mut data = [0u32; 32];
 	/// let data = rand.fill_bytes(&mut data);
 	/// assert_ne!(data, [0u32; 32]);
@@ -91,7 +92,8 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// use std::mem::MaybeUninit;
 	/// use std::slice;
 	///
-	/// let mut rand = urandom::new();
+	#[cfg_attr(feature = "getrandom", doc = "let mut rand = urandom::new();")]
+	#[cfg_attr(not(feature = "getrandom"), doc = "let mut rand = urandom::seeded(42);")]
 	/// let mut data = MaybeUninit::<[u32; 32]>::uninit();
 	/// let data = rand.fill_bytes_uninit(slice::from_mut(&mut data));
 	/// assert_ne!(data, [[0u32; 32]]);
@@ -113,7 +115,8 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// # Examples
 	///
 	/// ```
-	/// let mut rand = urandom::new();
+	#[cfg_attr(feature = "getrandom", doc = "let mut rand = urandom::new();")]
+	#[cfg_attr(not(feature = "getrandom"), doc = "let mut rand = urandom::seeded(42);")]
 	/// let value: [u32; 32] = rand.random_bytes();
 	/// assert_ne!(value, [0u32; 32]);
 	/// ```
@@ -135,7 +138,8 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// # Examples
 	///
 	/// ```
-	/// let mut rand = urandom::new();
+	#[cfg_attr(feature = "getrandom", doc = "let mut rand = urandom::new();")]
+	#[cfg_attr(not(feature = "getrandom"), doc = "let mut rand = urandom::seeded(42);")]
 	/// for _ in 0..10 {
 	/// 	parallel_computation(rand.split());
 	/// }
@@ -172,7 +176,8 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// # Examples
 	///
 	/// ```
-	/// let int: i8 = urandom::new().random();
+	#[cfg_attr(feature = "getrandom", doc = "let int: i8 = urandom::new().random();")]
+	#[cfg_attr(not(feature = "getrandom"), doc = "let int: i8 = urandom::seeded(42).random();")]
 	/// ```
 	#[inline]
 	pub fn random<T>(&mut self) -> T where distr::StandardUniform: Distribution<T> {
@@ -186,7 +191,8 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// # Examples
 	///
 	/// ```
-	/// let mut rand = urandom::new();
+	#[cfg_attr(feature = "getrandom", doc = "let mut rand = urandom::new();")]
+	#[cfg_attr(not(feature = "getrandom"), doc = "let mut rand = urandom::seeded(42);")]
 	/// let mut data = [false; 32];
 	/// rand.fill(&mut data);
 	/// ```
@@ -203,14 +209,16 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// # Examples
 	///
 	/// ```
-	/// let eyes = urandom::new().uniform(1..=6);
+	#[cfg_attr(feature = "getrandom", doc = "let eyes = urandom::new().uniform(1..=6);")]
+	#[cfg_attr(not(feature = "getrandom"), doc = "let eyes = urandom::seeded(42).uniform(1..=6);")]
 	/// assert!(eyes >= 1 && eyes <= 6);
 	/// ```
 	///
 	/// If more than one sample from a specific interval is desired, it is more efficient to reuse the uniform sampler.
 	///
 	/// ```
-	/// let mut rand = urandom::new();
+	#[cfg_attr(feature = "getrandom", doc = "let mut rand = urandom::new();")]
+	#[cfg_attr(not(feature = "getrandom"), doc = "let mut rand = urandom::seeded(42);")]
 	/// let distr = urandom::distr::Uniform::from(0..100);
 	///
 	/// loop {
@@ -287,7 +295,8 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// # Examples
 	///
 	/// ```
-	/// let mut rand = urandom::new();
+	#[cfg_attr(feature = "getrandom", doc = "let mut rand = urandom::new();")]
+	#[cfg_attr(not(feature = "getrandom"), doc = "let mut rand = urandom::seeded(42);")]
 	/// assert!(!rand.chance_ratio(0, 3));
 	/// assert!(rand.chance_ratio(3, 3));
 	/// ```
@@ -320,7 +329,8 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// 	n % 3 == 0 || n % 5 == 0
 	/// }
 	///
-	/// let mut rand = urandom::new();
+	#[cfg_attr(feature = "getrandom", doc = "let mut rand = urandom::new();")]
+	#[cfg_attr(not(feature = "getrandom"), doc = "let mut rand = urandom::seeded(42);")]
 	/// let fizzbuzz = rand.choose_iter((0..100).filter(is_fizzbuzz)).unwrap();
 	/// assert!(fizzbuzz % 3 == 0 || fizzbuzz % 5 == 0);
 	/// ```
@@ -328,7 +338,8 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// Pick a random emoji:
 	///
 	/// ```
-	/// let mood = urandom::new().choose_iter("😀😎😐😕😠😢".chars()).unwrap();
+	#[cfg_attr(feature = "getrandom", doc = "let mood = urandom::new().choose_iter(\"😀😎😐😕😠😢\".chars()).unwrap();")]
+	#[cfg_attr(not(feature = "getrandom"), doc = "let mood = urandom::seeded(42).choose_iter(\"😀😎😐😕😠😢\".chars()).unwrap();")]
 	/// println!("I am {mood}!");
 	/// ```
 	pub fn choose_iter<I: IntoIterator>(&mut self, collection: I) -> Option<I::Item> {
@@ -392,7 +403,8 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// # Examples
 	///
 	/// ```
-	/// let mut rand = urandom::new();
+	#[cfg_attr(feature = "getrandom", doc = "let mut rand = urandom::new();")]
+	#[cfg_attr(not(feature = "getrandom"), doc = "let mut rand = urandom::seeded(42);")]
 	/// for len in 1..12345 {
 	/// 	let index = rand.index(len);
 	/// 	assert!(index < len, "len:{len} index:{index} was not inbounds");
@@ -421,7 +433,8 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// # Examples
 	///
 	/// ```
-	/// let mut rand = urandom::new();
+	#[cfg_attr(feature = "getrandom", doc = "let mut rand = urandom::new();")]
+	#[cfg_attr(not(feature = "getrandom"), doc = "let mut rand = urandom::seeded(42);")]
 	/// let mut array = [1, 2, 3, 4, 5];
 	/// println!("Unshuffled: {array:?}");
 	/// rand.shuffle(&mut array);
@@ -458,6 +471,7 @@ impl<R: Rng + ?Sized> Random<R> {
 
 //----------------------------------------------------------------
 
+#[cfg(feature = "getrandom")]
 #[test]
 fn test_choose() {
 	let mut rand = crate::new();
@@ -475,6 +489,7 @@ fn test_choose() {
 	assert!(success, "mean: {mean}, result: {result:?}");
 }
 
+#[cfg(feature = "getrandom")]
 #[test]
 fn test_choose_iter_reservoir() {
 	let unknown_size = || (0..4).filter(|_| true);
@@ -492,6 +507,7 @@ fn test_choose_iter_reservoir() {
 	assert_eq!(rand.choose_iter(core::iter::empty::<i32>()), None);
 }
 
+#[cfg(feature = "getrandom")]
 #[test]
 fn test_choose_multiple_reservoir_range() {
 	let mut rand = crate::new();
@@ -508,6 +524,7 @@ fn test_choose_multiple_reservoir_range() {
 	assert!(success, "mean: {mean}, counts: {counts:?}");
 }
 
+#[cfg(feature = "getrandom")]
 #[test]
 fn test_partial_shuffle() {
 	let mut items = [1, 2, 3, 4, 100];

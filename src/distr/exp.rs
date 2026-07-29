@@ -17,7 +17,8 @@ use super::*;
 /// ```
 /// use urandom::distr::Exp1;
 ///
-/// let value: f64 = urandom::new().sample(&Exp1);
+#[cfg_attr(feature = "getrandom", doc = "let value: f64 = urandom::new().sample(&Exp1);")]
+#[cfg_attr(not(feature = "getrandom"), doc = "let value: f64 = urandom::seeded(42).sample(&Exp1);")]
 /// println!("{value}");
 /// ```
 ///
@@ -115,7 +116,8 @@ pub trait ExpImpl<Float>: Sized {
 /// use urandom::distr::Exp;
 ///
 /// let exp = Exp::new(2.0);
-/// let v = urandom::new().sample(&exp);
+#[cfg_attr(feature = "getrandom", doc = "let v = urandom::new().sample(&exp);")]
+#[cfg_attr(not(feature = "getrandom"), doc = "let v = urandom::seeded(42).sample(&exp);")]
 /// println!("{v} is from a Exp(2) distribution");
 /// ```
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -166,5 +168,6 @@ macro_rules! impl_exp {
 impl_exp!(f32);
 impl_exp!(f64);
 
+#[cfg(feature = "getrandom")]
 #[cfg(test)]
 mod tests;

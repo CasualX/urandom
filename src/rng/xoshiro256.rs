@@ -28,6 +28,7 @@ impl Xoshiro256Rng {
 	/// let value: i32 = rand.random();
 	/// ```
 	#[inline]
+	#[cfg(feature = "getrandom")]
 	pub fn new() -> Random<Xoshiro256Rng> {
 		Self::from_seed(util::getrandom())
 	}
@@ -41,7 +42,8 @@ impl Xoshiro256Rng {
 	/// # Examples
 	///
 	/// ```
-	/// let mut master = urandom::rng::SplitMix64Rng::new();
+	#[cfg_attr(feature = "getrandom", doc = "let mut master = urandom::rng::SplitMix64Rng::new();")]
+	#[cfg_attr(not(feature = "getrandom"), doc = "let mut master = urandom::rng::SplitMix64Rng::from_seed_u64(42);")]
 	/// let mut rand = urandom::rng::Xoshiro256Rng::from_rng(&mut master);
 	/// let value: i32 = rand.random();
 	/// ```
@@ -146,11 +148,13 @@ fn fork_reseeds_degenerate_zero_state() {
 	assert_ne!(left.state, right.state);
 }
 
+#[cfg(feature = "getrandom")]
 #[test]
 fn fill_bytes() {
 	crate::rng::tests::check_fill_bytes(&mut Xoshiro256Rng::new());
 }
 
+#[cfg(feature = "getrandom")]
 #[cfg(feature = "serde")]
 #[test]
 fn serde() {

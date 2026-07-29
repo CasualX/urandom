@@ -6,7 +6,8 @@ use super::*;
 ///
 /// ```
 /// use urandom::distr::Dice;
-/// let mut rand = urandom::new();
+#[cfg_attr(feature = "getrandom", doc = "let mut rand = urandom::new();")]
+#[cfg_attr(not(feature = "getrandom"), doc = "let mut rand = urandom::seeded(42);")]
 ///
 /// let sum: i32 = rand.samples(Dice::D6).take(2).sum();
 /// assert!(sum >= 1 && sum <= 12);

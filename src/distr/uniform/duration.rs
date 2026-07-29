@@ -21,7 +21,8 @@ fn duration_from_nanos(value: u128) -> Duration {
 /// ```
 /// use core::time::Duration;
 ///
-/// let value = urandom::new().uniform(Duration::from_secs(1)..Duration::from_secs(2));
+#[cfg_attr(feature = "getrandom", doc = "let value = urandom::new().uniform(Duration::from_secs(1)..Duration::from_secs(2));")]
+#[cfg_attr(not(feature = "getrandom"), doc = "let value = urandom::seeded(42).uniform(Duration::from_secs(1)..Duration::from_secs(2));")]
 /// assert!(value >= Duration::from_secs(1) && value < Duration::from_secs(2));
 /// ```
 #[derive(Copy, Clone, Debug)]

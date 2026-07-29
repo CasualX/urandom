@@ -44,6 +44,7 @@ impl<const N: usize> ChaChaRng<N> where Self: SecureRng {
 	/// let value: i32 = rand.random();
 	/// ```
 	#[inline]
+	#[cfg(feature = "getrandom")]
 	pub fn new() -> Random<ChaChaRng<N>> {
 		Self::from_seed(util::getrandom())
 	}
@@ -267,5 +268,6 @@ impl<const N: usize> fmt::Debug for ChaChaState<N> {
 #[cfg(feature = "serde")]
 mod s;
 
+#[cfg(feature = "getrandom")]
 #[cfg(test)]
 mod tests;

@@ -1,43 +1,43 @@
-/*!
-Produce and consume randomness.
-
-This crate provides random number generators, distributions, sampling utilities, and randomness-related algorithms.
-
-It is a fork of the semi-official [`rand`](https://crates.io/crates/rand) crate, focused on providing a cohesive and ergonomic consumer API.
-
-# Quick Start
-
-The easiest way to get started is to create a [`Random`] generator with [`new`] and use its inherent methods.
-
-The [`Random`] struct provides a convenient API over the random number generators, while the [`distr`] module provides distributions and sampling utilities.
-
-```
-let mut rand = urandom::new();
-
-// Roll a six-sided die.
-let roll: u32 = rand.uniform(1..=6);
-
-// Choose a random element.
-let colors = ["red", "green", "blue"];
-let color = rand.choose(&colors).unwrap();
-
-// Shuffle a collection in place.
-let mut numbers: Vec<_> = (1..=10).collect();
-rand.shuffle(&mut numbers);
-
-println!("Rolled {roll}, chose {color}");
-```
-
-# Reproducibility policy
-
-This crate has two levels of reproducibility:
-
-* Deterministic generator types in [`rng`] and the [`new`], [`seeded`], and [`csprng`] constructors have a strong guarantee across SemVer-compatible releases.
-  Their generator algorithms, constructor choices and initialization, explicit seeding, and serialized state are stable.
-
-* Distributions in the [`distr`] module and sampling algorithms in [`Random`] are stable between patch releases of the same minor version, on a best-effort basis.
-
-*/
+//! Produce and consume randomness.
+//!
+//! This crate provides random number generators, distributions, sampling utilities, and randomness-related algorithms.
+//!
+//! It is a fork of the semi-official [`rand`](https://crates.io/crates/rand) crate, focused on providing a cohesive and ergonomic consumer API.
+//!
+//! # Quick Start
+//!
+#![cfg_attr(feature = "getrandom", doc = "The easiest way to get started is to create a [`Random`] generator with [`new`] and use its inherent methods.")]
+#![cfg_attr(not(feature = "getrandom"), doc = "The easiest way to get started is to create a [`Random`] generator with [`seeded`] and use its inherent methods.")]
+//!
+//! The [`Random`] struct provides a convenient API over the random number generators, while the [`distr`] module provides distributions and sampling utilities.
+//!
+//! ```
+#![cfg_attr(feature = "getrandom", doc = "let mut rand = urandom::new();")]
+#![cfg_attr(not(feature = "getrandom"), doc = "let mut rand = urandom::seeded(42);")]
+//!
+//! // Roll a six-sided die.
+//! let roll: u32 = rand.uniform(1..=6);
+//!
+//! // Choose a random element.
+//! let colors = ["red", "green", "blue"];
+//! let color = rand.choose(&colors).unwrap();
+//!
+//! // Shuffle a collection in place.
+//! let mut numbers: Vec<_> = (1..=10).collect();
+//! rand.shuffle(&mut numbers);
+//!
+//! println!("Rolled {roll}, chose {color}");
+//! ```
+//!
+//! # Reproducibility policy
+//!
+//! This crate has two levels of reproducibility:
+//!
+#![cfg_attr(feature = "getrandom", doc = "* Deterministic generator types in [`rng`] and the [`new`], [`seeded`], and [`csprng`] constructors have a strong guarantee across SemVer-compatible releases.")]
+#![cfg_attr(not(feature = "getrandom"), doc = "* Deterministic generator types in [`rng`] and the [`seeded`] constructor have a strong guarantee across SemVer-compatible releases.")]
+//!   Their generator algorithms, constructor choices and initialization, explicit seeding, and serialized state are stable.
+//!
+//! * Distributions in the [`distr`] module and sampling algorithms in [`Random`] are stable between patch releases of the same minor version, on a best-effort basis.
 
 // Unsafe code is restricted throughout the crate except within the `rng` module
 #![deny(unsafe_code)]
@@ -73,6 +73,7 @@ pub use self::distr::Distribution;
 /// ```
 #[must_use]
 #[inline]
+#[cfg(feature = "getrandom")]
 pub fn new() -> Random<rng::Xoshiro256Rng> {
 	rng::Xoshiro256Rng::new()
 }
@@ -140,6 +141,7 @@ pub fn hash<T: ?Sized + core::hash::Hash>(value: &T) -> u64 {
 /// ```
 #[must_use]
 #[inline]
+#[cfg(feature = "getrandom")]
 pub fn csprng() -> Random<rng::ChaCha12Rng> {
 	rng::ChaCha12Rng::new()
 }

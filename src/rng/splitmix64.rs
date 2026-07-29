@@ -24,6 +24,7 @@ impl SplitMix64Rng {
 	/// let value: i32 = rand.random();
 	/// ```
 	#[inline]
+	#[cfg(feature = "getrandom")]
 	pub fn new() -> Random<SplitMix64Rng> {
 		Self::from_seed(util::getrandom())
 	}
@@ -108,6 +109,7 @@ impl JumpRng for SplitMix64Rng {
 	}
 }
 
+#[cfg(feature = "getrandom")]
 #[cfg(feature = "serde")]
 #[test]
 fn serde() {

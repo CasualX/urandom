@@ -1,31 +1,48 @@
 [package]
 name = "urandom"
 version = "1.0.0-alpha.1"
+edition = "2024"
+rust-version = "1.85"
+
 authors = [
 	"Casper <CasualX@users.noreply.github.com>",
 	"Developers of the Rand project",
 	"The Rust Project Developers",
 ]
-edition = "2024"
-license = "MIT"
-
 description = "Produce and consume randomness, to convert them to useful types and distributions, and some randomness-related algorithms."
 documentation = "https://docs.rs/urandom/"
 repository = "https://github.com/CasualX/urandom"
+license = "MIT"
 readme = "readme.md"
 keywords = ["rand", "random", "rng"]
 categories = ["algorithms", "no-std"]
 
+[package.metadata.docs.rs]
+all-features = true
+
 [features]
-default = ["std"]
+default = ["getrandom", "std"]
+getrandom = ["dep:getrandom"]
 std = []
 serde = ["dep:serde"]
 
 [dependencies]
 cfg-if = "1.0"
-getrandom = "0.3"
+getrandom = { version = "0.3", optional = true }
 dataview = { version = "~1.0", default-features = false }
 serde = { version = "1.0", default-features = false, features = ["derive"], optional = true }
 
 [dev-dependencies]
 serde_json = "1.0"
+
+[[example]]
+name = "calculate_pi"
+required-features = ["getrandom"]
+
+[[example]]
+name = "float_bias"
+required-features = ["getrandom"]
+
+[[example]]
+name = "guess_the_number"
+required-features = ["getrandom"]

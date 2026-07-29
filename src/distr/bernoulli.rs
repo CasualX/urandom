@@ -40,6 +40,7 @@ impl Distribution<bool> for Bernoulli {
 	}
 }
 
+#[cfg(feature = "getrandom")]
 #[test]
 fn test_trivial() {
 	let mut rand = crate::new();

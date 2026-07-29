@@ -51,6 +51,7 @@ pub fn rng_fill_bytes<R: Rng>(rng: &mut R, buf: &mut [MaybeUninit<u8>]) {
 	}
 }
 
+#[cfg(feature = "getrandom")]
 #[inline]
 pub fn getrandom<T: dataview::Pod>() -> T {
 	let mut value = MaybeUninit::<T>::uninit();

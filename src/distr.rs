@@ -103,7 +103,8 @@ pub trait Distribution<T> {
 	/// ```
 	/// use urandom::distr::{Dice, Distribution};
 	///
-	/// let mut rand = urandom::new();
+	#[cfg_attr(feature = "getrandom", doc = "let mut rand = urandom::new();")]
+	#[cfg_attr(not(feature = "getrandom"), doc = "let mut rand = urandom::seeded(42);")]
 	///
 	/// let even_number = Dice::D6.map(|num| num % 2 == 0);
 	/// while !rand.sample(&even_number) {

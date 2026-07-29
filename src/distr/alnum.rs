@@ -8,7 +8,8 @@ const ALNUM: &[u8; 62] = b"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopq
 ///
 /// ```
 /// use urandom::distr::Alnum;
-/// let mut rand = urandom::new();
+#[cfg_attr(feature = "getrandom", doc = "let mut rand = urandom::new();")]
+#[cfg_attr(not(feature = "getrandom"), doc = "let mut rand = urandom::seeded(42);")]
 /// let chars: String = rand.samples(Alnum).take(7).collect();
 /// println!("Random chars: {chars}");
 /// ```

@@ -23,7 +23,8 @@ fn char_from_comp(value: u32) -> char {
 /// The uniform distribution over a range of [`char`] values.
 ///
 /// ```
-/// let value = urandom::new().uniform('a'..='z');
+#[cfg_attr(feature = "getrandom", doc = "let value = urandom::new().uniform('a'..='z');")]
+#[cfg_attr(not(feature = "getrandom"), doc = "let value = urandom::seeded(42).uniform('a'..='z');")]
 /// assert!(value.is_ascii_lowercase());
 /// ```
 #[derive(Copy, Clone, Debug)]
