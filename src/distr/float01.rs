@@ -6,6 +6,11 @@ use super::*;
 ///
 /// This implementation does not suffer from bias in the low bits of the mantissa.
 ///
+/// # Practical limitations
+///
+/// The sampler uses a fixed amount of random data, so the smallest value it can return is `2^-65`.
+/// This makes values very close to zero slightly less accurate, but the difference is negligible in normal use.
+///
 /// # Implementation notes
 ///
 /// The implementation is simple, fast and straighforward from the following observations:

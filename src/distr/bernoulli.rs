@@ -1,6 +1,11 @@
 use super::*;
 
 /// The [Bernoulli distribution](https://en.wikipedia.org/wiki/Bernoulli_distribution).
+///
+/// # Implementation notes
+///
+/// Sampling draws a [`Float01`] value from the open interval `(0, 1)` and compares it strictly with `p`.
+/// Consequently, `p <= 0` always produces `false`, `p >= 1` always produces `true`, and an exact draw equal to `p` belongs to the failure side.
 #[derive(Copy, Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Bernoulli {
