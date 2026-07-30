@@ -458,10 +458,11 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// Returns the first _n_ shuffled elements and consumes _n_ values from the Rng.
 	#[inline]
 	pub fn partial_shuffle<'a, T>(&mut self, slice: &'a mut [T], n: usize) -> &'a mut [T] {
-		let n = usize::min(n, slice.len());
+		let len = slice.len();
+		let n = n.min(len);
 
 		for i in 0..n {
-			let k = self.uniform(i..slice.len());
+			let k = i + self.index(len - i);
 			slice.swap(i, k);
 		}
 
