@@ -219,7 +219,7 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// ```
 	#[cfg_attr(feature = "getrandom", doc = "let mut rand = urandom::new();")]
 	#[cfg_attr(not(feature = "getrandom"), doc = "let mut rand = urandom::seeded(42);")]
-	/// let distr = urandom::distr::Uniform::from(0..100);
+	/// let distr = urandom::distr::Uniform::try_from(0..100).unwrap();
 	///
 	/// loop {
 	/// 	let value = rand.sample(&distr);
@@ -231,8 +231,8 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// ```
 	#[track_caller]
 	#[inline]
-	pub fn uniform<T, I>(&mut self, interval: I) -> T where T: distr::SampleUniform, distr::Uniform<T>: From<I> {
-		distr::Uniform::<T>::from(interval).sample(self)
+	pub fn uniform<T: distr::SampleUniform, I>(&mut self, interval: I) -> T where distr::Uniform<T>: TryFrom<I, Error = distr::UniformError> {
+		distr::Uniform::<T>::try_from(interval).unwrap().sample(self)
 	}
 
 	/// Returns a random float in the open `(0.0, 1.0)` interval.

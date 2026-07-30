@@ -167,19 +167,21 @@ pub struct Uniform<T: SampleUniform> {
 	sampler: T::Sampler,
 }
 
-impl<T: SampleUniform> From<ops::Range<T>> for Uniform<T> {
-	#[track_caller]
+impl<T: SampleUniform> TryFrom<ops::Range<T>> for Uniform<T> {
+	type Error = UniformError;
+
 	#[inline]
-	fn from(range: ops::Range<T>) -> Uniform<T> {
-		Uniform::new(range.start, range.end)
+	fn try_from(range: ops::Range<T>) -> Result<Uniform<T>, UniformError> {
+		Uniform::try_new(range.start, range.end)
 	}
 }
-impl<T: SampleUniform> From<ops::RangeInclusive<T>> for Uniform<T> {
-	#[track_caller]
+impl<T: SampleUniform> TryFrom<ops::RangeInclusive<T>> for Uniform<T> {
+	type Error = UniformError;
+
 	#[inline]
-	fn from(range: ops::RangeInclusive<T>) -> Uniform<T> {
+	fn try_from(range: ops::RangeInclusive<T>) -> Result<Uniform<T>, UniformError> {
 		let (start, end) = range.into_inner();
-		Uniform::new_inclusive(start, end)
+		Uniform::try_new_inclusive(start, end)
 	}
 }
 

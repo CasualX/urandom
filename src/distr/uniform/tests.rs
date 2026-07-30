@@ -22,8 +22,8 @@ fn test_float_constructors() {
 
 	let _ = Uniform::new(0.0f32, f32::INFINITY);
 	let _ = Uniform::new_inclusive(f64::NAN, 1.0);
-	let _: Uniform<f32> = (0.0..f32::INFINITY).into();
-	let _: Uniform<f64> = (f64::NAN..=1.0).into();
+	assert!(matches!(Uniform::try_from(0.0f32..f32::INFINITY), Err(UniformError::NonFinite)));
+	assert!(matches!(Uniform::try_from(f64::NAN..=1.0), Err(UniformError::NonFinite)));
 
 	let _ = <Uniform<f32> as UniformSampler<f32>>::new(0.0, f32::INFINITY);
 	let _ = <Uniform<f64> as UniformSampler<f64>>::new_inclusive(f64::NAN, 1.0);

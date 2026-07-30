@@ -1,6 +1,6 @@
 
 fn main() {
-	let uniform = urandom::distr::Uniform::from(-1.0f64..1.0f64);
+	let uniform = urandom::distr::Uniform::try_from(-1.0f64..1.0f64).unwrap();
 
 	let mut rand = urandom::new();
 
