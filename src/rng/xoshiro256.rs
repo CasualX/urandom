@@ -49,7 +49,8 @@ impl Xoshiro256Rng {
 	/// ```
 	#[inline]
 	pub fn from_rng<R: Rng + ?Sized>(rand: &mut Random<R>) -> Random<Xoshiro256Rng> {
-		Self::from_seed(rand.random_bytes())
+		let seed = core::array::from_fn(|_| rand.next_u64());
+		Self::from_seed(seed)
 	}
 
 	/// Creates a new instance directly from its native 256-bit seed.

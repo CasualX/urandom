@@ -54,7 +54,8 @@ impl<const N: usize> ChaChaRng<N> where Self: SecureRng {
 	/// This may be useful when needing to rapidly seed many instances from a master CSPRNG, and to allow forking of PRNGs.
 	#[inline]
 	pub fn from_rng<R: ?Sized + SecureRng>(rand: &mut Random<R>) -> Random<ChaChaRng<N>> {
-		Self::from_seed(rand.random_bytes())
+		let seed = core::array::from_fn(|_| rand.next_u32());
+		Self::from_seed(seed)
 	}
 
 	/// Creates a new instance directly from its native 256-bit seed.
