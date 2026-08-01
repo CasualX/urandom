@@ -121,7 +121,7 @@ impl JumpRng for Xoshiro256Rng {
 		jump(&mut self.state)
 	}
 
-	/// Derives two new states using separate output material mixed by SplitMix64.
+	/// Derives two new states using separately mixed output material.
 	#[inline(never)]
 	fn fork(mut self) -> (Self, Self) {
 		const WORD_DOMAIN: u64 = super::splitmix64::GOLDEN_GAMMA;

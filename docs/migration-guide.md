@@ -41,7 +41,7 @@ All public generator names now end in `Rng`:
 | 0.2.2 | 1.0 |
 |---|---|
 | `Xoshiro256` | `Xoshiro256Rng` |
-| `SplitMix64` | `SplitMix64Rng` |
+| `SplitMix64` | Removed |
 | `ChaCha<N>` | `ChaChaRng<N>` |
 | `ChaCha8` | `ChaCha8Rng` |
 | `ChaCha12` | `ChaCha12Rng` |

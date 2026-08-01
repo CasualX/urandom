@@ -12,7 +12,6 @@ Correct serialization depends on the backend support:
 |---|---|---|
 | Integer state | Native Serde integer | Support for wide integers if used |
 | Floating-point state | Native Serde floating-point values | Support for infinities and NaNs if present |
-| SplitMix state | Fixed structs containing integer state | Support unsigned 64-bit integers exactly |
 | Xoshiro state | Fixed structs containing integer state | Support unsigned 64-bit integers exactly |
 | ChaCha state | A named newtype containing a map with a dynamic set of entries | Newtypes, maps, string-like field identifiers, and fixed sequences |
 
@@ -31,9 +30,9 @@ the distribution from its public constructor arguments.
 
 ## Generator state
 
-Serde support is implemented for deterministic generators whose state can be
-resumed: `SplitMix64Rng`, `Xoshiro256Rng`, `ChaCha8Rng`, `ChaCha12Rng`, and
-`ChaCha20Rng`. The others do not serialize.
+Serde support is implemented for deterministic generators whose state can be resumed:
+`Xoshiro256Rng`, `ChaCha8Rng`, `ChaCha12Rng`, and `ChaCha20Rng`.
+The others do not serialize.
 
 ### ChaCha
 

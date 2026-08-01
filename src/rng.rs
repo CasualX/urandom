@@ -26,10 +26,6 @@
 //!
 //!   See the [PRNG shootout](http://prng.di.unimi.it/) for background and analysis.
 //!
-//! * [`SplitMix64Rng`]:
-//!
-//!   Fast RNG, with 64 bits of state, that can be used to initialize the state of other generators.
-//!
 //! Cryptographically secure generators
 //! -----------------------------------
 //!
@@ -136,6 +132,7 @@ pub trait SecureRng: Rng {}
 // Random number generators
 
 mod splitmix64;
+#[doc(hidden)] // Not intended to be used publicly, but unfortunately cannot be fully removed at this time
 pub use self::splitmix64::SplitMix64Rng;
 
 mod xoshiro256;
