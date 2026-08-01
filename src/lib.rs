@@ -33,7 +33,7 @@
 //!
 //! This crate has two levels of reproducibility:
 //!
-#![cfg_attr(feature = "getrandom", doc = "* Deterministic generator types in [`rng`] and the [`new`], [`seeded`], and [`csprng`] constructors have a strong guarantee across SemVer-compatible releases.")]
+#![cfg_attr(feature = "getrandom", doc = "* Deterministic generator types in [`rng`] and the [`new`] and [`seeded`] constructors have a strong guarantee across SemVer-compatible releases.")]
 #![cfg_attr(not(feature = "getrandom"), doc = "* Deterministic generator types in [`rng`] and the [`seeded`] constructor have a strong guarantee across SemVer-compatible releases.")]
 //!   Their generator algorithms, constructor choices and initialization, explicit seeding, and serialized state are stable.
 //!
@@ -55,15 +55,13 @@ pub use self::distr::Distribution;
 
 //----------------------------------------------------------------
 
-/// Creates a new non-cryptographic pseudorandom number generator (PRNG).
+/// Creates a new cryptographically secure pseudorandom number generator (CSPRNG).
 ///
 /// The generator is seeded from the system entropy source.
 /// Construct it once and reuse it to generate many values.
 ///
 /// The generator choice and initialization behavior are covered by the
 /// [reproducibility guarantee](crate::rng#reproducibility-guarantee).
-///
-/// Use [`csprng`] when outputs must be unpredictable.
 ///
 /// # Examples
 ///
@@ -74,8 +72,8 @@ pub use self::distr::Distribution;
 #[must_use]
 #[inline]
 #[cfg(feature = "getrandom")]
-pub fn new() -> Random<rng::Xoshiro256Rng> {
-	rng::Xoshiro256Rng::new()
+pub fn new() -> Random<rng::ChaCha12Rng> {
+	rng::ChaCha12Rng::new()
 }
 
 /// Creates a reproducible non-cryptographic pseudorandom number generator with the given seed.
@@ -123,25 +121,4 @@ pub fn hash<T: ?Sized + core::hash::Hash>(value: &T) -> u64 {
 	let mut hasher = std::collections::hash_map::DefaultHasher::new();
 	value.hash(&mut hasher);
 	hasher.finish()
-}
-
-/// Creates a new cryptographically secure pseudorandom number generator (CSPRNG).
-///
-/// The generator is seeded from the system entropy source.
-/// Construct it once and reuse it to generate many values.
-///
-/// The generator choice and initialization behavior are covered by the
-/// [reproducibility guarantee](crate::rng#reproducibility-guarantee).
-///
-/// # Examples
-///
-/// ```
-/// let mut rand = urandom::csprng();
-/// let value: i32 = rand.random();
-/// ```
-#[must_use]
-#[inline]
-#[cfg(feature = "getrandom")]
-pub fn csprng() -> Random<rng::ChaCha12Rng> {
-	rng::ChaCha12Rng::new()
 }

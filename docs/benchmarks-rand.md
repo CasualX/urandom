@@ -8,8 +8,8 @@ These benchmarks compare the current urandom 1.0 implementation with rand
 The exact timings are machine- and compiler-dependent. The conclusions from
 the generated assembly are more important than small differences in the numbers.
 
-Comparison of rand's `SmallRng` vs urandom's `new()`
-----------------------------------------------------
+Comparison of rand's `SmallRng` vs urandom's `Xoshiro256Rng`
+------------------------------------------------------------
 
 Both crates use xoshiro256++ for `u64` generation on 64-bit targets.
 
@@ -33,8 +33,8 @@ Urandom's `u32` and `f64` paths use xoshiro256+ because those values do not
 need all 64 output bits. Rand generates a full xoshiro256++ `u64` first.
 This contributes to urandom's advantage in those two benchmarks.
 
-Comparison of rand's `StdRng` vs urandom's `csprng()`
------------------------------------------------------
+Comparison of rand's `StdRng` vs urandom's `ChaCha12Rng`
+--------------------------------------------------------
 
 Both crates use ChaCha12 and buffer four 64-byte blocks per refill.
 

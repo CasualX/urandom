@@ -41,8 +41,7 @@ fn stable_root_constructors() {
 
 	#[cfg(feature = "getrandom")]
 	{
-		let _: fn() -> Random<Xoshiro256Rng> = crate::new;
-		let _: fn() -> Random<ChaCha12Rng> = crate::csprng;
+		let _: fn() -> Random<ChaCha12Rng> = crate::new;
 	}
 }
 
@@ -86,7 +85,6 @@ fn test_trait_object() {
 	}
 	test(&mut crate::new());
 	test(&mut crate::seeded(42));
-	test(&mut crate::csprng());
 }
 
 #[test]
@@ -96,7 +94,7 @@ fn test_split_rng() {
 	}
 	test(&mut crate::seeded(42));
 	#[cfg(feature = "getrandom")]
-	test(&mut crate::csprng());
+	test(&mut crate::new());
 	test(&mut SplitMix64Rng::from_seed_u64(42));
 
 	let mut rand = crate::seeded(42);

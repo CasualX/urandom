@@ -67,7 +67,18 @@ let chacha_native = ChaCha12Rng::from_seed([1, 2, 3, 4, 5, 6, 7, 8]);
 ```
 
 A 64-bit seed does not make ChaCha output cryptographically unpredictable.
-Use `ChaCha12Rng::new()` or `urandom::csprng()` when unpredictability matters.
+Use `ChaCha12Rng::new()` or `urandom::new()` when unpredictability matters.
+
+## Use the secure root constructor
+
+The root-level `csprng()` helper was renamed to `new()`. The old root-level `new()`, which
+constructed a non-cryptographic Xoshiro256 generator, was removed. Code which needs that
+generator should select it explicitly:
+
+```rust
+let mut secure = urandom::new();
+let mut fast = urandom::rng::Xoshiro256Rng::new();
+```
 
 ## Review changed behavior
 
@@ -91,7 +102,7 @@ The 1.x compatibility guarantee begins with 1.0 and covers supported determinist
 See the [Serde data model guide](serde.md) for the supported generators and backend requirements.
 
 The optional `getrandom` feature now uses `getrandom` 0.3 and is enabled by default.
-It gates `urandom::new`, `urandom::csprng`, entropy-seeded generators' `new` constructors, `SystemRng`, `getentropy`, and `getentropy_uninit`.
+It gates `urandom::new`, entropy-seeded generators' `new` constructors, `SystemRng`, `getentropy`, and `getentropy_uninit`.
 Disable default features when only deterministic construction is needed.
 
 The old `getentropy_raw` link-time integration used without `getrandom` was removed.

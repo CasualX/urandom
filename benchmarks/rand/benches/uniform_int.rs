@@ -22,7 +22,7 @@ fn uniform_sample_rand(b: &mut Bencher) {
 
 #[bench]
 fn uniform_sample_urandom(b: &mut Bencher) {
-	let mut rand = urandom::new();
+	let mut rand = urandom::rng::Xoshiro256Rng::new();
 	b.iter(|| {
 		let range = black_box(urandom::distr::Uniform::new(500, 20000));
 		let mut accum = 0u32;
@@ -47,7 +47,7 @@ fn uniform_range_rand(b: &mut Bencher) {
 
 #[bench]
 fn uniform_range_urandom(b: &mut Bencher) {
-	let mut rand = urandom::new();
+	let mut rand = urandom::rng::Xoshiro256Rng::new();
 	b.iter(|| {
 		let mut accum = 0u32;
 		for _ in 0..RAND_BENCH_N {

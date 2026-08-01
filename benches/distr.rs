@@ -12,7 +12,7 @@ macro_rules! distr_int {
 	($fnn:ident, $ty:ty, $distr:expr) => {
 		#[bench]
 		fn $fnn(b: &mut Bencher) {
-			let mut rand = urandom::new();
+			let mut rand = urandom::rng::Xoshiro256Rng::new();
 			let distr = black_box($distr);
 
 			b.iter(|| {
@@ -32,7 +32,7 @@ macro_rules! distr_float {
 	($fnn:ident, $ty:ty, $distr:expr) => {
 		#[bench]
 		fn $fnn(b: &mut Bencher) {
-			let mut rand = urandom::new();
+			let mut rand = urandom::rng::Xoshiro256Rng::new();
 			let distr = black_box($distr);
 
 			b.iter(|| {
@@ -52,7 +52,7 @@ macro_rules! distr_as_u32 {
 	($fnn:ident, $ty:ty, $distr:expr) => {
 		#[bench]
 		fn $fnn(b: &mut Bencher) {
-			let mut rand = urandom::new();
+			let mut rand = urandom::rng::Xoshiro256Rng::new();
 			let distr = black_box($distr);
 
 			b.iter(|| {
@@ -73,7 +73,7 @@ macro_rules! range_int {
 	($fnn:ident, $ty:ident, $low:expr, $high:expr) => {
 		#[bench]
 		fn $fnn(b: &mut Bencher) {
-			let mut rand = urandom::new();
+			let mut rand = urandom::rng::Xoshiro256Rng::new();
 
 			b.iter(|| {
 				let mut high = $high;
@@ -95,7 +95,7 @@ macro_rules! range_float {
 	($fnn:ident, $ty:ident, $low:expr, $high:expr) => {
 		#[bench]
 		fn $fnn(b: &mut Bencher) {
-			let mut rand = urandom::new();
+			let mut rand = urandom::rng::Xoshiro256Rng::new();
 
 			b.iter(|| {
 				let mut high = $high;
@@ -161,7 +161,7 @@ range_float!(range_f64, f64, 123.456f64, 7890.12);
 
 #[bench]
 fn bernoulli_const(b: &mut Bencher) {
-	let mut rand = urandom::new();
+	let mut rand = urandom::rng::Xoshiro256Rng::new();
 	b.iter(|| {
 		let distr = distr::Bernoulli::new(0.18);
 		let mut accum = true;
@@ -174,7 +174,7 @@ fn bernoulli_const(b: &mut Bencher) {
 
 #[bench]
 fn bernoulli_var(b: &mut Bencher) {
-	let mut rand = urandom::new();
+	let mut rand = urandom::rng::Xoshiro256Rng::new();
 	b.iter(|| {
 		let mut accum = true;
 		let mut p = black_box(0.18);

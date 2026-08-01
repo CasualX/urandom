@@ -25,7 +25,7 @@ fn fill_bytes_rand(b: &mut Bencher) {
 
 #[bench]
 fn fill_bytes_urandom(b: &mut Bencher) {
-	let mut rand = urandom::new();
+	let mut rand = urandom::rng::Xoshiro256Rng::new();
 	let mut buf = [0u8; BYTES_LEN];
 
 	b.bytes = BYTES_LEN as u64 * RAND_BENCH_N;
@@ -52,7 +52,7 @@ fn u32_rand(b: &mut Bencher) {
 
 #[bench]
 fn u32_urandom(b: &mut Bencher) {
-	let mut rand = urandom::new();
+	let mut rand = urandom::rng::Xoshiro256Rng::new();
 
 	b.bytes = size_of::<u32>() as u64 * RAND_BENCH_N;
 	b.iter(|| {
@@ -78,7 +78,7 @@ fn u64_rand(b: &mut Bencher) {
 
 #[bench]
 fn u64_urandom(b: &mut Bencher) {
-	let mut rand = urandom::new();
+	let mut rand = urandom::rng::Xoshiro256Rng::new();
 
 	b.bytes = size_of::<u64>() as u64 * RAND_BENCH_N;
 	b.iter(|| {
@@ -104,7 +104,7 @@ fn f64_rand(b: &mut Bencher) {
 
 #[bench]
 fn f64_urandom(b: &mut Bencher) {
-	let mut rand = urandom::new();
+	let mut rand = urandom::rng::Xoshiro256Rng::new();
 
 	b.bytes = size_of::<f64>() as u64 * RAND_BENCH_N;
 	b.iter(|| {

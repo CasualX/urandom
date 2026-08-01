@@ -14,7 +14,7 @@
 //! With the `serde` feature, the guarantee also covers serialized generator state. State written by one release
 //! remains readable by SemVer-compatible releases, and restoring it continues the same stream at the saved position.
 //!
-#![cfg_attr(feature = "getrandom", doc = "This guarantee also applies to the root-level [`crate::new`], [`crate::seeded`], and [`crate::csprng`] constructors: their generator choice and initialization behavior remain stable across SemVer-compatible releases.")]
+#![cfg_attr(feature = "getrandom", doc = "This guarantee also applies to the root-level [`crate::new`] and [`crate::seeded`] constructors: their generator choice and initialization behavior remain stable across SemVer-compatible releases.")]
 #![cfg_attr(not(feature = "getrandom"), doc = "This guarantee also applies to the root-level [`crate::seeded`] constructor: its generator choice and initialization behavior remain stable across SemVer-compatible releases.")]
 //!
 //! Pseudorandom number generators

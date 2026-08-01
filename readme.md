@@ -32,9 +32,6 @@ Quick Start
 To get you started quickly, the easiest and highest-level way to get a random value is to use `urandom::new().random()`.
 The `Random` struct provides a convenient API over the random number generators, while the `distr` module provides distributions and sampling utilities.
 
-For general non-cryptographic use start with `urandom::new()`.
-For cryptographically secure random numbers start with `urandom::csprng()`.
-
 ```rust
 let mut rand = urandom::new();
 
@@ -55,7 +52,7 @@ println!("Rolled {roll}, chose {color}");
 Reproducibility policy
 ----------------------
 
-Generators created with `new()` and `csprng()` are independently seeded and expected to produce a different sequence each time. If system entropy is unavailable, construction panics.
+Generators created with `new()` are independently seeded and expected to produce a different sequence each time. If system entropy is unavailable, construction panics.
 
 To use a different entropy source, construct a concrete generator with its native seed using `from_seed(...)`.
 
@@ -70,7 +67,7 @@ assert_eq!(a.random::<u64>(), b.random::<u64>());
 
 This crate provides two levels of reproducibility:
 
-* Concrete deterministic generators in the `rng` module and the root-level `new()`, `seeded()`, and `csprng()`
+* Concrete deterministic generators in the `rng` module and the root-level `new()` and `seeded()`
   constructors have a strong guarantee across SemVer-compatible releases. The root-level constructors preserve
   their generator choice and initialization behavior. Given the same explicit seed or state and the same sequence
   of `Rng` calls and arguments, deterministic generators produce the same output on supported targets. Their
@@ -87,8 +84,8 @@ This crate provides two levels of reproducibility:
   floating-point semantics.
 
 For reproducible recordings, simulations, or game replays, pin urandom to one minor release (for example, `~1.0`)
-and keep external inputs and platform behavior consistent. The raw generator streams selected by `new()`, `seeded()`,
-and `csprng()` remain stable across minor releases, subject to the entropy caveat above.
+and keep external inputs and platform behavior consistent. The raw generator streams selected by `new()` and
+`seeded()` remain stable across minor releases, subject to the entropy caveat above.
 
 Features
 --------
@@ -99,7 +96,7 @@ Features
 
 * `getrandom` (default): Enables system entropy through the `getrandom` crate.
 
-  This enables `urandom::new()`, `urandom::csprng()`, each generator's `new()` constructor, `SystemRng`, `getentropy`, and `getentropy_uninit`.
+  This enables `urandom::new()`, each generator's `new()` constructor, `SystemRng`, `getentropy`, and `getentropy_uninit`.
   Without this feature, deterministic constructors such as `urandom::seeded()`, `from_seed()`, `from_seed_u64()`, and `from_rng()` remain available.
 
 * `serde`: Enables serialization and deserialization for random number generators and distributions.

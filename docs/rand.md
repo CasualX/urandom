@@ -42,7 +42,7 @@ In urandom, the same operations live on `Random`:
 
 ```rust
 let mut rng = urandom::new();
-// rand: urandom::Random<urandom::rng::Xoshiro256Rng>
+// rng: urandom::Random<urandom::rng::ChaCha12Rng>
 
 let roll: u32 = rng.uniform(1..=6);
 let colors = ["red", "green", "blue"];
@@ -63,11 +63,13 @@ This is the main reason urandom exists.
 convenient and cryptographically secure default, but the state itself is ambient:
 I have a general aversion to hidden mutable state and I prefer explicitness.
 
-`urandom::new()` creates a newly seeded Xoshiro256 generator owned by the caller:
+`urandom::new()` creates a newly seeded ChaCha12 generator owned by the caller.
+Select Xoshiro256 explicitly when cryptographic security is unnecessary and its
+performance is useful:
 
 ```rust
-let mut fast = urandom::new();      // Xoshiro256
-let mut secure = urandom::csprng(); // ChaCha12
+let mut secure = urandom::new();
+let mut fast = urandom::rng::Xoshiro256Rng::new();
 ```
 
 With the default `getrandom` feature, both are seeded from the operating
@@ -77,11 +79,6 @@ I prefer this ownership model because dependencies and consumption order remain
 visible in the program. Passing the generator, storing it in a struct, or
 creating an independent stream uses normal Rust values rather than access to
 thread-local state.
-
-There is an important security difference here. `urandom::new()` is fast, but
-it is not cryptographically secure. Use `urandom::csprng()` for tokens, secrets,
-or anything an attacker should not be able to predict.
-I will not treat users like children and I trust they understand the difference.
 
 Rand also has owned `SmallRng` and `StdRng`, named Xoshiro and ChaCha generators,
 and a direct system source. It gives you the illusion of more choices;
