@@ -1,19 +1,17 @@
 #![feature(test)]
-
 extern crate test;
 
-use std::mem::size_of;
-use test::{Bencher, black_box};
-use urandom::distr;
+use std::mem;
+use urandom::distr::*;
 
 const RAND_BENCH_N: u64 = 1000;
 
 macro_rules! distr_int {
 	($fnn:ident, $ty:ty, $distr:expr) => {
 		#[bench]
-		fn $fnn(b: &mut Bencher) {
+		fn $fnn(b: &mut test::Bencher) {
 			let mut rand = urandom::rng::Xoshiro256Rng::new();
-			let distr = black_box($distr);
+			let distr = test::black_box($distr);
 
 			b.iter(|| {
 				let mut accum = 0 as $ty;
@@ -23,7 +21,7 @@ macro_rules! distr_int {
 				}
 				accum
 			});
-			b.bytes = size_of::<$ty>() as u64 * RAND_BENCH_N;
+			b.bytes = mem::size_of::<$ty>() as u64 * RAND_BENCH_N;
 		}
 	};
 }
@@ -31,9 +29,9 @@ macro_rules! distr_int {
 macro_rules! distr_float {
 	($fnn:ident, $ty:ty, $distr:expr) => {
 		#[bench]
-		fn $fnn(b: &mut Bencher) {
+		fn $fnn(b: &mut test::Bencher) {
 			let mut rand = urandom::rng::Xoshiro256Rng::new();
-			let distr = black_box($distr);
+			let distr = test::black_box($distr);
 
 			b.iter(|| {
 				let mut accum = 0.0;
@@ -43,7 +41,7 @@ macro_rules! distr_float {
 				}
 				accum
 			});
-			b.bytes = size_of::<$ty>() as u64 * RAND_BENCH_N;
+			b.bytes = mem::size_of::<$ty>() as u64 * RAND_BENCH_N;
 		}
 	};
 }
@@ -51,9 +49,9 @@ macro_rules! distr_float {
 macro_rules! distr_as_u32 {
 	($fnn:ident, $ty:ty, $distr:expr) => {
 		#[bench]
-		fn $fnn(b: &mut Bencher) {
+		fn $fnn(b: &mut test::Bencher) {
 			let mut rand = urandom::rng::Xoshiro256Rng::new();
-			let distr = black_box($distr);
+			let distr = test::black_box($distr);
 
 			b.iter(|| {
 				let mut accum = 0u32;
@@ -63,7 +61,7 @@ macro_rules! distr_as_u32 {
 				}
 				accum
 			});
-			b.bytes = size_of::<$ty>() as u64 * RAND_BENCH_N;
+			b.bytes = mem::size_of::<$ty>() as u64 * RAND_BENCH_N;
 		}
 	};
 }
@@ -72,7 +70,7 @@ macro_rules! distr_as_u32 {
 macro_rules! range_int {
 	($fnn:ident, $ty:ident, $low:expr, $high:expr) => {
 		#[bench]
-		fn $fnn(b: &mut Bencher) {
+		fn $fnn(b: &mut test::Bencher) {
 			let mut rand = urandom::rng::Xoshiro256Rng::new();
 
 			b.iter(|| {
@@ -85,7 +83,7 @@ macro_rules! range_int {
 				}
 				accum
 			});
-			b.bytes = size_of::<$ty>() as u64 * RAND_BENCH_N;
+			b.bytes = mem::size_of::<$ty>() as u64 * RAND_BENCH_N;
 		}
 	};
 }
@@ -94,7 +92,7 @@ macro_rules! range_int {
 macro_rules! range_float {
 	($fnn:ident, $ty:ident, $low:expr, $high:expr) => {
 		#[bench]
-		fn $fnn(b: &mut Bencher) {
+		fn $fnn(b: &mut test::Bencher) {
 			let mut rand = urandom::rng::Xoshiro256Rng::new();
 
 			b.iter(|| {
@@ -109,38 +107,38 @@ macro_rules! range_float {
 				}
 				accum
 			});
-			b.bytes = size_of::<$ty>() as u64 * RAND_BENCH_N;
+			b.bytes = mem::size_of::<$ty>() as u64 * RAND_BENCH_N;
 		}
 	};
 }
 
-distr_int!(uniform_i8, i8, distr::Uniform::try_from(20i8..100).unwrap());
-distr_int!(uniform_i16, i16, distr::Uniform::try_from(-500i16..2000).unwrap());
-distr_int!(uniform_i32, i32, distr::Uniform::try_from(-200_000_000i32..800_000_000).unwrap());
-distr_int!(uniform_i64, i64, distr::Uniform::try_from(3i64..123_456_789_123).unwrap());
-distr_int!(uniform_usize16, usize, distr::Uniform::try_from(0usize..0xb9d7).unwrap());
-distr_int!(uniform_usize32, usize, distr::Uniform::try_from(0usize..0x548c0f43).unwrap());
+distr_int!(uniform_i8, i8, Uniform::try_from(20i8..100).unwrap());
+distr_int!(uniform_i16, i16, Uniform::try_from(-500i16..2000).unwrap());
+distr_int!(uniform_i32, i32, Uniform::try_from(-200_000_000i32..800_000_000).unwrap());
+distr_int!(uniform_i64, i64, Uniform::try_from(3i64..123_456_789_123).unwrap());
+distr_int!(uniform_usize16, usize, Uniform::try_from(0usize..0xb9d7).unwrap());
+distr_int!(uniform_usize32, usize, Uniform::try_from(0usize..0x548c0f43).unwrap());
 #[cfg(target_pointer_width = "64")]
-distr_int!(uniform_usize64, usize, distr::Uniform::try_from(0usize..0x3a42714f2bf927a8).unwrap());
-distr_int!(uniform_isize, isize, distr::Uniform::try_from(-1060478432isize..1858574057).unwrap());
+distr_int!(uniform_usize64, usize, Uniform::try_from(0usize..0x3a42714f2bf927a8).unwrap());
+distr_int!(uniform_isize, isize, Uniform::try_from(-1060478432isize..1858574057).unwrap());
 
-distr_float!(uniform_f32, f32, distr::Uniform::try_from(2.26f32..2.319).unwrap());
-distr_float!(uniform_f64, f64, distr::Uniform::try_from(2.26f64..2.319).unwrap());
+distr_float!(uniform_f32, f32, Uniform::try_from(2.26f32..2.319).unwrap());
+distr_float!(uniform_f64, f64, Uniform::try_from(2.26f64..2.319).unwrap());
 
 // standard
-distr_int!(standard_i8, i8, distr::StandardUniform);
-distr_int!(standard_i16, i16, distr::StandardUniform);
-distr_int!(standard_i32, i32, distr::StandardUniform);
-distr_int!(standard_i64, i64, distr::StandardUniform);
+distr_int!(standard_i8, i8, StandardUniform);
+distr_int!(standard_i16, i16, StandardUniform);
+distr_int!(standard_i32, i32, StandardUniform);
+distr_int!(standard_i64, i64, StandardUniform);
 
-distr_as_u32!(standard_bool, bool, distr::StandardUniform);
-distr_as_u32!(standard_alnum, char, distr::Alnum);
-distr_as_u32!(standard_char, char, distr::StandardUniform);
+distr_as_u32!(standard_bool, bool, StandardUniform);
+distr_as_u32!(standard_alnum, char, Alnum);
+distr_as_u32!(standard_char, char, StandardUniform);
 
-distr_float!(standard_f32, f32, distr::StandardUniform);
-distr_float!(standard_f64, f64, distr::StandardUniform);
-distr_float!(float01_f32, f32, distr::Float01);
-distr_float!(float01_f64, f64, distr::Float01);
+distr_float!(standard_f32, f32, StandardUniform);
+distr_float!(standard_f64, f64, StandardUniform);
+distr_float!(float01_f32, f32, Float01);
+distr_float!(float01_f64, f64, Float01);
 
 // Algorithms such as Fisher–Yates shuffle often require uniform values from an
 // incrementing range 0..n. We use -1..n here to prevent wrapping in the test
@@ -160,10 +158,10 @@ range_float!(range_f32, f32, -20000.0f32, 100000.0);
 range_float!(range_f64, f64, 123.456f64, 7890.12);
 
 #[bench]
-fn bernoulli_const(b: &mut Bencher) {
+fn bernoulli_const(b: &mut test::Bencher) {
 	let mut rand = urandom::rng::Xoshiro256Rng::new();
 	b.iter(|| {
-		let distr = distr::Bernoulli::new(0.18);
+		let distr = Bernoulli::new(0.18);
 		let mut accum = true;
 		for _ in 0..RAND_BENCH_N {
 			accum ^= rand.sample(&distr);
@@ -173,13 +171,13 @@ fn bernoulli_const(b: &mut Bencher) {
 }
 
 #[bench]
-fn bernoulli_var(b: &mut Bencher) {
+fn bernoulli_var(b: &mut test::Bencher) {
 	let mut rand = urandom::rng::Xoshiro256Rng::new();
 	b.iter(|| {
 		let mut accum = true;
-		let mut p = black_box(0.18);
+		let mut p = test::black_box(0.18);
 		for _ in 0..RAND_BENCH_N {
-			let distr = distr::Bernoulli::new(p);
+			let distr = Bernoulli::new(p);
 			accum ^= rand.sample(&distr);
 			p += 0.0001;
 		}

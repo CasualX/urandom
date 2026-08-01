@@ -141,8 +141,9 @@ pub use self::splitmix64::SplitMix64Rng;
 mod xoshiro256;
 pub use self::xoshiro256::Xoshiro256Rng;
 
-// mod wyrand;
-// pub use self::wyrand::WyrandRng;
+mod wyrand;
+#[doc(hidden)] // Not intended to be used publicly, but unfortunately cannot be fully removed at this time
+pub use self::wyrand::WyrandRng;
 
 mod mock;
 pub use self::mock::MockRng;

@@ -1,14 +1,12 @@
 #![feature(test)]
-
 extern crate test;
 
-use std::mem::size_of;
-use test::Bencher;
+use std::mem;
 
 const RAND_BENCH_N: u64 = 1000;
 
 #[bench]
-fn shuffle_100(b: &mut Bencher) {
+fn shuffle_100(b: &mut test::Bencher) {
 	let mut rand = urandom::rng::Xoshiro256Rng::new();
 	let mut x = [1usize; 100];
 	b.iter(|| {
@@ -18,7 +16,7 @@ fn shuffle_100(b: &mut Bencher) {
 }
 
 #[bench]
-fn choose_1_of_1000(b: &mut Bencher) {
+fn choose_1_of_1000(b: &mut test::Bencher) {
 	let mut rand = urandom::rng::Xoshiro256Rng::new();
 	let mut x = [1usize; 1000];
 	for i in 0..1000 {
@@ -31,11 +29,11 @@ fn choose_1_of_1000(b: &mut Bencher) {
 		}
 		s
 	});
-	b.bytes = size_of::<usize>() as u64 * crate::RAND_BENCH_N;
+	b.bytes = mem::size_of::<usize>() as u64 * crate::RAND_BENCH_N;
 }
 
 #[bench]
-fn choose_iter_from_1000(b: &mut Bencher) {
+fn choose_iter_from_1000(b: &mut test::Bencher) {
 	let mut rand = urandom::rng::Xoshiro256Rng::new();
 	let mut x = [1usize; 1000];
 	for i in 0..1000 {
@@ -48,13 +46,13 @@ fn choose_iter_from_1000(b: &mut Bencher) {
 		}
 		s
 	});
-	b.bytes = size_of::<usize>() as u64 * crate::RAND_BENCH_N;
+	b.bytes = mem::size_of::<usize>() as u64 * crate::RAND_BENCH_N;
 }
 
 macro_rules! choose_multiple {
 	($name:ident, $amount:expr, $length:expr) => {
 		#[bench]
-		fn $name(b: &mut Bencher) {
+		fn $name(b: &mut test::Bencher) {
 			let mut rand = urandom::rng::Xoshiro256Rng::new();
 			let x = [$amount; $length];
 			let mut result = [0; $amount];

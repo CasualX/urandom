@@ -26,7 +26,7 @@ impl WyrandRng {
 	#[inline]
 	#[cfg(feature = "getrandom")]
 	pub fn new() -> Random<WyrandRng> {
-		Self::from_seed(util::getrandom())
+		Self::from_seed(pod::getrandom())
 	}
 
 	/// Creates a new instance seeded from another generator.
@@ -92,11 +92,15 @@ impl Rng for WyrandRng {
 }
 
 impl JumpRng for WyrandRng {
+	/// Advances the generator by 2<sup>40</sup> state transitions.
 	#[inline]
 	fn jump(&mut self) {
 		jump(&mut self.state)
 	}
 
+	/// Derives two new starting points from this generator.
+	///
+	/// Wyrand has only 64 bits of state and a fixed increment, so its descendants are not guaranteed to occupy disjoint streams.
 	#[inline]
 	fn fork(mut self) -> (Self, Self) {
 		let left = WyrandRng { state: wyrand(&mut self.state) };
@@ -111,6 +115,20 @@ impl JumpRng for WyrandRng {
 fn serde() {
 	tests::check_serde_initial_state(WyrandRng::new());
 	tests::check_serde_middle_state(WyrandRng::new());
+}
+
+#[test]
+fn test_from_seed() {
+	tests::ReproVector {
+		u32_value: 0xca71_d87c,
+		u64_value: 0x7e5b_a615_5208_5fc6,
+		f32_bits: 0x3fe6_f880,
+		f64_bits: 0x3ff0_a382_5ad7_3267,
+		bytes: [0x29, 0x1c, 0x67, 0x5d, 0xc1, 0xad, 0xc0, 0x8a, 0x0d, 0x79, 0x5d, 0x52, 0x52, 0xaa, 0xb0, 0x74, 0xf0],
+		after_jump: 0xa945_e100_02c7_3ef7,
+		fork_left: 0x4feb_3417_b2f1_830c,
+		fork_right: 0x867b_26c6_6fac_54fd,
+	}.check(WyrandRng::from_seed(42));
 }
 
 //----------------------------------------------------------------

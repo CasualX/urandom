@@ -49,6 +49,7 @@ fn stable_root_constructors() {
 #[test]
 fn serde_state_reproducibility_vectors() {
 	const SPLITMIX: &str = r#"{"state":11400714819323198527}"#;
+	const WYRAND: &str = r#"{"state":3257665815644502223}"#;
 	const XOSHIRO: &str = r#"{"state":[14781993660996615170,15162131492471177412,4387123674275312071,9390829987253819269]}"#;
 	const CHACHA: &str = r#"{"state":[42,0,42,0,42,0,42,0,1,0,0,0]}"#;
 
@@ -57,6 +58,12 @@ fn serde_state_reproducibility_vectors() {
 	assert_eq!(serde_json::to_string(&splitmix).unwrap(), SPLITMIX);
 	let mut splitmix: SplitMix64Rng = serde_json::from_str(SPLITMIX).unwrap();
 	assert_eq!(splitmix.next_u64(), 0x28ef_e333_b266_f103);
+
+	let mut wyrand = WyrandRng::from_seed_u64(42);
+	let _ = wyrand.next_u32();
+	assert_eq!(serde_json::to_string(&wyrand).unwrap(), WYRAND);
+	let mut wyrand: WyrandRng = serde_json::from_str(WYRAND).unwrap();
+	assert_eq!(wyrand.next_u64(), 0x7e5b_a615_5208_5fc6);
 
 	let mut xoshiro = Xoshiro256Rng::from_seed_u64(42);
 	let _ = xoshiro.next_u32();
@@ -96,6 +103,7 @@ fn test_split_rng() {
 	#[cfg(feature = "getrandom")]
 	test(&mut crate::new());
 	test(&mut SplitMix64Rng::from_seed_u64(42));
+	test(&mut WyrandRng::from_seed_u64(42));
 
 	let mut rand = crate::seeded(42);
 	let mut current = rand.clone();
@@ -114,6 +122,7 @@ fn test_fork_rng() {
 
 	check(Xoshiro256Rng::from_seed_u64(42));
 	check(SplitMix64Rng::from_seed_u64(42));
+	check(WyrandRng::from_seed_u64(42));
 	check(ChaCha12Rng::from_seed([0; 8]));
 }
 
@@ -136,6 +145,7 @@ fn recursive_forks_are_distinct() {
 
 	check(Xoshiro256Rng::from_seed_u64(42));
 	check(SplitMix64Rng::from_seed_u64(42));
+	check(WyrandRng::from_seed_u64(42));
 	check(ChaCha12Rng::from_seed([0; 8]));
 }
 
@@ -151,6 +161,7 @@ fn forks_are_reproducible() {
 
 	check(Xoshiro256Rng::from_seed_u64(42));
 	check(SplitMix64Rng::from_seed_u64(42));
+	check(WyrandRng::from_seed_u64(42));
 	check(ChaCha12Rng::from_seed([0; 8]));
 }
 
