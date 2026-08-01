@@ -26,7 +26,7 @@ impl SplitMix64Rng {
 	#[inline]
 	#[cfg(feature = "getrandom")]
 	pub fn new() -> Random<SplitMix64Rng> {
-		Self::from_seed(util::getrandom())
+		Self::from_seed(pod::getrandom())
 	}
 
 	/// Creates a new instance seeded from another generator.

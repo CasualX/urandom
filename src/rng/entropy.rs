@@ -1,11 +1,6 @@
 use super::*;
 
-/// Provides cryptographically secure entropy.
-///
-/// # Endianness
-///
-/// Bytes are written to `T`'s native in-memory representation. Multi-byte
-/// values are not portable across endianness.
+/// Fills a byte buffer with cryptographically secure entropy.
 ///
 /// # Panics
 ///
@@ -15,17 +10,12 @@ use super::*;
 ///
 /// The implementation is provided by the [`getrandom`](https://crates.io/crates/getrandom) crate.
 #[inline]
-pub fn getentropy<T: dataview::Pod>(buf: &mut [T]) -> &mut [T] {
-	let buf: &mut [MaybeUninit<T>] = unsafe { mem::transmute(buf) };
+pub fn getentropy(buf: &mut [u8]) -> &mut [u8] {
+	let buf = unsafe { slice::from_raw_parts_mut(buf.as_mut_ptr().cast::<MaybeUninit<u8>>(), buf.len()) };
 	getentropy_uninit(buf)
 }
 
-/// Provides cryptographically secure entropy.
-///
-/// # Endianness
-///
-/// Bytes are written to `T`'s native in-memory representation. Multi-byte
-/// values are not portable across endianness.
+/// Fills an uninitialized byte buffer with cryptographically secure entropy.
 ///
 /// # Panics
 ///
@@ -35,10 +25,9 @@ pub fn getentropy<T: dataview::Pod>(buf: &mut [T]) -> &mut [T] {
 ///
 /// The implementation is provided by the [`getrandom`](https://crates.io/crates/getrandom) crate.
 #[inline]
-pub fn getentropy_uninit<T: dataview::Pod>(buf: &mut [MaybeUninit<T>]) -> &mut [T] {
-	let dest = unsafe { slice::from_raw_parts_mut(buf.as_mut_ptr() as *mut MaybeUninit<u8>, mem::size_of_val(buf)) };
-	match getrandom::fill_uninit(dest) {
-		Ok(_) => unsafe { mem::transmute(buf) },
+pub fn getentropy_uninit(buf: &mut [MaybeUninit<u8>]) -> &mut [u8] {
+	match getrandom::fill_uninit(buf) {
+		Ok(buf) => buf,
 		Err(_) => getentropy_not_ready(),
 	}
 }

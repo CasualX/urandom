@@ -1,17 +1,12 @@
 use super::*;
 
 pub trait BlockRng {
-	type Output: Copy + Default + PartialEq + dataview::Pod;
+	type Output: Copy + Default + PartialEq + Pod;
 
 	/// Generates the next block in a byte representation that is identical on little-endian and big-endian targets.
 	fn generate(&mut self, random: &mut Self::Output);
 	/// Advances the generator state by a large, implementation-defined distance.
 	fn jump(&mut self);
-}
-
-#[inline]
-fn bytes<T: dataview::Pod + ?Sized>(value: &T) -> &[u8] {
-	unsafe { core::slice::from_raw_parts(value as *const T as *const u8, mem::size_of_val(value)) }
 }
 
 #[derive(Clone, Debug)]
@@ -50,7 +45,7 @@ impl<T: BlockRng> Rng for BlockRngImpl<T> {
 			index = 0;
 		}
 		// Fetch from the random block
-		let random = bytes(&self.random);
+		let random = pod::bytes(&self.random);
 		let value = u32::from_le_bytes([random[index + 0], random[index + 1], random[index + 2], random[index + 3]]);
 		self.index = (index + 4) as u32;
 		value
@@ -65,7 +60,7 @@ impl<T: BlockRng> Rng for BlockRngImpl<T> {
 			index = 0;
 		}
 		// Fetch from the random block
-		let random = bytes(&self.random);
+		let random = pod::bytes(&self.random);
 		let value = u64::from_le_bytes([
 			random[index + 0], random[index + 1], random[index + 2], random[index + 3],
 			random[index + 4], random[index + 5], random[index + 6], random[index + 7],
@@ -83,13 +78,14 @@ impl<T: BlockRng> Rng for BlockRngImpl<T> {
 		let mut tmp = T::Output::default();
 		while buf.len() >= mem::size_of_val(&tmp) {
 			self.state.generate(&mut tmp);
-			unsafe { ptr::copy_nonoverlapping(&tmp as *const _ as *const u8, buf.as_mut_ptr() as *mut u8, mem::size_of_val(&tmp)); }
+			let src = pod::bytes(&tmp);
+			unsafe { ptr::copy_nonoverlapping(src.as_ptr(), buf.as_mut_ptr() as *mut u8, src.len()); }
 			buf = &mut buf[mem::size_of_val(&tmp)..];
 		}
 		// Fill the remaining bytes from the cached block
 		if buf.len() > 0 {
 			loop {
-				let random = bytes(&self.random);
+				let random = pod::bytes(&self.random);
 				let start = usize::min(self.index as usize, random.len());
 				let src = &random[start..];
 				let len = usize::min(src.len(), buf.len());

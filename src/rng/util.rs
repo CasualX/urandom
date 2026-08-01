@@ -51,31 +51,22 @@ pub fn rng_fill_bytes<R: Rng>(rng: &mut R, buf: &mut [MaybeUninit<u8>]) {
 	}
 }
 
-#[cfg(feature = "getrandom")]
 #[inline]
-pub fn getrandom<T: dataview::Pod>() -> T {
-	let mut value = MaybeUninit::<T>::uninit();
-	getentropy_uninit(slice::from_mut(&mut value));
-	unsafe { value.assume_init() }
-}
-
-#[inline]
-pub fn fill_bytes<'a, R: Rng + ?Sized, T: dataview::Pod>(rng: &mut R, buf: &'a mut [T]) -> &'a mut [T] {
-	let buf_bytes = unsafe { slice::from_raw_parts_mut(buf.as_mut_ptr() as *mut MaybeUninit<u8>, mem::size_of_val(buf)) };
-	rng.fill_bytes(buf_bytes);
+pub fn fill_bytes<'a, R: Rng + ?Sized>(rng: &mut R, buf: &'a mut [u8]) -> &'a mut [u8] {
+	let dest = unsafe { slice::from_raw_parts_mut(buf.as_mut_ptr().cast::<MaybeUninit<u8>>(), buf.len()) };
+	rng.fill_bytes(dest);
 	buf
 }
 
 #[inline]
-pub fn fill_bytes_uninit<'a, R: Rng + ?Sized, T: dataview::Pod>(rng: &mut R, buf: &'a mut [mem::MaybeUninit<T>]) -> &'a mut [T] {
-	let buf_bytes = unsafe { slice::from_raw_parts_mut(buf.as_mut_ptr() as *mut MaybeUninit<u8>, mem::size_of_val(buf)) };
-	rng.fill_bytes(buf_bytes);
-	unsafe { mem::transmute(buf) }
+pub fn fill_bytes_uninit<'a, R: Rng + ?Sized>(rng: &mut R, buf: &'a mut [MaybeUninit<u8>]) -> &'a mut [u8] {
+	rng.fill_bytes(buf);
+	unsafe { slice::from_raw_parts_mut(buf.as_mut_ptr().cast::<u8>(), buf.len()) }
 }
 
 #[inline]
-pub fn random_bytes<R: Rng + ?Sized, T: dataview::Pod>(rng: &mut R) -> T {
-	let mut value = MaybeUninit::<T>::uninit();
-	fill_bytes_uninit(rng, slice::from_mut(&mut value));
-	unsafe { value.assume_init() }
+pub fn random_bytes<R: Rng + ?Sized, const N: usize>(rng: &mut R) -> [u8; N] {
+	let mut value = [0u8; N];
+	fill_bytes(rng, &mut value);
+	value
 }

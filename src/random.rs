@@ -58,22 +58,17 @@ impl<R: Rng + ?Sized> Random<R> {
 	///
 	/// The underlying Rng may implement this as efficiently as possible.
 	///
-	/// # Endianness
-	///
-	/// Bytes are written to `T`'s native in-memory representation.
-	/// Multi-byte values are not portable across endianness.
-	///
 	/// # Examples
 	///
 	/// ```
 	#[cfg_attr(feature = "getrandom", doc = "let mut rand = urandom::new();")]
 	#[cfg_attr(not(feature = "getrandom"), doc = "let mut rand = urandom::seeded(42);")]
-	/// let mut data = [0u32; 32];
+	/// let mut data = [0u8; 32];
 	/// let data = rand.fill_bytes(&mut data);
-	/// assert_ne!(data, [0u32; 32]);
+	/// assert_ne!(data, [0u8; 32]);
 	/// ```
 	#[inline]
-	pub fn fill_bytes<'a, T: dataview::Pod>(&mut self, buf: &'a mut [T]) -> &'a mut [T] {
+	pub fn fill_bytes<'a>(&mut self, buf: &'a mut [u8]) -> &'a mut [u8] {
 		rng::util::fill_bytes(&mut self.rng, buf)
 	}
 
@@ -81,47 +76,36 @@ impl<R: Rng + ?Sized> Random<R> {
 	///
 	/// The underlying Rng may implement this as efficiently as possible.
 	///
-	/// # Endianness
-	///
-	/// Bytes are written to `T`'s native in-memory representation.
-	/// Multi-byte values are not portable across endianness.
-	///
 	/// # Examples
 	///
 	/// ```
 	/// use std::mem::MaybeUninit;
-	/// use std::slice;
 	///
 	#[cfg_attr(feature = "getrandom", doc = "let mut rand = urandom::new();")]
 	#[cfg_attr(not(feature = "getrandom"), doc = "let mut rand = urandom::seeded(42);")]
-	/// let mut data = MaybeUninit::<[u32; 32]>::uninit();
-	/// let data = rand.fill_bytes_uninit(slice::from_mut(&mut data));
-	/// assert_ne!(data, [[0u32; 32]]);
+	/// let mut data = [MaybeUninit::<u8>::uninit(); 32];
+	/// let data = rand.fill_bytes_uninit(&mut data);
+	/// assert_ne!(data, [0u8; 32]);
 	/// ```
 	#[inline]
-	pub fn fill_bytes_uninit<'a, T: dataview::Pod>(&mut self, buf: &'a mut [mem::MaybeUninit<T>]) -> &'a mut [T] {
+	pub fn fill_bytes_uninit<'a>(&mut self, buf: &'a mut [mem::MaybeUninit<u8>]) -> &'a mut [u8] {
 		rng::util::fill_bytes_uninit(&mut self.rng, buf)
 	}
 
-	/// Fills the instance with uniform random bytes from the Rng.
+	/// Generates an array of uniform random bytes from the Rng.
 	///
 	/// The underlying Rng may implement this as efficiently as possible.
-	///
-	/// # Endianness
-	///
-	/// Bytes are written to `T`'s native in-memory representation.
-	/// Multi-byte values are not portable across endianness.
 	///
 	/// # Examples
 	///
 	/// ```
 	#[cfg_attr(feature = "getrandom", doc = "let mut rand = urandom::new();")]
 	#[cfg_attr(not(feature = "getrandom"), doc = "let mut rand = urandom::seeded(42);")]
-	/// let value: [u32; 32] = rand.random_bytes();
-	/// assert_ne!(value, [0u32; 32]);
+	/// let value = rand.random_bytes::<32>();
+	/// assert_ne!(value, [0u8; 32]);
 	/// ```
 	#[inline]
-	pub fn random_bytes<T: dataview::Pod>(&mut self) -> T {
+	pub fn random_bytes<const N: usize>(&mut self) -> [u8; N] {
 		rng::util::random_bytes(&mut self.rng)
 	}
 

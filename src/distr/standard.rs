@@ -20,7 +20,7 @@ use super::*;
 /// The `StandardUniform` distribution also supports generation of the following compound types where all component types are supported:
 ///
 /// * Tuples (up to 12 elements): each element is generated sequentially.
-/// * Arrays: each element is generated sequentially; see also [`Random::fill_bytes`] which is faster for u32 and smaller types.
+/// * Arrays: each element is generated sequentially; see also [`Random::random_bytes`] for efficiently generating byte arrays.
 ///
 /// # Examples
 ///

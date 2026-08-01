@@ -25,10 +25,11 @@ default = ["getrandom", "std"]
 getrandom = ["dep:getrandom"]
 std = []
 serde = ["dep:serde"]
+dataview = ["dep:dataview"]
 
 [dependencies]
 getrandom = { version = "0.3", optional = true }
-dataview = { version = "~1.0", default-features = false }
+dataview = { version = "~1.0", default-features = false, optional = true }
 serde = { version = "1.0", default-features = false, features = ["derive"], optional = true }
 
 [dev-dependencies]

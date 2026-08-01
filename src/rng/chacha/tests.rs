@@ -201,10 +201,10 @@ fn fill_bytes_uses_little_endian_word_order() {
 	].map(u32::to_le_bytes);
 
 	let mut rand = ChaCha20Rng::from_seed([0; 8]);
-	let mut output = [[0u8; 4]; 16];
+	let mut output = [0u8; 64];
 	rand.fill_bytes(&mut output);
 
-	assert_eq!(output, expected);
+	assert_eq!(output, expected.as_flattened());
 }
 
 #[inline]

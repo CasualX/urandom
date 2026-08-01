@@ -66,6 +66,9 @@ use crate::Random;
 
 pub(crate) mod util;
 
+mod pod;
+use pod::Pod;
+
 mod sealed;
 use sealed::Sealed;
 

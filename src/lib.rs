@@ -53,6 +53,9 @@ pub use self::random::Random;
 pub use self::rng::Rng;
 pub use self::distr::Distribution;
 
+#[cfg(feature = "dataview")]
+mod dataview;
+
 //----------------------------------------------------------------
 
 /// Creates a new cryptographically secure pseudorandom number generator (CSPRNG).

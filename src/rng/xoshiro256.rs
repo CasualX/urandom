@@ -30,7 +30,7 @@ impl Xoshiro256Rng {
 	#[inline]
 	#[cfg(feature = "getrandom")]
 	pub fn new() -> Random<Xoshiro256Rng> {
-		Self::from_seed(util::getrandom())
+		Self::from_seed(pod::getrandom())
 	}
 
 	/// Creates a new instance seeded from another generator.

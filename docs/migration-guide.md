@@ -31,6 +31,17 @@ let mut bytes = [0_u8; 32];
 rand.fill_bytes(&mut bytes);
 ```
 
+The byte-generation methods now operate specifically on bytes. `random_bytes` returns a const-generic byte array:
+
+```rust
+let bytes = rand.random_bytes::<32>();
+```
+
+Enable the optional `dataview` feature and use `fill_data`, `fill_data_uninit`, or `random_data`
+when generating arbitrary plain-data types from their native in-memory representation.
+
+`getentropy` and `getentropy_uninit` likewise now accept byte buffers only.
+
 The low-level operations were removed from the `Random` struct.
 If exact low-level calls are needed, import `urandom::rng::{Rng, JumpRng}`; `Random<R>` dereferences to its inner generator.
 
@@ -107,5 +118,7 @@ Disable default features when only deterministic construction is needed.
 
 The old `getentropy_raw` link-time integration used without `getrandom` was removed.
 Custom system-entropy integrations must use `getrandom`'s custom-backend mechanism.
+
+The `dataview` feature is disabled by default. It provides typed plain-data generation through `dataview::Pod`.
 
 The `serde` feature is available without `std`.

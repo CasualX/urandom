@@ -48,7 +48,7 @@ impl<const N: usize> Rng for SystemRng<N> {
 		let mut index = self.index as usize;
 		// Generate a new block if there are no more random words
 		if index >= N {
-			getentropy(&mut self.random);
+			pod::getentropy(&mut self.random);
 			index = 0;
 		}
 		// Fetch a word from the random block
@@ -60,7 +60,7 @@ impl<const N: usize> Rng for SystemRng<N> {
 		let mut index = self.index as usize;
 		// Generate a new block if there are less than two random words
 		if index >= N - 1 {
-			getentropy(&mut self.random);
+			pod::getentropy(&mut self.random);
 			index = 0;
 		}
 		// Fetch two words from the random block

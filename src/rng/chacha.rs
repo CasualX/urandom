@@ -46,7 +46,7 @@ impl<const N: usize> ChaChaRng<N> where Self: SecureRng {
 	#[inline]
 	#[cfg(feature = "getrandom")]
 	pub fn new() -> Random<ChaChaRng<N>> {
-		Self::from_seed(util::getrandom())
+		Self::from_seed(pod::getrandom())
 	}
 
 	/// Creates a new instance seeded from another generator.
@@ -179,7 +179,7 @@ const CONSTANT: [u32; 4] = [0x61707865, 0x3320646e, 0x79622d32, 0x6b206574];
 #[repr(transparent)]
 pub struct ChaChaOutput([[u32; 16]; CN]);
 
-unsafe impl dataview::Pod for ChaChaOutput {}
+unsafe impl Pod for ChaChaOutput {}
 
 #[derive(Clone)]
 #[repr(C)]
@@ -188,8 +188,6 @@ pub struct ChaChaState<const N: usize> {
 	counter: [u32; 2],
 	stream: [u32; 2],
 }
-
-unsafe impl<const N: usize> dataview::Pod for ChaChaState<N> {}
 
 impl<const N: usize> ChaChaState<N> {
 	#[inline]

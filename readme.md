@@ -99,6 +99,8 @@ Features
   This enables `urandom::new()`, each generator's `new()` constructor, `SystemRng`, `getentropy`, and `getentropy_uninit`.
   Without this feature, deterministic constructors such as `urandom::seeded()`, `from_seed()`, `from_seed_u64()`, and `from_rng()` remain available.
 
+* `dataview`: Enables additional methods on `Random` to generate data into `dataview::Pod` types.
+
 * `serde`: Enables serialization and deserialization for random number generators and distributions.
 
   Serialized generator state is covered by the strong generator guarantee described above.
