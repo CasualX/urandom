@@ -147,11 +147,12 @@ pub use self::xoshiro256::Xoshiro256Rng;
 mod mock;
 pub use self::mock::MockRng;
 
-cfg_if::cfg_if! {
-	if #[cfg(feature = "std")] {
+cfg_select! {
+	feature = "std" => {
 		mod read;
 		pub use self::read::ReadRng;
 	}
+	_ => {}
 }
 
 mod chacha;

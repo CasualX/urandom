@@ -14,7 +14,7 @@ I did keep the parts of rand I liked. Its distribution model was already well de
 so urandom retains that approach rather than inventing a new abstraction.
 
 The examples and details below compare `urandom` 1.0 with `rand` 0.10.2.
-Both require Rust 1.85 or newer.
+urandom requires Rust 1.95 or newer, while rand requires Rust 1.85 or newer.
 
 ## One place to look
 

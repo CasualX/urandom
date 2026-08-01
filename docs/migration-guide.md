@@ -1,6 +1,6 @@
 # Migrating from 0.2.2 to 1.0
 
-Version 1.0 requires Rust 1.85 or newer.
+Version 1.0 requires Rust 1.95 or newer.
 
 Update the dependency first:
 

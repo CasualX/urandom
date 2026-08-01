@@ -160,14 +160,14 @@ mod avx2;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "sse2"))]
 mod sse2;
 
-cfg_if::cfg_if! {
-	if #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "avx2"))] {
+cfg_select! {
+	all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "avx2") => {
 		use self::avx2::block as chacha_block;
 	}
-	else if #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "sse2"))] {
+	all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "sse2") => {
 		use self::sse2::block as chacha_block;
 	}
-	else {
+	_ => {
 		use self::slp::block as chacha_block;
 	}
 }

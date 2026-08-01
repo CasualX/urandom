@@ -67,8 +67,8 @@ pub use self::samples::Samples;
 pub use self::standard::StandardUniform;
 pub use self::uniform::*;
 
-cfg_if::cfg_if! {
-	if #[cfg(feature = "std")] {
+cfg_select! {
+	feature = "std" => {
 		mod exp;
 		mod normal;
 		mod triangular;
@@ -79,6 +79,7 @@ cfg_if::cfg_if! {
 		pub use self::normal::{LogNormal, Normal, NormalError, StandardNormal};
 		pub use self::triangular::{Triangular, TriangularError};
 	}
+	_ => {}
 }
 
 /// Types (distributions) that can be used to create a random instance of `T`.
