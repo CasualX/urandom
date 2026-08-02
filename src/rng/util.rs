@@ -66,7 +66,7 @@ pub fn fill_bytes_uninit<'a, R: Rng + ?Sized>(rng: &mut R, buf: &'a mut [MaybeUn
 
 #[inline]
 pub fn random_bytes<R: Rng + ?Sized, const N: usize>(rng: &mut R) -> [u8; N] {
-	let mut value = [0u8; N];
-	fill_bytes(rng, &mut value);
-	value
+	let mut value = MaybeUninit::<[u8; N]>::uninit();
+	fill_bytes_uninit(rng, value.as_mut());
+	unsafe { value.assume_init() }
 }

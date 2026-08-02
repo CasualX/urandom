@@ -8,16 +8,6 @@
 use core::{mem, mem::MaybeUninit, slice};
 use super::{Rng, Random};
 
-/// Initializes a buffer so it can be exposed through `dataview::bytes_mut`.
-#[inline]
-pub fn initialize<T: ::dataview::Pod>(buf: &mut [MaybeUninit<T>]) -> &mut [T] {
-	for value in &mut *buf {
-		value.write(::dataview::zeroed());
-	}
-	// Every element was initialized above. MaybeUninit<T> has the same layout as T.
-	unsafe { slice::from_raw_parts_mut(buf.as_mut_ptr().cast::<T>(), buf.len()) }
-}
-
 impl<R: Rng + ?Sized> Random<R> {
 	/// Fills the destination plain-data buffer with uniform random bytes.
 	///
@@ -37,9 +27,11 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// across endianness.
 	#[inline]
 	pub fn fill_data_uninit<'a, T: dataview::Pod>(&mut self, buf: &'a mut [mem::MaybeUninit<T>]) -> &'a mut [T] {
-		let data = initialize(buf);
-		self.fill_bytes(dataview::bytes_mut(data));
-		data
+		let data = unsafe {
+			slice::from_raw_parts_mut(buf.as_mut_ptr().cast::<MaybeUninit<u8>>(), mem::size_of_val(buf))
+		};
+		self.fill_bytes_uninit(data);
+		unsafe { buf.assume_init_mut() }
 	}
 
 	/// Generates a plain-data value from uniform random bytes.
@@ -49,9 +41,9 @@ impl<R: Rng + ?Sized> Random<R> {
 	/// across endianness.
 	#[inline]
 	pub fn random_data<T: dataview::Pod>(&mut self) -> T {
-		let mut value = dataview::zeroed();
-		self.fill_bytes(dataview::bytes_mut(&mut value));
-		value
+		let mut value = MaybeUninit::<T>::uninit();
+		self.fill_data_uninit(slice::from_mut(&mut value));
+		unsafe { value.assume_init() }
 	}
 }
 
