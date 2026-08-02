@@ -23,7 +23,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-urandom = "1.0"
+urandom = "1.0.0-alpha.2"
 ```
 
 Quick Start

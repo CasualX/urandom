@@ -1,12 +1,12 @@
 # Migrating from 0.2.2 to 1.0
 
-Version 1.0 requires Rust 1.95 or newer.
+The 1.0 prereleases require Rust 1.95 or newer.
 
 Update the dependency first:
 
 ```toml
 [dependencies]
-urandom = "1.0"
+urandom = "1.0.0-alpha.2"
 ```
 
 ## Rename consumer methods
@@ -52,7 +52,7 @@ Concrete generator replacements are:
 | 0.2.2 | 1.0 |
 |---|---|
 | `Xoshiro256` | `Xoshiro256Rng` |
-| `SplitMix64` | `SplittableRandom` |
+| `SplitMix64` | See below |
 | `ChaCha<N>` | `ChaChaRng<N>` |
 | `ChaCha8` | `ChaCha8Rng` |
 | `ChaCha12` | `ChaCha12Rng` |
@@ -61,7 +61,9 @@ Concrete generator replacements are:
 | `Mock<I>` | `MockRng<I>` |
 | `Read<R>` | `ReadRng<R>` |
 
-`Wyrand` was removed; use `Xoshiro256Rng` for non-cryptographic use.
+`SplitMix64` was removed. For ordinary non-cryptographic generation, use `Xoshiro256Rng`.
+Use `SplittableRandom` when recursively creating independent streams with `fork` is part of the application design.
+
 `SystemRng<N>` now requires `N >= 2`.
 
 The old 64-bit seed constructors for Xoshiro and ChaCha are now named `from_seed_u64`;
