@@ -102,9 +102,9 @@ impl JumpRng for WyrandRng {
 	///
 	/// Wyrand has only 64 bits of state and a fixed increment, so its descendants are not guaranteed to occupy disjoint streams.
 	#[inline]
-	fn fork(mut self) -> (Self, Self) {
-		let left = WyrandRng { state: wyrand(&mut self.state) };
-		let right = WyrandRng { state: wyrand(&mut self.state) };
+	fn fork(self) -> (Self, Self) {
+		let left = WyrandRng { state: splittable::mix64(self.state.wrapping_add(P0)) };
+		let right = WyrandRng { state: splittable::mix64(self.state.wrapping_add(P0.wrapping_mul(2))) };
 		(left, right)
 	}
 }
@@ -126,9 +126,17 @@ fn test_from_seed() {
 		f64_bits: 0x3ff0_a382_5ad7_3267,
 		bytes: [0x29, 0x1c, 0x67, 0x5d, 0xc1, 0xad, 0xc0, 0x8a, 0x0d, 0x79, 0x5d, 0x52, 0x52, 0xaa, 0xb0, 0x74, 0xf0],
 		after_jump: 0xa945_e100_02c7_3ef7,
-		fork_left: 0x4feb_3417_b2f1_830c,
-		fork_right: 0x867b_26c6_6fac_54fd,
+		fork_left: 0x6870_fd83_aa2a_cb3c,
+		fork_right: 0x90ee_b789_3f17_8d3f,
 	}.check(WyrandRng::from_seed(42));
+}
+
+#[test]
+fn fork_seeds_are_distinct() {
+	for state in [0, 1, P0, P1, u64::MAX] {
+		let (left, right) = WyrandRng { state }.fork();
+		assert_ne!(left.state, right.state);
+	}
 }
 
 //----------------------------------------------------------------

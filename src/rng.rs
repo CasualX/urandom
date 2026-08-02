@@ -26,6 +26,10 @@
 //!
 //!   See the [PRNG shootout](http://prng.di.unimi.it/) for background and analysis.
 //!
+//! * [`SplittableRandom`]:
+//!
+//!   A fast generator designed to create large deterministic trees of forked streams.
+//!
 //! Cryptographically secure generators
 //! -----------------------------------
 //!
@@ -120,7 +124,7 @@ pub trait JumpRng: Rng {
 	/// Advances the generator's state by a large, implementation-defined distance.
 	fn jump(&mut self);
 
-	/// Consumes this generator and returns two independently reseeded descendants.
+	/// Consumes this generator and returns two deterministically derived descendants.
 	fn fork(self) -> (Self, Self) where Self: Sized;
 }
 
@@ -134,9 +138,8 @@ pub trait SecureRng: Rng {}
 //----------------------------------------------------------------
 // Random number generators
 
-mod splitmix64;
-#[doc(hidden)] // Not intended to be used publicly, but unfortunately cannot be fully removed at this time
-pub use self::splitmix64::SplitMix64Rng;
+mod splittable;
+pub use self::splittable::SplittableRandom;
 
 mod xoshiro256;
 pub use self::xoshiro256::Xoshiro256Rng;

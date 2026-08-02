@@ -104,6 +104,7 @@ makes the implementation easier to maintain.
 The supplied generators cover the uses I care about:
 
 - Xoshiro256: Very fast for non-cryptographic use.
+- SplittableRandom: Fast recursive generation of forked streams.
 - ChaCha8/12/20: Secure for cryptographic use.
 
 They are well-known algorithms recommended today for their use cases, which is why I

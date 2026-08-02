@@ -42,8 +42,8 @@ impl Xoshiro256Rng {
 	/// # Examples
 	///
 	/// ```
-	#[cfg_attr(feature = "getrandom", doc = "let mut master = urandom::rng::SplitMix64Rng::new();")]
-	#[cfg_attr(not(feature = "getrandom"), doc = "let mut master = urandom::rng::SplitMix64Rng::from_seed_u64(42);")]
+	#[cfg_attr(feature = "getrandom", doc = "let mut master = urandom::new();")]
+	#[cfg_attr(not(feature = "getrandom"), doc = "let mut master = urandom::seeded(42);")]
 	/// let mut rand = urandom::rng::Xoshiro256Rng::from_rng(&mut master);
 	/// let value: i32 = rand.random();
 	/// ```
@@ -80,9 +80,8 @@ impl Xoshiro256Rng {
 	/// let value: u32 = rand.random();
 	/// assert_eq!(value, 368317477);
 	/// ```
-	pub fn from_seed_u64(seed: u64) -> Random<Xoshiro256Rng> {
-		let mut master = SplitMix64Rng::from_seed_u64(seed);
-		let state = [master.next_u64(), master.next_u64(), master.next_u64(), master.next_u64()];
+	pub fn from_seed_u64(mut seed: u64) -> Random<Xoshiro256Rng> {
+		let state = core::array::from_fn(|_| splittable::splitmix64(&mut seed));
 		Random::from(Xoshiro256Rng { state })
 	}
 }
@@ -124,14 +123,14 @@ impl JumpRng for Xoshiro256Rng {
 	/// Derives two new states using separately mixed output material.
 	#[inline(never)]
 	fn fork(mut self) -> (Self, Self) {
-		const WORD_DOMAIN: u64 = super::splitmix64::GOLDEN_GAMMA;
+		const WORD_DOMAIN: u64 = super::splittable::GOLDEN_GAMMA;
 		const LEFT_DOMAIN: u64 = WORD_DOMAIN;
 		const RIGHT_DOMAIN: u64 = WORD_DOMAIN.wrapping_mul(5);
 
 		let mut derive = |domain: u64| {
 			let state = core::array::from_fn(|index| {
 				let domain = domain.wrapping_add((index as u64).wrapping_mul(WORD_DOMAIN));
-				splitmix64::mix64(self.next_u64().wrapping_add(domain))
+				splittable::mix64(self.next_u64().wrapping_add(domain))
 			});
 			Xoshiro256Rng { state }
 		};

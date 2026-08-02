@@ -47,12 +47,12 @@ If exact low-level calls are needed, import `urandom::rng::{Rng, JumpRng}`; `Ran
 
 ## Rename concrete generators
 
-All public generator names now end in `Rng`:
+Concrete generator replacements are:
 
 | 0.2.2 | 1.0 |
 |---|---|
 | `Xoshiro256` | `Xoshiro256Rng` |
-| `SplitMix64` | Removed |
+| `SplitMix64` | `SplittableRandom` |
 | `ChaCha<N>` | `ChaChaRng<N>` |
 | `ChaCha8` | `ChaCha8Rng` |
 | `ChaCha12` | `ChaCha12Rng` |

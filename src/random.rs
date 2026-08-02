@@ -136,7 +136,7 @@ impl<R: Rng + ?Sized> Random<R> {
 		return cur;
 	}
 
-	/// Consumes this generator and returns two independently reseeded descendants.
+	/// Consumes this generator and returns two deterministically derived descendants.
 	///
 	/// The underlying generator decides how to derive its descendant states.
 	/// This operation may be applied recursively to either returned generator.
