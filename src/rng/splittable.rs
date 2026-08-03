@@ -213,9 +213,3 @@ fn mix_gamma(mut z: u64) -> u64 {
 	}
 	z
 }
-
-#[inline]
-pub(super) fn splitmix64(state: &mut u64) -> u64 {
-	*state = state.wrapping_add(GOLDEN_GAMMA);
-	mix64(*state)
-}

@@ -14,6 +14,8 @@ It is a fork of the semi-official [`rand`](https://crates.io/crates/rand) crate,
 
 [Compare `urandom` with `rand`](docs/rand.md).
 
+Choosing a generator? Read the [RNG selection guide](docs/choose-rng.md).
+
 Migrating from urandom 0.2.2? Read the 1.0 [migration guide](docs/migration-guide.md).
 
 Usage

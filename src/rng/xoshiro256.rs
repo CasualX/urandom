@@ -81,7 +81,7 @@ impl Xoshiro256Rng {
 	/// assert_eq!(value, 368317477);
 	/// ```
 	pub fn from_seed_u64(mut seed: u64) -> Random<Xoshiro256Rng> {
-		let state = core::array::from_fn(|_| splittable::splitmix64(&mut seed));
+		let state = core::array::from_fn(|_| splitmix64(&mut seed));
 		Random::from(Xoshiro256Rng { state })
 	}
 }
@@ -192,6 +192,12 @@ fn test_from_seed() {
 
 //----------------------------------------------------------------
 // Xoshiro256Rng implementation details
+
+#[inline]
+fn splitmix64(state: &mut u64) -> u64 {
+	*state = state.wrapping_add(splittable::GOLDEN_GAMMA);
+	splittable::mix64(*state)
+}
 
 #[inline]
 fn advance(s: &mut [u64; 4]) {

@@ -74,3 +74,22 @@ impl<const N: usize> Rng for SystemRng<N> {
 		getentropy_uninit(buf);
 	}
 }
+
+impl<const N: usize> JumpRng for SystemRng<N> {
+	/// Discards the buffered words so the next value is obtained from a new system entropy request.
+	#[inline]
+	fn jump(&mut self) {
+		self.index = !0;
+	}
+
+	/// Returns two generators which independently obtain their next blocks from the system entropy source.
+	#[inline]
+	fn fork(mut self) -> (Self, Self) {
+		self.jump();
+		let right = SystemRng {
+			index: !0,
+			random: [0; N],
+		};
+		(self, right)
+	}
+}
