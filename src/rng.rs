@@ -38,24 +38,23 @@
 //! * [`ChaCha8Rng`], [`ChaCha12Rng`], [`ChaCha20Rng`]:
 //!
 //!   Daniel J. Bernstein's ChaCha adapted as a deterministic random number generator.
-//!
-#![cfg_attr(feature = "getrandom", doc = "* [`SystemRng`]:")]
-#![cfg_attr(not(feature = "getrandom"), doc = "* `SystemRng` (requires the `getrandom` feature):")]
-//!
-//!   Reads randomness directly from the system entropy source.
-//!
-//!   For performance, this generator fetches entropy in blocks of `N` 32-bit words.
-//!   Larger values of `N` reduce how often the system entropy source must be called.
-//!
-//! Other generators
-//! ----------------
-//!
-//! * [`MockRng`]:
-//!
-//!   A deterministic test generator backed by an iterator. It panics when the iterator runs out of items.
+
+#![cfg_attr(feature = "getrandom", doc = r#"
+
+* [`SystemRng`] (requires `getrandom` feature):
+
+Reads randomness directly from the system entropy source.
+
+For performance, this generator fetches entropy in blocks of `N` 32-bit words.
+Larger values of `N` reduce how often the system entropy source must be called.
+"#)]
 
 #![cfg_attr(feature = "std", doc = r#"
-* [`ReadRng`]:
+
+Other generators
+----------------
+
+* [`ReadRng`] (requires `std` feature):
 
   Reads bytes from any source implementing [`std::io::Read`], such as a file or device.
 "#)]
@@ -148,8 +147,10 @@ mod wyrand;
 #[doc(hidden)] // Not intended to be used publicly, but unfortunately cannot be fully removed at this time
 pub use self::wyrand::WyrandRng;
 
+#[cfg(test)]
 mod mock;
-pub use self::mock::MockRng;
+#[cfg(test)]
+pub(crate) use self::mock::MockRng;
 
 cfg_select! {
 	feature = "std" => {
