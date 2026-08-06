@@ -1,5 +1,18 @@
 //! Random number generators.
 //!
+//! Choosing a generator
+//! --------------------
+//!
+#![cfg_attr(feature = "getrandom", doc = "* Use [`crate::new`] for general application use, including security-sensitive randomness. It uses [`ChaCha12Rng`].")]
+//! * Use [`crate::seeded`] when reproducibility is required and cryptographic unpredictability is not. It uses [`Xoshiro256Rng`].
+//! * Use [`Xoshiro256Rng`] directly for fast non-cryptographic randomness or when its concrete type is needed.
+//! * Use [`SplittableRandom`] for workloads that recursively divide into independently owned random streams.
+#![cfg_attr(feature = "getrandom", doc = "* Use [`SystemRng`] only when values should come directly from the operating system entropy source.")]
+//! * Use [`ChaChaRng`] directly when a specific ChaCha security margin is required.
+//!
+#![cfg_attr(feature = "getrandom", doc = "If there is no specific reason to select a concrete generator, start with [`crate::new`].")]
+#![cfg_attr(not(feature = "getrandom"), doc = "If reproducibility is required, start with [`crate::seeded`].")]
+//!
 //! Reproducibility guarantee
 //! -------------------------
 //!
@@ -14,8 +27,9 @@
 //! With the `serde` feature, the guarantee also covers serialized generator state. State written by one release
 //! remains readable by SemVer-compatible releases, and restoring it continues the same stream at the saved position.
 //!
-#![cfg_attr(feature = "getrandom", doc = "This guarantee also applies to the root-level [`crate::new`] and [`crate::seeded`] constructors: their generator choice and initialization behavior remain stable across SemVer-compatible releases.")]
-#![cfg_attr(not(feature = "getrandom"), doc = "This guarantee also applies to the root-level [`crate::seeded`] constructor: its generator choice and initialization behavior remain stable across SemVer-compatible releases.")]
+#![cfg_attr(feature = "getrandom", doc = "This guarantee also applies to the root-level [`crate::new`] and [`crate::seeded`] constructors:")]
+#![cfg_attr(not(feature = "getrandom"), doc = "This guarantee also applies to the root-level [`crate::seeded`] constructor:")]
+//! their generator choice and initialization behavior remain stable across SemVer-compatible releases.
 //!
 //! Pseudorandom number generators
 //! -------------------------------
@@ -35,7 +49,7 @@
 //!
 //! These generators are suitable for cryptographic applications.
 //!
-//! * [`ChaCha8Rng`], [`ChaCha12Rng`], [`ChaCha20Rng`]:
+//! * [`ChaChaRng`]:
 //!
 //!   Daniel J. Bernstein's ChaCha adapted as a deterministic random number generator.
 

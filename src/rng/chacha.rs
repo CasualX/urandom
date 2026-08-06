@@ -18,10 +18,35 @@ impl SecureRng for ChaChaRng<20> {}
 
 /// Daniel J. Bernstein's ChaCha adapted as a deterministic random number generator.
 ///
+/// # Choosing the number of rounds
+///
+/// The supported variants trade throughput for security margin:
+///
+/// * Use [`ChaCha8Rng`] when additional throughput matters and its smaller security margin has been deliberately accepted.
+///
+///   It is used for Go's `math/rand` global functions and runtime randomness [Go standard library].
+///
+/// * Use [`ChaCha12Rng`] for the recommended balance of performance and security margin.
+///
+///   It is the choice made by this crate's root-level `new` constructor and by the Rust [`rand` crate's standard RNG].
+///
+/// * Use [`ChaCha20Rng`] when a conservative security margin matters more than the additional cost.
+///
+///   Full-round ChaCha20 is used by security-sensitive system generators such as the [Linux kernel CRNG].
+///
+/// These examples provide context for the round-count tradeoff; each project has its own seeding, rekeying, and stream-management design.
+///
+/// [Go standard library]: https://go.dev/blog/randv2
+/// [`rand` crate's standard RNG]: https://docs.rs/rand/latest/rand/rngs/struct.StdRng.html
+/// [Linux kernel CRNG]: https://github.com/torvalds/linux/blob/master/drivers/char/random.c
+///
 /// # Serialization security
 ///
 /// With the `serde` feature, the serialized generator state contains the secret seed and buffered keystream.
-/// Anyone who obtains it can reproduce the generator's stream. Protect serialized state with the same care as the original seed.
+///
+/// ⚠️ Anyone who obtains it can reproduce the generator's stream ⚠️
+///
+/// Protect serialized state with the same care as the original seed.
 #[derive(Clone)]
 #[repr(transparent)]
 pub struct ChaChaRng<const N: usize> {
