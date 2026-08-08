@@ -83,6 +83,14 @@ fn avx2_matches_slp() {
 	compare_with_slp::<20>(avx2::block);
 }
 
+#[cfg(all(target_arch = "wasm32", target_feature = "simd128"))]
+#[test]
+fn wasm32_simd128_matches_slp() {
+	compare_with_slp::<8>(wasm32::block);
+	compare_with_slp::<12>(wasm32::block);
+	compare_with_slp::<20>(wasm32::block);
+}
+
 #[test]
 fn counter_wraps() {
 	let mut state = ChaChaState::<20>::new([0; 8], u64::MAX - 3, 0);
