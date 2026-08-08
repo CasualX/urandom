@@ -77,6 +77,11 @@ jobs:
       - name: Run tests
         run: cargo test --all-features
 
+      - name: Check ChaCha NEON backend
+        env:
+          RUSTFLAGS: -C target-feature=+neon
+        run: cargo test --all-features rng::chacha::tests::neon_matches_slp
+
       - name: Run tests (no default features)
         run: cargo test --no-default-features
 

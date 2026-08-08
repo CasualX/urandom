@@ -83,6 +83,14 @@ fn avx2_matches_slp() {
 	compare_with_slp::<20>(avx2::block);
 }
 
+#[cfg(all(target_arch = "aarch64", target_feature = "neon"))]
+#[test]
+fn neon_matches_slp() {
+	compare_with_slp::<8>(neon::block);
+	compare_with_slp::<12>(neon::block);
+	compare_with_slp::<20>(neon::block);
+}
+
 #[cfg(all(target_arch = "wasm32", target_feature = "simd128"))]
 #[test]
 fn wasm32_simd128_matches_slp() {

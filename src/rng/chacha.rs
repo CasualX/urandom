@@ -185,6 +185,9 @@ mod avx2;
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "sse2"))]
 mod sse2;
 
+#[cfg(all(target_arch = "aarch64", target_feature = "neon"))]
+mod neon;
+
 #[cfg(all(target_arch = "wasm32", target_feature = "simd128"))]
 mod wasm32;
 
@@ -194,6 +197,9 @@ cfg_select! {
 	}
 	all(any(target_arch = "x86", target_arch = "x86_64"), target_feature = "sse2") => {
 		use self::sse2::block as chacha_block;
+	}
+	all(target_arch = "aarch64", target_feature = "neon") => {
+		use self::neon::block as chacha_block;
 	}
 	all(target_arch = "wasm32", target_feature = "simd128") => {
 		use self::wasm32::block as chacha_block;
