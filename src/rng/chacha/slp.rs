@@ -24,12 +24,11 @@ fn u32x4_xor(a: [u32; 4], b: [u32; 4]) -> [u32; 4] {
 }
 #[inline(always)]
 fn u32x4_rol(a: [u32; 4], n: u32) -> [u32; 4] {
-	// FIXME! SLP vectorizer can't handle u32 right shifts
 	[
-		a[0] << n | a[0] >> (32 - n),
-		a[1] << n | a[1] >> (32 - n),
-		a[2] << n | a[2] >> (32 - n),
-		a[3] << n | a[3] >> (32 - n),
+		a[0].rotate_left(n),
+		a[1].rotate_left(n),
+		a[2].rotate_left(n),
+		a[3].rotate_left(n),
 	]
 }
 
