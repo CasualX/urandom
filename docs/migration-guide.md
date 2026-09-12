@@ -6,7 +6,7 @@ Update the dependency first:
 
 ```toml
 [dependencies]
-urandom = "1.0.0-alpha.2"
+urandom = "1.0.0-alpha.3"
 ```
 
 ## Rename consumer methods
@@ -58,11 +58,13 @@ Concrete generator replacements are:
 | `ChaCha12` | `ChaCha12Rng` |
 | `ChaCha20` | `ChaCha20Rng` |
 | `System<N>` | `SystemRng<N>` |
-| `Mock<I>` | `MockRng<I>` |
+| `Mock<I>` | Removed |
 | `Read<R>` | `ReadRng<R>` |
 
 `SplitMix64` was removed. For ordinary non-cryptographic generation, use `Xoshiro256Rng`.
 Use `SplittableRandom` when recursively creating independent streams with `fork` is part of the application design.
+
+`Mock` has no public 1.0 replacement; `MockRng` is now an internal test utility.
 
 `SystemRng<N>` now requires `N >= 2`.
 
