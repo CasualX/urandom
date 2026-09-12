@@ -103,8 +103,7 @@ impl fmt::Display for NormalError {
 	}
 }
 
-#[cfg(feature = "std")]
-impl std::error::Error for NormalError {}
+impl core::error::Error for NormalError {}
 
 // Sealed trait, not publicly exported
 pub trait NormalImpl<Float>: Sized {

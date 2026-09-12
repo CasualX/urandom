@@ -38,8 +38,7 @@ impl fmt::Display for UniformError {
 	}
 }
 
-#[cfg(feature = "std")]
-impl std::error::Error for UniformError {}
+impl core::error::Error for UniformError {}
 
 /// Helper trait for constructing uniform samplers from inclusive and exclusive ranges.
 ///

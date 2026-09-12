@@ -98,30 +98,3 @@ pub fn new() -> Random<rng::ChaCha12Rng> {
 pub fn seeded(seed: u64) -> Random<rng::Xoshiro256Rng> {
 	rng::Xoshiro256Rng::from_seed_u64(seed)
 }
-
-/// Hashes a value with Rust's [`DefaultHasher`](std::collections::hash_map::DefaultHasher).
-///
-/// This is a convenience function for obtaining a `u64` hash, for example to use as a seed.
-///
-/// The hash is deterministic for a given Rust version and target. However, the data fed by
-/// [`Hash`](core::hash::Hash) is not guaranteed to be portable across targets or stable between
-/// Rust versions, and the algorithm used by `DefaultHasher` may also change.
-///
-/// This function is not suitable for cryptographic use.
-///
-/// # Examples
-///
-/// ```
-/// let seed = urandom::hash("example");
-/// let mut rand = urandom::seeded(seed);
-/// let value: i32 = rand.random();
-/// ```
-#[cfg(feature = "std")]
-#[must_use]
-#[inline]
-pub fn hash<T: ?Sized + core::hash::Hash>(value: &T) -> u64 {
-	use core::hash::Hasher;
-	let mut hasher = std::collections::hash_map::DefaultHasher::new();
-	value.hash(&mut hasher);
-	hasher.finish()
-}

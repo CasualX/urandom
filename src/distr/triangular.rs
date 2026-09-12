@@ -19,8 +19,7 @@ impl fmt::Display for TriangularError {
 	}
 }
 
-#[cfg(feature = "std")]
-impl std::error::Error for TriangularError {}
+impl core::error::Error for TriangularError {}
 
 /// The [triangular distribution](https://en.wikipedia.org/wiki/Triangular_distribution) `Triangular(min, max, mode)`.
 ///

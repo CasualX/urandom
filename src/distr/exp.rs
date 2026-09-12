@@ -81,8 +81,7 @@ impl fmt::Display for ExpError {
 	}
 }
 
-#[cfg(feature = "std")]
-impl std::error::Error for ExpError {}
+impl core::error::Error for ExpError {}
 
 // Sealed trait, not publicly exported
 pub trait ExpImpl<Float>: Sized {
