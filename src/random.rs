@@ -34,26 +34,6 @@ impl<R> From<R> for Random<R> {
 }
 
 impl<R: Rng + ?Sized> Random<R> {
-	#[inline]
-	pub(crate) fn next_u32(&mut self) -> u32 {
-		self.rng.next_u32()
-	}
-
-	#[inline]
-	pub(crate) fn next_u64(&mut self) -> u64 {
-		self.rng.next_u64()
-	}
-
-	#[inline]
-	pub(crate) fn next_f32(&mut self) -> f32 {
-		self.rng.next_f32()
-	}
-
-	#[inline]
-	pub(crate) fn next_f64(&mut self) -> f64 {
-		self.rng.next_f64()
-	}
-
 	/// Fills the destination buffer with uniform random bytes from the Rng.
 	///
 	/// The underlying Rng may implement this as efficiently as possible.
